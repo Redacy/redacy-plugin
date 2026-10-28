@@ -1,0 +1,7 @@
+{
+  "name": "redacy-prova",
+  "owner": { "name": "Redacy" },
+  "plugins": [
+    { "name": "redacy-start", "source": "./", "description": "Ordine nei dati dello studio e preparazione del bundle." }
+  ]
+}
