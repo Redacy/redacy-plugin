@@ -10,7 +10,7 @@ Obiettivo: una risposta che si può verificare, presa solo dalla memoria dello s
 ## Passi
 
 1. Apri `memoria/INDICE.md`. Se non esiste, di' che la memoria è vuota e proponi `impara-lo-studio`.
-2. Scegli le pagine che c'entrano con la domanda. Leggile per intero.
+2. Scegli le pagine che c'entrano con la domanda (comprese quelle in `memoria/regole/`). Leggile per intero.
 3. Rispondi in poche righe, in italiano semplice.
 4. Dopo ogni affermazione indica la fonte: percorso della pagina e data.
 5. Se le pagine si contraddicono, mostra le due versioni con le date. Non scegliere tu.

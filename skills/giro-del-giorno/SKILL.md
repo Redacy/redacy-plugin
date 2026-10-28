@@ -9,7 +9,7 @@ Obiettivo: togliere all'utente la domanda "da dove parto". Non fai il lavoro: in
 
 ## Passi
 
-1. Leggi `periodo/obiettivo.md`, `periodo/todo.md`, `periodo/idee.md` e, se esiste, `memoria/regole/cosa-faccio-da-solo.md`.
+1. Leggi `periodo/obiettivo.md`, `periodo/todo.md`, `periodo/idee.md` e, se esiste, `memoria/regole/cosa-faccio-da-solo.md` e `memoria/regole/come-lavoro.md`.
 2. Elenca le scadenze con data e di chi è la prossima mossa. Una scadenza esterna vicina con un gesto dell'utente davanti pesa più di un todo vecchio.
 3. Ordina i todo e scegli i primi tre. Per ogni scelta una riga di motivo: perché prima degli altri.
 4. Elenca ciò che è bloccato e chi lo sblocca. Se non sai di chi è la mossa, scrivilo.

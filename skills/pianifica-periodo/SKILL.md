@@ -9,7 +9,7 @@ Obiettivo: un periodo che fa avanzare un obiettivo, non solo un elenco ordinato.
 
 ## Prima di cominciare
 
-Leggi `memoria/INDICE.md`, `periodo/obiettivo.md`, `periodo/idee.md`, `periodo/todo.md`. Se esiste `memoria/regole/cosa-faccio-da-solo.md`, leggila. Non rifare da zero: porta avanti ciò che non è finito.
+Leggi `memoria/INDICE.md`, `periodo/obiettivo.md`, `periodo/idee.md`, `periodo/todo.md`. Se esiste `memoria/regole/cosa-faccio-da-solo.md`, leggila e `memoria/regole/come-lavoro.md`. Non rifare da zero: porta avanti ciò che non è finito.
 
 ## Passi
 
