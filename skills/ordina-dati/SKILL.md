@@ -10,8 +10,8 @@ Obiettivo: cartelle chiare e un indice che un collega capisce in un minuto.
 ## Passi
 
 1. Chiedi quale cartella ordinare. Lavora solo lì.
-2. Elenca il contenuto in sola lettura. Non aprire file riservati più del necessario.
-3. Proponi una struttura semplice, al massimo tre livelli. Esempio:
+2. Elenca il contenuto in sola lettura. Non aprire file riservati più del necessario. Scrivi subito `INDICE.md` con cosa c'è e i problemi visti (doppioni, nomi poco chiari, file senza cliente): è utile anche se l'utente non sposta nulla.
+3. Solo se l'utente lo vuole, proponi una struttura semplice, al massimo tre livelli. Esempio:
    - `01-clienti/<cliente>/<anno>/`
    - `02-modelli/`
    - `03-interno/`
@@ -19,7 +19,7 @@ Obiettivo: cartelle chiare e un indice che un collega capisce in un minuto.
 4. Mostra una tabella: file attuale, destinazione, motivo. Una riga per file.
 5. Aspetta un sì esplicito. Se l'utente corregge, aggiorna la tabella e chiedi di nuovo.
 6. Dopo il sì, sposta i file. Non cancellare nulla. Non sovrascrivere: se il nome esiste, aggiungi un suffisso.
-7. Scrivi `INDICE.md` nella radice: una riga per cartella, cosa contiene e chi la usa.
+7. Aggiorna `INDICE.md` nella radice: una riga per cartella, cosa contiene e chi la usa.
 8. Chiudi con un riepilogo: file spostati, file lasciati in `99-da-smistare/`, dubbi aperti.
 
 ## Regole
