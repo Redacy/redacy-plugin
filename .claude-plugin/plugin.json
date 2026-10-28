@@ -1,6 +1,8 @@
 {
   "name": "redacy-start",
-  "description": "Metti in ordine i dati dello studio e preparali per un assistente gestito.",
-  "version": "0.1.0",
-  "author": { "name": "Redacy" }
+  "description": "Metti in ordine i dati dello studio, tieni il periodo di lavoro e impara dalle correzioni.",
+  "version": "0.2.0",
+  "author": {
+    "name": "Redacy"
+  }
 }
