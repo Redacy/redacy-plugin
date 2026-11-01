@@ -1,42 +1,61 @@
 # redacy-start
 
-Plugin per Claude Code. Mette in ordine i dati dello studio e li prepara per un assistente gestito.
+Plugin gratuito di Redacy per Claude Code e per Codex. Mette in ordine i dati dello studio e tiene il periodo di lavoro. È l'ingresso: quando i dati sono in ordine, Redacy può affiancarti con un agente AI gestito.
+
+## Per chi è
+
+Professionisti e piccole aziende con processi tecnici ripetuti, i cui dati sono sparsi in cartelle, mail e fogli.
 
 ## Cosa fa
 
 Otto skill, in italiano:
 
-- `/redacy-start:ordina-dati` riordina le cartelle e scrive un indice. Sposta solo dopo un sì.
-- `/redacy-start:impara-lo-studio` salva le regole dello studio come pagine brevi.
-- `/redacy-start:chiedi-allo-studio` risponde dalla memoria, citando le fonti.
-- `/redacy-start:prepara-bundle` scrive checklist e manifesto con impronte dei file.
-- `/redacy-start:inizia` prepara cartelle, tre file del periodo e un CLAUDE.md breve.
-- `/redacy-start:pianifica-periodo` costruisce obiettivo e todo con te.
-- `/redacy-start:parcheggia-idea` mette le idee in coda senza dirottare il periodo.
-- `/redacy-start:giro-del-giorno` dice cosa fare per primo e cosa è fermo.
+- `ordina-dati` riordina le cartelle e scrive un indice. Sposta solo dopo un sì.
+- `impara-lo-studio` salva le regole dello studio come pagine brevi e impara dalle correzioni.
+- `chiedi-allo-studio` risponde dalla memoria, citando le fonti.
+- `prepara-bundle` scrive checklist e manifesto con impronte dei file.
+- `inizia` prepara cartelle, tre file del periodo e un CLAUDE.md breve.
+- `pianifica-periodo` costruisce obiettivo e todo con te.
+- `parcheggia-idea` mette le idee in coda senza dirottare il periodo.
+- `giro-del-giorno` dice cosa fare per primo e cosa è fermo.
 
-## Come si prova in locale
+## Installazione
 
-```
-claude --plugin-dir /percorso/di/plugin-redacy-v0
-```
+Il repo pubblico non esiste ancora: al posto di `[ORGANIZZAZIONE/REPO]` va l'indirizzo definitivo.
 
-Poi digita `/redacy-start:` e scegli una skill.
-
-Per provare anche il marketplace di prova:
+Claude Code:
 
 ```
-claude plugin validate /percorso/di/plugin-redacy-v0
-claude plugin marketplace add /percorso/di/plugin-redacy-v0
+claude plugin marketplace add [ORGANIZZAZIONE/REPO]
 claude plugin install redacy-start@redacy-prova
 ```
 
-## Cosa non fa
+Codex (0.164 o successivo):
 
-- Non contatta servizi esterni.
-- Non installa software.
-- Non legge né chiede chiavi e password.
-- Non sposta né cancella file senza conferma.
-- Non è l'assistente gestito: prepara i dati, niente altro.
+```
+codex plugin marketplace add [ORGANIZZAZIONE/REPO]
+codex plugin add redacy-start@redacy-prova
+```
 
-Versione 0.2.0, provvisoria.
+Apri poi una nuova sessione. In Claude Code le skill si chiamano `/redacy-start:<nome>`; in Codex si elencano con `/skills`.
+
+Per provare dalla cartella locale:
+
+```
+claude --plugin-dir /percorso/del/plugin
+claude plugin validate /percorso/del/plugin
+```
+
+## Cosa fa e cosa non fa
+
+- Lavora solo nella cartella che scegli.
+- Non contatta servizi esterni, non installa software, non legge né chiede chiavi e password.
+- Non sposta né cancella file senza un sì.
+- Una persona rivede il risultato prima che esca: soldi, atti legali e invii restano tuoi.
+- Non è l'agente gestito: prepara i dati, niente altro.
+
+## Licenza
+
+Da decidere: vedi `LICENZA.md`.
+
+Versione 0.2.0-rc1, candidata al rilascio.

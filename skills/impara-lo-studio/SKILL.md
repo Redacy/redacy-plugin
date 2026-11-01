@@ -27,11 +27,14 @@ Una correzione vale già come sì: non chiedere conferma, scrivi.
 
 1. Dì in una riga che cosa avevi deciso e che cosa è sbagliato.
 2. Cerca in `memoria/` la pagina che c'entra. Se c'è, aggiornala. Se no, creane una in `memoria/regole/`, con la regola in positivo ("in questo caso si fa così"), il motivo, un esempio.
-3. Se la correzione riguarda che cosa fai tu e che cosa lasci all'utente, aggiorna anche `memoria/regole/cosa-faccio-da-solo.md`: una riga per classe di azione, con "da solo" oppure "lascio a te", e la data.
+3. Se la correzione riguarda che cosa fai tu e che cosa lasci all'utente, aggiorna anche `memoria/regole/cosa-faccio-da-solo.md`. La pagina è un elenco puntato, non una tabella: una riga per classe di azione, nella forma `- <classe di azione>: da solo | lascio a te (data)`. Se la classe c'è già, correggi quella riga invece di aggiungerne un'altra. Se la pagina supera le 300 parole, raggruppa le classi simili in una riga.
 4. Se la correzione cambia il modo di usare una skill di questo plugin (per esempio quando parcheggiare un'idea), scrivilo in `memoria/regole/come-lavoro.md`: le skill rileggono quella pagina all'inizio.
 5. Aggiorna `memoria/INDICE.md` e chiudi con una riga: che cosa hai cambiato e in quale file.
 
 ## Regole
+
+- Non toccare `periodo/obiettivo.md`: una correzione sul modo di lavorare non cambia l'obiettivo. Lo cambia solo l'utente, con `pianifica-periodo`.
+- Una riga per voce: scrivi sempre a capo, mai due voci sulla stessa riga.
 
 - Scrivi solo ciò che l'utente ha detto. Non inventare.
 - Se un nuovo fatto contraddice una pagina, segnalalo e chiedi quale vale (una correzione esplicita vince senza chiedere).

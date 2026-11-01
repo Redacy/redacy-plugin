@@ -1,7 +1,7 @@
 {
   "name": "redacy-start",
   "description": "Metti in ordine i dati dello studio, tieni il periodo di lavoro e impara dalle correzioni.",
-  "version": "0.2.0",
+  "version": "0.2.0-rc1",
   "author": {
     "name": "Redacy"
   }

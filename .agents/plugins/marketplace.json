@@ -1,0 +1,17 @@
+{
+  "name": "redacy-prova",
+  "plugins": [
+    {
+      "name": "redacy-start",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

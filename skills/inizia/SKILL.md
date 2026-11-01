@@ -16,7 +16,7 @@ Obiettivo: una cartella di lavoro dove ogni sessione sa dove sono le regole, il 
    - `periodo/obiettivo.md`, `periodo/idee.md`, `periodo/todo.md` : i tre file del periodo.
    - `CLAUDE.md` : poche righe che dicono dove guardare.
 3. Dopo il sì crea le cartelle e i file vuoti con la sola intestazione (formato in `pianifica-periodo`, `parcheggia-idea`, `impara-lo-studio`).
-4. Scrivi `CLAUDE.md` nella cartella, massimo 15 righe: all'inizio leggi `memoria/INDICE.md` e `periodo/obiettivo.md`; le fonti in `fonti/` non si modificano; una idea nuova va in `periodo/idee.md` e non cambia il periodo; ciò che l'utente corregge o insegna si salva con `impara-lo-studio`.
+4. Scrivi `CLAUDE.md` nella cartella, massimo 15 righe: all'inizio leggi `memoria/INDICE.md` e `periodo/obiettivo.md`; le fonti in `fonti/` non si modificano; una idea nuova va in `periodo/idee.md` e non cambia il periodo; `periodo/obiettivo.md` lo cambia solo l'utente, mai una correzione; ciò che l'utente corregge o insegna si salva con `impara-lo-studio`.
 5. Se in `fonti/` c'è già del materiale, proponi `ordina-dati` e poi `impara-lo-studio` per trasformarlo in pagine di memoria.
 
 ## Regole
