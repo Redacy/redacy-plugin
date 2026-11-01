@@ -37,7 +37,7 @@ codex plugin marketplace add [ORGANIZZAZIONE/REPO]
 codex plugin add redacy-start@redacy-prova
 ```
 
-Apri poi una nuova sessione. In Claude Code le skill si chiamano `/redacy-start:<nome>`; in Codex si elencano con `/skills`.
+Apri poi una nuova sessione. In Claude Code le skill si chiamano `/redacy-start:<nome>`.
 
 Per provare dalla cartella locale:
 
