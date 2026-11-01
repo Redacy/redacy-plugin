@@ -1,6 +1,6 @@
 # redacy-start
 
-Plugin gratuito di Redacy per Claude Code e per Codex. Mette in ordine i dati dello studio e tiene il periodo di lavoro. È l'ingresso: quando i dati sono in ordine, Redacy può affiancarti con un agente AI gestito.
+Plugin gratuito di Redacy per Claude Code e per Codex (serve un tuo account, il costo del servizio AI è a parte). Mette in ordine i dati dello studio e tiene il periodo di lavoro. È l'ingresso: quando i dati sono in ordine, Redacy può affiancarti con un agente AI gestito.
 
 ## Per chi è
 
@@ -49,7 +49,7 @@ claude plugin validate /percorso/del/plugin
 ## Cosa fa e cosa non fa
 
 - Lavora solo nella cartella che scegli.
-- Non contatta servizi esterni, non installa software, non legge né chiede chiavi e password.
+- Non apre connessioni proprie, non installa software, non legge né chiede chiavi e password. I testi che legge passano dal servizio AI che usi (Claude Code o Codex), con le sue regole sui dati.
 - Non sposta né cancella file senza un sì.
 - Una persona rivede il risultato prima che esca: soldi, atti legali e invii restano tuoi.
 - Non è l'agente gestito: prepara i dati, niente altro.
