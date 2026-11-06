@@ -1,4 +1,4 @@
-# redacy-start
+# redacy
 
 Plugin gratuito di Redacy per Claude Code e per Codex (serve un tuo account, il costo del servizio AI è a parte). Mette in ordine i dati dello studio e tiene il periodo di lavoro. È l'ingresso: quando i dati sono in ordine, Redacy può affiancarti con un agente AI gestito.
 
@@ -21,23 +21,23 @@ Otto skill, in italiano:
 
 ## Installazione
 
-Il repo pubblico non esiste ancora: al posto di `[ORGANIZZAZIONE/REPO]` va l'indirizzo definitivo.
+Il repo `Redacy/redacy-plugin` è privato: per ora installa solo chi ha accesso.
 
 Claude Code:
 
 ```
-claude plugin marketplace add [ORGANIZZAZIONE/REPO]
-claude plugin install redacy-start@redacy-prova
+claude plugin marketplace add Redacy/redacy-plugin
+claude plugin install redacy@redacy
 ```
 
 Codex (0.164 o successivo):
 
 ```
-codex plugin marketplace add [ORGANIZZAZIONE/REPO]
-codex plugin add redacy-start@redacy-prova
+codex plugin marketplace add Redacy/redacy-plugin
+codex plugin add redacy@redacy
 ```
 
-Apri poi una nuova sessione. In Claude Code le skill si chiamano `/redacy-start:<nome>`.
+Apri poi una nuova sessione. In Claude Code le skill si chiamano `/redacy:<nome>`.
 
 Per provare dalla cartella locale:
 
@@ -56,6 +56,6 @@ claude plugin validate /percorso/del/plugin
 
 ## Licenza
 
-Da decidere: vedi `LICENZA.md`.
+MIT, vedi `LICENSE`.
 
 Versione 0.2.0-rc1, candidata al rilascio.

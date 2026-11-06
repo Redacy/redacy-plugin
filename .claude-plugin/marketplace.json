@@ -1,14 +1,14 @@
 {
-  "name": "redacy-prova",
+  "name": "redacy",
   "owner": {
     "name": "Redacy"
   },
   "plugins": [
     {
-      "name": "redacy-start",
+      "name": "redacy",
       "source": "./",
       "description": "Ordine nei dati dello studio e preparazione del bundle."
     }
   ],
-  "description": "Marketplace di prova locale del plugin redacy-start."
+  "description": "Il marketplace di Redacy."
 }

@@ -1,8 +1,8 @@
 {
-  "name": "redacy-prova",
+  "name": "redacy",
   "plugins": [
     {
-      "name": "redacy-start",
+      "name": "redacy",
       "source": {
         "source": "local",
         "path": "./"

@@ -1,13 +1,14 @@
 {
-  "name": "redacy-start",
+  "name": "redacy",
   "version": "0.2.0-rc1",
   "description": "Metti in ordine i dati dello studio, tieni il periodo di lavoro e impara dalle correzioni.",
   "author": {
     "name": "Redacy"
   },
+  "license": "MIT",
   "skills": "./skills/",
   "interface": {
-    "displayName": "Redacy Start",
+    "displayName": "Redacy",
     "shortDescription": "Metti in ordine i dati dello studio e tieni il periodo di lavoro.",
     "category": "Productivity"
   }
