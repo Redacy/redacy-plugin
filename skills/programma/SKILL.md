@@ -53,7 +53,7 @@ Sono tre strade. Una sola va bene per una cartella con dati veri.
 
 **L'app Claude (scheda Code).** È la strada giusta: gira sul computer dell'utente, vede la cartella e i collegamenti. I passi:
 
-- Nella barra laterale della scheda Code, la voce Scheduled (in alcune versioni si chiama Routines). Poi New task.
+- Nella barra laterale della scheda Code, la voce Scheduled (se non la vedi, sta nel menu More della barra). Poi New task.
 - Se compare un menu con "Create with Claude" e "Set up manually", scegli "Set up manually".
 - Un nome (minuscolo con i trattini, unico fra le sue attività), le istruzioni (il prompt), poi Advanced settings e l'interruttore "Only on this computer".
 - "Local folder": la cartella dello studio.
