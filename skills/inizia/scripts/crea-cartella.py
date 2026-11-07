@@ -41,6 +41,8 @@ COPIE = [
     ("skills/pianifica-periodo/scripts/todo.schema.json", ".agents/hooks/todo.schema.json"),
     ("skills/pianifica-periodo/scripts/idee.schema.json", ".agents/hooks/idee.schema.json"),
     ("skills/pannello/scripts/ferma.py", ".agents/hooks/ferma.py"),
+    ("skills/pannello/scripts/pannello.py", ".agents/script/pannello.py"),
+    ("skills/pannello/scripts/pagina.html", ".agents/script/pagina.html"),
 ]
 
 # Copiati così come sono: il formato del file non ammette una riga in più.
@@ -107,7 +109,12 @@ def con_testa(sorgente, origine, versione):
             dati = {"$comment": commento, **{k: v for k, v in dati.items() if k != "$comment"}}
             return json.dumps(dati, indent=2, ensure_ascii=False) + "\n"
         return testo
-    if sorgente.suffix in (".md", ".html"):
+    if sorgente.suffix == ".html":
+        righe = testo.splitlines(keepends=True)
+        if righe and righe[0].lstrip().lower().startswith("<!doctype"):
+            return righe[0] + f"<!-- {nota} -->\n" + "".join(righe[1:])
+        return f"<!-- {nota} -->\n{testo}"
+    if sorgente.suffix == ".md":
         return f"<!-- {nota} -->\n{testo}"
     righe = testo.splitlines(keepends=True)
     if righe and righe[0].startswith("#!"):

@@ -116,20 +116,21 @@ cp -R "$RADICE/skills/inizia" "$FINTO/skills/"
 echo '{"name": "redacy", "version": "9.9.9"}' > "$FINTO/.claude-plugin/plugin.json"
 for s in skills/crea-grafo/scripts/corsa.py skills/crea-grafo/scripts/controlla-grafo.py \
          skills/crea-grafo/scripts/yaml_ridotto.py skills/pianifica-periodo/scripts/controlla-periodo.py \
-         skills/pannello/scripts/ferma.py; do
+         skills/pannello/scripts/ferma.py skills/pannello/scripts/pannello.py; do
   mkdir -p "$FINTO/$(dirname "$s")"
   printf '#!/usr/bin/env python3\nprint("finto")\n' > "$FINTO/$s"
 done
 for s in skills/pianifica-periodo/scripts/todo.schema.json skills/pianifica-periodo/scripts/idee.schema.json; do
   echo '{"type": "object"}' > "$FINTO/$s"
 done
+printf '<!doctype html>\n<html><body>finta</body></html>\n' > "$FINTO/skills/pannello/scripts/pagina.html"
 mkdir -p "$FINTO/skills/pannello/modello"
 echo '{"version": "0.0.1", "configurations": []}' > "$FINTO/skills/pannello/modello/launch.json"
 D2="$BASE/cartella-finta-$ORA"
 python3 "$FINTO/skills/inizia/scripts/crea-cartella.py" "$D2" > "$BASE/uscita-finta-$ORA.txt" 2>&1 || fallisce "la creazione col plugin finto esce con errore"
 grep -q '^avviso' "$BASE/uscita-finta-$ORA.txt" && fallisce "col plugin finto completo ci sono avvisi"
 for p in .agents/script/corsa.py .agents/script/controlla-grafo.py .agents/script/yaml_ridotto.py \
-         .agents/hooks/controlla-periodo.py .agents/hooks/ferma.py; do
+         .agents/hooks/controlla-periodo.py .agents/hooks/ferma.py .agents/script/pannello.py; do
   [ -f "$D2/$p" ] || fallisce "col plugin finto manca $p"
   [ "$(head -1 "$D2/$p")" = '#!/usr/bin/env python3' ] || fallisce "$p ha perso la prima riga #!"
   sed -n 2p "$D2/$p" | grep -q 'redacy 9.9.9 · copiato da skills/' || fallisce "$p non porta versione e origine nelle prime righe"
@@ -138,6 +139,8 @@ done
 for p in .agents/hooks/todo.schema.json .agents/hooks/idee.schema.json; do
   python3 -c "import json,sys; d=json.load(open(sys.argv[1])); assert d['\$comment'].startswith('redacy 9.9.9 · copiato da skills/pianifica-periodo/scripts/'); assert d['type']=='object'" "$D2/$p" || fallisce "$p non porta versione e origine nel \$comment"
 done
+[ "$(head -1 "$D2/.agents/script/pagina.html")" = '<!doctype html>' ] || fallisce "pagina.html ha perso il doctype in prima riga"
+sed -n 2p "$D2/.agents/script/pagina.html" | grep -q '^<!-- redacy 9.9.9 · copiato da skills/pannello/scripts/pagina.html' || fallisce "pagina.html non porta versione e origine dopo il doctype"
 cmp -s "$D2/.claude/launch.json" "$FINTO/skills/pannello/modello/launch.json" || fallisce ".claude/launch.json non è la copia esatta del modello del pannello"
 python3 "$FINTO/skills/inizia/scripts/crea-cartella.py" "$D2" --controlla > /dev/null 2>&1 || fallisce "--controlla sulla cartella del plugin finto non è pulito"
 
