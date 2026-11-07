@@ -107,9 +107,9 @@ bash prove/tutte.sh
 claude plugin validate .
 ```
 
-`prove/tutte.sh` lancia le prove senza modello: una riga per prova, in fondo `ESITO: PASSA` o `ESITO: FALLISCE`. Dura meno di un minuto.
+`prove/tutte.sh` lancia le prove senza modello: una riga per prova, in fondo `ESITO: PASSA` o `ESITO: FALLISCE`. Dura meno di un minuto. Servono Python 3, bash e curl.
 
-Le prove con un modello sono `prove/catena-claude.sh` e `prove/catena-codex.sh`. Seguono la catena: inizia, crea-workspace, crea-grafo, corsa, pannello, stop.
+Le prove con un modello chiamano Claude Code o Codex con il tuo account: `prove/catena-claude.sh` e `prove/catena-codex.sh` seguono la catena inizia, crea-workspace, crea-grafo, corsa, pannello, stop; le prove di un solo pezzo stanno in `prove/inizia/prova-onboarding-*.sh` e `prove/grafi/prova-crea-*.sh`.
 
 ## Licenza
 

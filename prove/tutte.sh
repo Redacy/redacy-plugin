@@ -2,7 +2,7 @@
 # tutte.sh · redacy 0.3.0
 # Lancia tutte le prove che non chiamano nessun modello, una riga per prova, e in fondo
 #   ESITO: PASSA     oppure     ESITO: FALLISCE <le prove che non passano>
-# Non serve un account Claude o Codex. Serve Python 3, bash e curl. Dura un paio di minuti.
+# Non serve un account Claude o Codex. Serve Python 3, bash e curl. Dura meno di un minuto.
 #
 # Uso: bash prove/tutte.sh
 #   REDACY_PROVE=<cartella>   dove mettere le cartelle di prova (se no una temporanea, tolta alla fine)
