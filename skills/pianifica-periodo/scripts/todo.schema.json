@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "redacy 0.3.0 · skills/pianifica-periodo/scripts/todo.schema.json · schema di periodo/todo.json: una voce = un'azione",
+  "title": "periodo/todo.json",
+  "type": "object",
+  "required": ["versione", "periodo", "todo"],
+  "additionalProperties": false,
+  "properties": {
+    "versione": {
+      "const": "0.3.0",
+      "description": "versione dello schema"
+    },
+    "periodo": {
+      "type": "string",
+      "description": "il periodo a cui appartengono i todo: un nome breve o un intervallo (per esempio «2026-11» o «2026-11-10/2026-11-21»); vuoto finché non c'è un periodo"
+    },
+    "todo": {
+      "type": "array",
+      "description": "le azioni del periodo, una per voce",
+      "items": {
+        "type": "object",
+        "required": ["id", "cosa", "chi", "stato", "scadenza", "dove", "da", "aggiornato"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^t[0-9]+$",
+            "description": "identificatore, t1, t2, ...; non si riusa mai"
+          },
+          "cosa": {
+            "type": "string",
+            "minLength": 1,
+            "description": "l'azione in una frase, che comincia con un verbo"
+          },
+          "chi": {
+            "type": "string",
+            "minLength": 1,
+            "description": "chi la fa: «tu» (l'utente), «agente» (l'agente AI) o il nome di una persona"
+          },
+          "stato": {
+            "enum": ["da fare", "in corso", "fatto", "ferma"],
+            "description": "dove sta l'azione"
+          },
+          "scadenza": {
+            "type": "string",
+            "pattern": "^([0-9]{4}-[0-9]{2}-[0-9]{2})?$",
+            "description": "data AAAA-MM-GG, oppure vuoto"
+          },
+          "dove": {
+            "type": "string",
+            "description": "dove sta il lavoro: workspace/<nome>, grafi/<nome>.yaml, un file della cartella; vuoto se non c'è"
+          },
+          "da": {
+            "enum": ["piano", "giro", "utente"],
+            "description": "chi ha messo la voce: pianifica-periodo (piano), giro-del-giorno (giro) o l'utente"
+          },
+          "aggiornato": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "data AAAA-MM-GG dell'ultima modifica della voce"
+          },
+          "nota": {
+            "type": "string",
+            "description": "facoltativa: perché la voce è ferma, o cosa aspetta"
+          }
+        }
+      }
+    }
+  }
+}
