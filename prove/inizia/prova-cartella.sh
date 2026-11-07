@@ -32,7 +32,7 @@ for p in AGENTS.md CLAUDE.md .agents/hooks.json .agents/policy/cosa-faccio-da-so
          .agents/regole/memoria.md .agents/regole/testi-per-persone.md \
          .claude/settings.json .codex/config.toml .codex/hooks.json \
          memoria/INDICE.md memoria/LOG.md memoria/fonti-dati.md \
-         periodo/obiettivo.md periodo/todo.json periodo/idee.json fonti/LEGGIMI.md; do
+         periodo/obiettivo.md periodo/todo.json periodo/idee.json fonti/LEGGIMI.md interfaccia/.gitignore; do
   [ -f "$D/$p" ] || fallisce "manca il file $p"
 done
 for p in .agents/skills .agents/regole .agents/policy .agents/hooks .agents/script \
@@ -45,6 +45,7 @@ find "$D" -name .tienimi | grep -q . && fallisce "un segnaposto .tienimi è fini
 
 # 3. La forma dei file
 [ "$(cat "$D/CLAUDE.md")" = "@AGENTS.md" ] || fallisce "CLAUDE.md non è @AGENTS.md"
+grep -qx 'pannello.json' "$D/interfaccia/.gitignore" && grep -qx 'pannello.log' "$D/interfaccia/.gitignore" || fallisce "interfaccia/.gitignore non tiene fuori da git pannello.json e pannello.log"
 PAROLE=$(wc -w < "$D/AGENTS.md")
 [ "$PAROLE" -lt 1500 ] || fallisce "AGENTS.md ha $PAROLE parole, il tetto è 1500"
 grep -q 'memoria/INDICE.md' "$D/AGENTS.md" || fallisce "AGENTS.md non dice di leggere memoria/INDICE.md"
@@ -116,20 +117,21 @@ cp -R "$RADICE/skills/inizia" "$FINTO/skills/"
 echo '{"name": "redacy", "version": "9.9.9"}' > "$FINTO/.claude-plugin/plugin.json"
 for s in skills/crea-grafo/scripts/corsa.py skills/crea-grafo/scripts/controlla-grafo.py \
          skills/crea-grafo/scripts/yaml_ridotto.py skills/pianifica-periodo/scripts/controlla-periodo.py \
-         skills/pannello/scripts/ferma.py; do
+         skills/pannello/scripts/ferma.py skills/pannello/scripts/pannello.py; do
   mkdir -p "$FINTO/$(dirname "$s")"
   printf '#!/usr/bin/env python3\nprint("finto")\n' > "$FINTO/$s"
 done
 for s in skills/pianifica-periodo/scripts/todo.schema.json skills/pianifica-periodo/scripts/idee.schema.json; do
   echo '{"type": "object"}' > "$FINTO/$s"
 done
+printf '<!doctype html>\n<html><body>finta</body></html>\n' > "$FINTO/skills/pannello/scripts/pagina.html"
 mkdir -p "$FINTO/skills/pannello/modello"
 echo '{"version": "0.0.1", "configurations": []}' > "$FINTO/skills/pannello/modello/launch.json"
 D2="$BASE/cartella-finta-$ORA"
 python3 "$FINTO/skills/inizia/scripts/crea-cartella.py" "$D2" > "$BASE/uscita-finta-$ORA.txt" 2>&1 || fallisce "la creazione col plugin finto esce con errore"
 grep -q '^avviso' "$BASE/uscita-finta-$ORA.txt" && fallisce "col plugin finto completo ci sono avvisi"
 for p in .agents/script/corsa.py .agents/script/controlla-grafo.py .agents/script/yaml_ridotto.py \
-         .agents/hooks/controlla-periodo.py .agents/hooks/ferma.py; do
+         .agents/hooks/controlla-periodo.py .agents/hooks/ferma.py .agents/script/pannello.py; do
   [ -f "$D2/$p" ] || fallisce "col plugin finto manca $p"
   [ "$(head -1 "$D2/$p")" = '#!/usr/bin/env python3' ] || fallisce "$p ha perso la prima riga #!"
   sed -n 2p "$D2/$p" | grep -q 'redacy 9.9.9 · copiato da skills/' || fallisce "$p non porta versione e origine nelle prime righe"
@@ -138,8 +140,23 @@ done
 for p in .agents/hooks/todo.schema.json .agents/hooks/idee.schema.json; do
   python3 -c "import json,sys; d=json.load(open(sys.argv[1])); assert d['\$comment'].startswith('redacy 9.9.9 · copiato da skills/pianifica-periodo/scripts/'); assert d['type']=='object'" "$D2/$p" || fallisce "$p non porta versione e origine nel \$comment"
 done
+[ "$(head -1 "$D2/.agents/script/pagina.html")" = '<!doctype html>' ] || fallisce "pagina.html ha perso il doctype in prima riga"
+sed -n 2p "$D2/.agents/script/pagina.html" | grep -q '^<!-- redacy 9.9.9 · copiato da skills/pannello/scripts/pagina.html' || fallisce "pagina.html non porta versione e origine dopo il doctype"
 cmp -s "$D2/.claude/launch.json" "$FINTO/skills/pannello/modello/launch.json" || fallisce ".claude/launch.json non è la copia esatta del modello del pannello"
 python3 "$FINTO/skills/inizia/scripts/crea-cartella.py" "$D2" --controlla > /dev/null 2>&1 || fallisce "--controlla sulla cartella del plugin finto non è pulito"
+
+# 10. Cartelle protette (come la sandbox di Codex): fa il resto, esce 3, stampa la riga per finire
+P="$BASE/protetta-$ORA"; mkdir -p "$P/.agents" "$P/.codex"; chmod 555 "$P/.agents" "$P/.codex"
+python3 "$SCRIPT" "$P" > "$BASE/uscita-protetta-$ORA.txt" 2>&1; U=$?
+chmod 755 "$P/.agents" "$P/.codex"
+[ "$U" = 3 ] || fallisce "con .agents/ e .codex/ protette lo script esce $U, non 3"
+grep -q '^non scritto: .agents/' "$BASE/uscita-protetta-$ORA.txt" || fallisce "con .agents/ protetta non dice cosa non ha scritto"
+[ -f "$P/memoria/INDICE.md" ] && [ -f "$P/periodo/todo.json" ] && [ -f "$P/AGENTS.md" ] || fallisce "con .agents/ protetta non ha creato il resto"
+grep -q 'da finire con una riga nel terminale' "$P/memoria/LOG.md" || fallisce "la riga di LOG.md non dice che la cartella è da finire"
+CMD=$(sed -n 's/^comando: //p' "$BASE/uscita-protetta-$ORA.txt")
+[ -n "$CMD" ] || fallisce "con .agents/ protetta non stampa la riga comando:"
+bash -c "$CMD" > "$BASE/uscita-ripresa-$ORA.txt" 2>&1 || fallisce "la riga stampata non finisce la cartella"
+python3 "$SCRIPT" "$P" --controlla > /dev/null 2>&1 || fallisce "dopo la riga stampata --controlla non è pulito"
 
 echo "cartella di prova: $D"
 echo "PASSA"
