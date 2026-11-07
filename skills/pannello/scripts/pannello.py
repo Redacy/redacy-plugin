@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.3.0 · skills/pannello/scripts/pannello.py
+# redacy 0.3.1 · skills/pannello/scripts/pannello.py
 """Il pannello: una pagina sola, in locale, che mostra lo studio e ferma una corsa.
 
 Un server su 127.0.0.1, solo libreria standard, uno per cartella dello studio.
@@ -14,7 +14,8 @@ Uso:
   python3 pannello.py --stato                   dice se il pannello della cartella è acceso
   python3 pannello.py --spegni                  spegne il pannello della cartella
   python3 pannello.py --vista NOME              stampa una vista in JSON senza server
-                                                (stato, periodo, recenti, grafi, corse, file-chiave, memoria, supporto)
+                                                (stato, periodo, recenti, grafi, corse, file-chiave, memoria, supporto,
+                                                file, file-firma, su-misura)
 
 Opzioni: --porta N (altrimenti una porta stabile per cartella, 47000-47999), --inattivo-ore N
 (il server si spegne da solo dopo N ore senza richieste, 8 di default, 0 = mai).
@@ -59,6 +60,7 @@ FORMATO_ORA = "%Y-%m-%dT%H:%M:%SZ"
 PERSA_DOPO_DEFAULT = 20
 MAX_PAGINE_MEMORIA = 3000
 MAX_BYTE_PAGINA = 256 * 1024
+MAX_BYTE_FILE = 16 * 1024 * 1024
 MAX_CORSE = 30
 MAX_CORPO_POST = 4096
 RIGHE_LOG = 8
@@ -508,6 +510,109 @@ def vista_memoria(cartella):
                       "conteggi": {"pagine": len(pagine), "collegamenti": len(coppie), "mancanti": len(mancanti)}}}
 
 
+# ---------------------------------------------------------------- il testo dei file per la pagina
+
+def file_del_pannello(cartella):
+    """I file che la pagina mostra come interfaccia, per percorso relativo.
+
+    Solo percorsi fissi: AGENTS.md, periodo/ (.md, .json), memoria/*.md, grafi/*.yaml e le corse più
+    recenti, workspace/<area>/AGENTS.md e workspace/<area>/memoria/*.md. Mai fonti/, mai le cartelle
+    nascoste (.agents, .claude, .codex), mai interfaccia/.
+    """
+    out = []
+    if os.path.isfile(os.path.join(cartella, "AGENTS.md")) and not os.path.islink(os.path.join(cartella, "AGENTS.md")):
+        out.append("AGENTS.md")
+    out += ["periodo/" + n for n in elenco(cartella, "periodo") if n.endswith((".md", ".json"))]
+    out += ["memoria/" + n for n in elenco(cartella, "memoria", ".md")[:MAX_PAGINE_MEMORIA]]
+    out += ["grafi/" + n for n in elenco(cartella, "grafi") if n.endswith((".yaml", ".yml"))]
+    d = os.path.join(cartella, "grafi", "corse")
+
+    def quando(n):
+        try:
+            return os.stat(os.path.join(d, n)).st_mtime
+        except OSError:
+            return 0
+    out += ["grafi/corse/" + n for n in sorted(elenco(cartella, "grafi/corse", ".json"), key=quando, reverse=True)[:MAX_CORSE]]
+    for area in sottocartelle(cartella, "workspace"):
+        if "AGENTS.md" in elenco(cartella, "workspace/" + area):
+            out.append("workspace/%s/AGENTS.md" % area)
+        out += ["workspace/%s/memoria/%s" % (area, n) for n in elenco(cartella, "workspace/%s/memoria" % area, ".md")]
+    return [r for r in out if dentro(cartella, os.path.join(cartella, r))]
+
+
+def firma_file(cartella, elenco_file=None):
+    """Cambia quando cambia uno dei file della pagina: la pagina rilegge i testi solo allora."""
+    righe = []
+    for rel in (elenco_file if elenco_file is not None else file_del_pannello(cartella)):
+        try:
+            st = os.stat(os.path.join(cartella, rel))
+            righe.append("%s %d %d" % (rel, st.st_size, st.st_mtime_ns))
+        except OSError:
+            continue
+    return "%08x" % (zlib.crc32("\n".join(righe).encode("utf-8")) & 0xffffffff)
+
+
+def vista_file(cartella):
+    """Il testo dei file della pagina, al massimo MAX_BYTE_FILE in tutto (MAX_BYTE_PAGINA per file)."""
+    tutti = file_del_pannello(cartella)
+    testi, totale, troncato = {}, 0, False
+    for rel in tutti:
+        t = leggi_testo(os.path.join(cartella, rel))
+        if t is None:
+            continue
+        n = len(t.encode("utf-8"))
+        if totale + n > MAX_BYTE_FILE:
+            troncato = True
+            break
+        testi[rel] = t
+        totale += n
+    return {"firma": firma_file(cartella, tutti), "file": testi, "troncato": troncato}
+
+
+PANNELLI = ("oggi", "processi", "periodo", "memoria", "aree")
+SFONDI = ("galassia", "scrivania", "tinta")
+COLORE = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def vista_su_misura(cartella):
+    """Le scelte del pannello per questo utente, da interfaccia/su-misura.json: solo le chiavi note e valide.
+
+    Il file lo scrive l'agente dello studio dal modello della skill (modello/su-misura.json); se manca
+    o non si legge, la pagina usa i suoi valori di partenza.
+    """
+    p = os.path.join(cartella, "interfaccia", "su-misura.json")
+    dato = None
+    if dentro(cartella, p):
+        t = leggi_testo(p, 16 * 1024)
+        try:
+            dato = json.loads(t) if t else None
+        except ValueError:
+            dato = None
+    if not isinstance(dato, dict):
+        return {}
+    out = {}
+    if dato.get("sfondo") in SFONDI:
+        out["sfondo"] = dato["sfondo"]
+    if dato.get("primo") in PANNELLI:
+        out["primo"] = dato["primo"]
+    if isinstance(dato.get("ordine"), list):
+        ordine = []
+        for x in dato["ordine"]:
+            if x in PANNELLI and x not in ordine:
+                ordine.append(x)
+        out["ordine"] = ordine + [x for x in PANNELLI if x not in ordine]
+    if isinstance(dato.get("frase"), bool):
+        out["frase"] = dato["frase"]
+    acc = dato.get("accento")
+    if isinstance(acc, dict):
+        a = {k: acc[k] for k in ("chiaro", "scuro") if isinstance(acc.get(k), str) and COLORE.match(acc[k])}
+        if a:
+            out["accento"] = a
+    if isinstance(dato.get("titolo"), str) and dato["titolo"].strip():
+        out["titolo"] = dato["titolo"].strip()[:60]
+    return out
+
+
 def vista_fonti(cartella):
     nomi = []
     d = os.path.join(cartella, "fonti")
@@ -623,6 +728,9 @@ VISTE = {
     "file-chiave": lambda c: vista_stato(c)["file_chiave"],
     "memoria": lambda c: vista_memoria(c),
     "supporto": lambda c: vista_stato(c)["supporto"],
+    "file": lambda c: vista_file(c),
+    "file-firma": lambda c: {"firma": firma_file(c)},
+    "su-misura": lambda c: vista_su_misura(c),
 }
 
 

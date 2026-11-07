@@ -71,7 +71,16 @@ Le prime tre sono quelle che usi di più. Le altre le chiama l'agente quando ser
 
 ## Il pannello e lo stop
 
-Il pannello è una pagina sola sul tuo computer (127.0.0.1). Mostra cosa sta succedendo, le cose fatte di recente, i processi e le aree di lavoro, e la memoria disegnata come un grafo. L'unico gesto è il bottone di stop su una corsa. "Richiedi supporto umano" ti porta a https://redacy.com e non fa partire niente.
+Il pannello è una pagina sola sul tuo computer (127.0.0.1). La casa mostra cinque pannelli come cartelle:
+- Oggi: cosa aspetta te e cosa sta lavorando;
+- Processi: disegnati come un flusso, dal loro file;
+- Periodo: obiettivo, cose da fare, idee;
+- Memoria: un grafo delle pagine e dei loro collegamenti;
+- Aree: chi si occupa di cosa.
+
+Tocchi un pannello e si apre. «Avvicina» lo porta quasi a tutto schermo, il dock in basso ti porta da un pannello all'altro. Ogni cosa si apre fino al file da cui viene, impaginato. L'unico gesto è il bottone di stop su una corsa. "Richiedi supporto umano" ti porta a https://redacy.com e non fa partire niente.
+
+Il nome in alto, il pannello che vedi per primo, l'ordine, lo sfondo e il colore si scelgono per ogni studio in `interfaccia/su-misura.json`. Li scrive l'agente; basta chiedergli «metti prima i processi» o «usa il colore dello studio».
 
 Per accenderlo chiedi all'agente: "apri il pannello". Oppure usa il comando che `inizia` ti dà.
 
@@ -107,10 +116,12 @@ bash prove/tutte.sh
 claude plugin validate .
 ```
 
-`prove/tutte.sh` lancia le prove senza modello: una riga per prova, in fondo `ESITO: PASSA` o `ESITO: FALLISCE`. Dura meno di un minuto. Servono Python 3, bash e curl.
+`prove/tutte.sh` lancia le prove senza modello: una riga per prova, in fondo `ESITO: PASSA` o `ESITO: FALLISCE`. Dura meno di un minuto. Servono Python 3, bash e curl. La prova della pagina vera nel browser (`prove/pannello/prova-pagina.sh`) usa anche Node 22 e un Chromium; se mancano, quella parte salta e lo dice.
+
+La pagina del pannello si fa in pezzi in `skills/pannello/sorgenti/` (il guscio, i contenuti dei cinque pannelli, la fonte dei dati) e si monta in `skills/pannello/scripts/pagina.html` con `python3 skills/pannello/sorgenti/costruisci.py`. Cosa deve reggere sta in `skills/pannello/sorgenti/CONTRATTO.md`.
 
 Le prove con un modello chiamano Claude Code o Codex con il tuo account: `prove/catena-claude.sh` e `prove/catena-codex.sh` seguono la catena inizia, crea-workspace, crea-grafo, corsa, pannello, stop; le prove di un solo pezzo stanno in `prove/inizia/prova-onboarding-*.sh` e `prove/grafi/prova-crea-*.sh`.
 
 ## Licenza
 
-MIT, vedi `LICENSE`. Versione 0.3.0.
+MIT, vedi `LICENSE`. Versione 0.3.1.

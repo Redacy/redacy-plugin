@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# prova-server.sh · redacy 0.3.0
+# prova-server.sh · redacy 0.3.1
 # Prova il server del pannello su una cartella dello studio fatta da `inizia` (crea-cartella.py),
 # con dati finti e una corsa per stato scritta da corsa.py:
 #  - il server parte, la pagina e tutte le viste rispondono 200 e dicono cose giuste;
+#  - la vista file dà il testo dei soli percorsi fissi (mai fonti/) e la sua firma cambia con i file;
 #  - un secondo avvio riusa il primo (stesso pid, stessa porta, un solo processo);
 #  - una richiesta con Host sbagliato, con Origin estraneo, senza gettone, con gettone sbagliato,
 #    o senza Content-Type JSON è rifiutata;
@@ -58,7 +59,7 @@ URL="http://127.0.0.1:$PORTA"
 codice() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$@"; }
 [ "$(codice "$URL/")" = "200" ] || fallisce "la pagina / non risponde 200"
 curl -s "$URL/" | grep -q "$GETTONE" || fallisce "la pagina non porta il gettone"
-for v in ciao stato periodo recenti grafi corse file-chiave memoria supporto; do
+for v in ciao stato periodo recenti grafi corse file-chiave memoria supporto file file-firma su-misura; do
   [ "$(codice "$URL/api/$v")" = "200" ] || fallisce "/api/$v non risponde 200"
   curl -s "$URL/api/$v" | python3 -c "import json,sys;json.load(sys.stdin)" 2>/dev/null || fallisce "/api/$v non è JSON"
 done
@@ -110,6 +111,43 @@ assert all(a["da"] in chiavi and a["a"] in chiavi for a in m["archi"])
 assert "Cosa mi serve:" in s["supporto"]["testo"] and s["supporto"]["url"] == "https://redacy.com"
 assert "Manca la colonna delle scadenze" in s["supporto"]["testo"]
 EOF
+
+# 4b. Il testo dei file per la pagina: solo percorsi fissi, mai fonti/ né le cartelle nascoste; la firma segue i file
+curl -s "$URL/api/file" > "$BASE/server-$ORA/file.json"
+FIRMA1="$(curl -s "$URL/api/file-firma" | python3 -c "import json,sys;print(json.load(sys.stdin)['firma'])")"
+python3 - "$BASE/server-$ORA/file.json" "$FIRMA1" <<'EOF' || fallisce "la vista file dice cose sbagliate (vedi sopra)"
+import json, sys
+d = json.load(open(sys.argv[1]))
+f = d["file"]
+assert d["firma"] == sys.argv[2] and d["troncato"] is False, (d["firma"], sys.argv[2], d["troncato"])
+for k in ("AGENTS.md", "periodo/obiettivo.md", "periodo/todo.json", "grafi/giro-scadenze.yaml", "workspace/dichiarazioni/AGENTS.md"):
+    assert k in f, (k, sorted(f))
+assert any(k.startswith("workspace/dichiarazioni/memoria/") for k in f), sorted(f)
+assert any(k.startswith("grafi/corse/") and k.endswith(".json") for k in f), sorted(f)
+assert not any(k.startswith(("fonti/", ".", "interfaccia/")) or "/." in k or k.endswith("CLAUDE.md") for k in f), sorted(f)
+assert "Chiudere le dichiarazioni" in f["periodo/obiettivo.md"], f["periodo/obiettivo.md"][:200]
+EOF
+[ -f "$D/memoria/INDICE.md" ] || fallisce "manca memoria/INDICE.md nella cartella di prova"
+printf '\n' >> "$D/memoria/INDICE.md"
+FIRMA2="$(curl -s "$URL/api/file-firma" | python3 -c "import json,sys;print(json.load(sys.stdin)['firma'])")"
+[ -n "$FIRMA1" ] && [ "$FIRMA1" != "$FIRMA2" ] || fallisce "la firma dei file non cambia quando cambia un file ($FIRMA1 -> $FIRMA2)"
+
+# 4c. Le scelte su misura: senza file niente, col file solo le chiavi note e valide
+[ "$(curl -s "$URL/api/su-misura")" = "{}" ] || fallisce "senza interfaccia/su-misura.json la vista su-misura non è vuota"
+cat > "$D/interfaccia/su-misura.json" <<'EOF'
+{"sfondo": "tinta", "primo": "processi", "ordine": ["memoria", "oggi", "boh", "oggi"], "frase": false,
+ "accento": {"chiaro": "#0a7d5a", "scuro": "rosso"}, "titolo": "  Studio Prova  ", "script": "<script>"}
+EOF
+curl -s "$URL/api/su-misura" | python3 -c "
+import json, sys
+m = json.load(sys.stdin)
+atteso = {'sfondo': 'tinta', 'primo': 'processi', 'ordine': ['memoria', 'oggi', 'processi', 'periodo', 'aree'], 'frase': False,
+          'accento': {'chiaro': '#0a7d5a'}, 'titolo': 'Studio Prova'}
+assert m == atteso, m
+" || fallisce "la vista su-misura non tiene solo le chiavi valide"
+printf 'non è json' > "$D/interfaccia/su-misura.json"
+[ "$(curl -s "$URL/api/su-misura")" = "{}" ] || fallisce "un su-misura.json rotto non dà {}"
+rm -f "$D/interfaccia/su-misura.json"
 
 # 5. Un secondo avvio riusa il primo
 USCITA2="$(python3 "$PANNELLO" --cartella "$D" 2>&1)" || fallisce "il secondo avvio esce con errore: $USCITA2"

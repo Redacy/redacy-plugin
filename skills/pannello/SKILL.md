@@ -5,7 +5,7 @@ description: Accende il pannello dello studio (una pagina nel browser, solo sul 
 
 # Pannello
 
-Il pannello è la pagina dello studio: vedi cosa sta girando, cosa aspetta te e cosa sa lo studio. Mostra e basta. Ha un solo gesto sulle esecuzioni, «Ferma», e un bottone «Richiedi supporto umano» che prepara un riepilogo e apre `https://redacy.com`: da lì non parte niente.
+Il pannello è la pagina dello studio: vedi cosa sta girando, cosa aspetta te e cosa sa lo studio. La casa mostra cinque pannelli come cartelle (Oggi, Processi, Periodo, Memoria, Aree): l'utente ne tocca uno e si apre, con «Avvicina» lo porta quasi a tutto schermo, e il dock in basso lo porta da un pannello all'altro. Ogni cosa si apre fino al file da cui viene. Mostra e basta. Ha un solo gesto sulle esecuzioni, «Ferma», e un bottone «Richiedi supporto umano» che prepara un riepilogo e apre `https://redacy.com`: da lì non parte niente.
 
 Gira sul computer dell'utente, su `127.0.0.1`, legge solo la cartella dello studio e non chiama né Claude né Codex. C'è un pannello solo per cartella: se è già acceso, questa skill dà l'indirizzo di quello.
 
@@ -26,7 +26,12 @@ Dici «il pannello», «una pagina nel browser, solo sul tuo computer». Per le 
    - In Codex e nel terminale apri l'indirizzo nel browser.
 4. **Spiega in tre frasi** (con le parole di `voce.md`), solo la prima volta:
    «Ti ho aperto il pannello: una pagina nel browser, solo sul tuo computer. Lì vedi cosa sta girando, cosa aspetta te e cosa sa lo studio. Se un lavoro va fermato c'è il bottone Ferma; per il resto il pannello mostra e basta.»
-5. **Se l'utente chiede di spegnerlo**: `python3 <percorso>/pannello.py --spegni`.
+5. **La prima volta, le scelte su misura.** Se nella cartella non c'è `interfaccia/su-misura.json`, copialo da `modello/su-misura.json` di questa skill e adattalo all'utente: il nome dello studio, il pannello che vede per primo, l'ordine, lo sfondo, il colore. Come si sceglie e cosa non si tocca: `references/su-misura.md`.
+6. **Se l'utente chiede di spegnerlo**: `python3 <percorso>/pannello.py --spegni`.
+
+## Il pannello su misura
+
+Se l'utente vuole il pannello diverso (prima i processi, il colore dello studio, uno sfondo più sobrio, niente frase in alto), cambi solo `interfaccia/su-misura.json` della sua cartella, come dice `references/su-misura.md`, e gli dici di ricaricare la pagina. Non tocchi mai `pagina.html`: è uguale per tutti e si aggiorna col plugin.
 
 ## Se non parte
 
@@ -37,7 +42,7 @@ Dici «il pannello», «una pagina nel browser, solo sul tuo computer». Per le 
 
 ## Cosa legge il pannello (per te, non da dire)
 
-`periodo/` (obiettivo, cose da fare), `memoria/LOG.md` (le cose fatte di recente), `grafi/*.yaml` e `grafi/corse/*.json` (i processi e le esecuzioni), `workspace/*/` (le aree di lavoro), `memoria/*.md` e `workspace/*/memoria/*.md` (la memoria, disegnata come un grafo dai `[[collegamenti]]`) e i nomi in `fonti/` (mai il contenuto). Se una cartella o un file non ci sono, la parte della pagina resta vuota, senza errori.
+`periodo/` (obiettivo, cose da fare), `memoria/LOG.md` (le cose fatte di recente), `grafi/*.yaml` e `grafi/corse/*.json` (i processi e le esecuzioni), `workspace/*/` (le aree di lavoro), `memoria/*.md` e `workspace/*/memoria/*.md` (la memoria, disegnata come un grafo dai `[[collegamenti]]`) e i nomi in `fonti/` (mai il contenuto). La pagina riceve anche il testo di questi file (mai di `fonti/`, mai delle cartelle nascoste) per mostrarli impaginati, e le scelte di `interfaccia/su-misura.json`. Se una cartella o un file non ci sono, la parte della pagina resta vuota, senza errori.
 
 ## Lo stop di una corsa
 

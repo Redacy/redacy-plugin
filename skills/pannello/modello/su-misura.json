@@ -1,0 +1,8 @@
+{
+  "titolo": "",
+  "primo": "oggi",
+  "ordine": ["oggi", "processi", "periodo", "memoria", "aree"],
+  "sfondo": "galassia",
+  "frase": true,
+  "accento": { "chiaro": "#5148d8", "scuro": "#8f8cff" }
+}
