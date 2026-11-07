@@ -73,7 +73,7 @@ PY
   local tolti="chiedi-allo-""studio|parcheggia-""idea|prepara-""bundle|impara-lo-""studio|0\.2\.""0"
   vecchi="$(grep -rnE "$tolti" . --exclude-dir=.git --exclude-dir=__pycache__ -I || true)"
   [ -z "$vecchi" ] || { echo "FALLISCE nomi tolti o versione vecchia ancora presenti:"; echo "$vecchi" | head -5; return 1; }
-  echo "nessun nome tolto, nessuna versione 0.2.0"
+  echo "nessun nome tolto, nessuna versione vecchia"
   echo "ok"
 }
 
