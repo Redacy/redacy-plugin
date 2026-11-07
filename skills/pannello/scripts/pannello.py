@@ -501,9 +501,11 @@ def vista_memoria(cartella):
             nodi[a[1]]["grado"] += 1
             nodi[a[1]]["citata_da"].append(a[0])
     mancanti = [n for n in nodi.values() if n["mancante"]]
+    # «collegamenti» come li conta la pagina: coppie di pagine che ci sono, senza direzione
+    coppie = {tuple(sorted((a["da"], a["a"]))) for a in archi if not a["mancante"]}
     return {"memoria": pagine,
             "grafo": {"nodi": list(nodi.values()), "archi": archi,
-                      "conteggi": {"pagine": len(pagine), "collegamenti": len(archi), "mancanti": len(mancanti)}}}
+                      "conteggi": {"pagine": len(pagine), "collegamenti": len(coppie), "mancanti": len(mancanti)}}}
 
 
 def vista_fonti(cartella):

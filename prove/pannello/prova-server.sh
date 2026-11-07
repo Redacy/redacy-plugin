@@ -99,7 +99,7 @@ assert s["workspace"][0]["pagine_memoria"] == 2
 assert {f["file"] for f in s["file_chiave"]["grafi"]} == {"grafi/giro-scadenze.yaml"}
 assert any(f["nome"] == "pratiche" and f["cartella"] for f in s["file_chiave"]["fonti"])
 m = s["memoria_grafo"]
-assert m["conteggi"]["pagine"] == 9 and m["conteggi"]["mancanti"] == 2, m["conteggi"]
+assert m["conteggi"]["pagine"] == 9 and m["conteggi"]["mancanti"] == 2 and m["conteggi"]["collegamenti"] == 10, m["conteggi"]
 mancanti = sorted(n["id"] for n in m["nodi"] if n["mancante"])
 assert mancanti == ["modello-730", "scadenze-fiscali"], mancanti
 assert not any(n["id"] == "non-contare-questo" for n in m["nodi"]), "un collegamento dentro il codice è stato contato"
