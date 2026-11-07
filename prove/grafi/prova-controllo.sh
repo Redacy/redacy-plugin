@@ -7,6 +7,7 @@
 # Si lancia da qualsiasi cartella: bash prove/grafi/prova-controllo.sh
 # Finisce con una riga sola: PASSA oppure FALLISCE <perché>.
 
+export PYTHONDONTWRITEBYTECODE=1
 AQUI="$(cd "$(dirname "$0")" && pwd)"
 RADICE="$(cd "$AQUI/../.." && pwd)"
 SCRIPTS="$RADICE/skills/crea-grafo/scripts"

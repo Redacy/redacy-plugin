@@ -5,6 +5,7 @@
 # Uso: bash prove/grafi/prova-corsa.sh [--tieni]   (--tieni lascia la cartella di prova)
 # La cartella di prova sta sotto $REDACY_PROVE (default /home/ubuntu/lab/redacy-plugin-prove/B).
 
+export PYTHONDONTWRITEBYTECODE=1
 set -u
 if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'
