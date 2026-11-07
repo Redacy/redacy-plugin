@@ -1,0 +1,19 @@
+# redacy 0.3.0 · l'adattatore Codex di questa cartella · origine nel plugin: skills/inizia/modello/.codex/config.toml
+#
+# Codex legge questo file, e .codex/hooks.json, solo se la cartella è segnata come fidata
+# nel file ~/.codex/config.toml dell'utente:
+#
+#     [projects."/percorso/della/cartella"]
+#     trust_level = "trusted"
+#
+# Finché non lo è, queste righe non valgono e gli hook non partono.
+
+# Si scrive dentro la cartella, da nessun'altra parte. Codex tiene comunque .agents/ e
+# .codex/ in sola lettura: le modifiche lì le fa l'utente.
+sandbox_mode = "workspace-write"
+
+# Codex chiede quando vuole uscire dalla cartella.
+approval_policy = "on-request"
+
+# AGENTS.md è la costituzione intera: niente tagli.
+project_doc_max_bytes = 65536
