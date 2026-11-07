@@ -1,7 +1,7 @@
 {
   "name": "redacy",
-  "description": "Metti in ordine i dati dello studio, tieni il periodo di lavoro e impara dalle correzioni.",
-  "version": "0.2.0-rc1",
+  "description": "Un orchestratore in locale per il tuo studio: ordina i dati, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello.",
+  "version": "0.3.0",
   "author": {
     "name": "Redacy"
   },

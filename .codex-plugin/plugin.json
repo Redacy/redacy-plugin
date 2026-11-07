@@ -1,15 +1,25 @@
 {
   "name": "redacy",
-  "version": "0.2.0-rc1",
-  "description": "Metti in ordine i dati dello studio, tieni il periodo di lavoro e impara dalle correzioni.",
+  "version": "0.3.0",
+  "description": "Un orchestratore in locale per il tuo studio: ordina i dati, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello.",
   "author": {
     "name": "Redacy"
   },
   "license": "MIT",
   "skills": "./skills/",
-  "interface": {
-    "displayName": "Redacy",
-    "shortDescription": "Metti in ordine i dati dello studio e tieni il periodo di lavoro.",
-    "category": "Productivity"
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Redacy",
+        "shortDescription": "Un orchestratore in locale per il tuo studio, con pannello.",
+        "longDescription": "Con `inizia` la cartella dello studio diventa un orchestratore: mappa dove stanno i dati, crea agenti AI (`crea-workspace`) e processi che si ripetono (`crea-grafo`), tiene il periodo di lavoro e mostra stato, memoria e corse in un pannello sul tuo computer, con uno stop.",
+        "developerName": "Redacy",
+        "category": "Productivity",
+        "defaultPrompt": [
+          "Usa Redacy per iniziare: prepara la cartella del mio studio.",
+          "Usa Redacy per fare il giro del giorno."
+        ]
+      }
+    }
   }
 }
