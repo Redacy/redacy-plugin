@@ -1,4 +1,4 @@
-# redacy 0.3.0 · origine nel plugin: skills/inizia/modello/interfaccia/.gitignore
+# redacy 0.3.1 · origine nel plugin: skills/inizia/modello/interfaccia/.gitignore
 # Il pannello acceso: porta, pid e gettone. Non vanno in git.
 pannello.json
 pannello.log

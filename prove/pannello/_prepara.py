@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.3.0 · prove/pannello/_prepara.py
+# redacy 0.3.1 · prove/pannello/_prepara.py
 """Prepara una cartella dello studio di prova per le prove del pannello.
 
 Uso: python3 _prepara.py <cartella> [--plugin RADICE] [--corse]

@@ -1,4 +1,4 @@
-# redacy 0.3.0 · skills/crea-workspace/scripts/crea-workspace.py
+# redacy 0.3.1 · skills/crea-workspace/scripts/crea-workspace.py
 """Crea un workspace (un agente intero) dentro la cartella dello studio.
 
 Uso: python3 crea-workspace.py NOME --descrizione "..." [--cartella DIR] [--dati PERCORSO ...]

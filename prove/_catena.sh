@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _catena.sh · redacy 0.3.0 · gli anelli comuni di catena-claude.sh e catena-codex.sh (si leggono con `source`)
+# _catena.sh · redacy 0.3.1 · gli anelli comuni di catena-claude.sh e catena-codex.sh (si leggono con `source`)
 #
 # La catena: inizia -> crea-workspace -> crea-grafo -> corsa -> pannello -> stop, in una cartella
 # che parte vuota. Ogni anello si controlla sui file, non sulle parole dell'agente.

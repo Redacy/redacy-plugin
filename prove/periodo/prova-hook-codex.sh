@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.3.0 · prove/periodo/prova-hook-codex.sh
+# redacy 0.3.1 · prove/periodo/prova-hook-codex.sh
 # PRIMA DI RILANCIARE (a mano, una volta): SOLO_STADIO_1=1 bash prove/periodo/prova-hook-codex.sh prepara la cartella;
 #   poi nel terminale: cd /home/ubuntu/lab/redacy-plugin-prove/C/hook-codex && codex  e dentro Codex scrivi /hooks,
 #   fidati dell'hook PostToolUse (controlla-periodo.py), esci. Il comando da lanciare dopo: bash prove/periodo/prova-hook-codex.sh

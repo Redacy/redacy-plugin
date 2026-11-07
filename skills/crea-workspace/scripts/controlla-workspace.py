@@ -1,4 +1,4 @@
-# redacy 0.3.0 · skills/crea-workspace/scripts/controlla-workspace.py
+# redacy 0.3.1 · skills/crea-workspace/scripts/controlla-workspace.py
 """Controlla la cartella di un workspace (workspace/<nome>/).
 
 Uso: python3 controlla-workspace.py CARTELLA

@@ -1,4 +1,4 @@
-<!-- redacy 0.3.0 · skills/crea-workspace/modello/AGENTS.md -->
+<!-- redacy 0.3.1 · skills/crea-workspace/modello/AGENTS.md -->
 # {{nome}}
 
 {{descrizione}}

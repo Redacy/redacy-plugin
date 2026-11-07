@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.3.0 · skills/pianifica-periodo/scripts/controlla-periodo.py
+# redacy 0.3.1 · skills/pianifica-periodo/scripts/controlla-periodo.py
 """Controlla periodo/todo.json e periodo/idee.json contro i loro schemi.
 
 Solo libreria standard. I due schemi (todo.schema.json, idee.schema.json) si

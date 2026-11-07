@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.3.0 · prove/grafi/prova-crea-claude.sh
+# redacy 0.3.1 · prove/grafi/prova-crea-claude.sh
 #
 # Prova che Claude Code sappia creare un workspace e un grafo con le skill del plugin.
 # Si lancia da qualsiasi cartella: bash prove/grafi/prova-crea-claude.sh

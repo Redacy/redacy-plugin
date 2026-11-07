@@ -8,12 +8,12 @@
       "name": "redacy",
       "source": "./",
       "description": "Un orchestratore in locale per il tuo studio: ordina i dati, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello.",
-      "version": "0.3.0"
+      "version": "0.3.1"
     }
   ],
   "description": "Il marketplace di Redacy.",
   "metadata": {
     "description": "Il marketplace di Redacy.",
-    "version": "0.3.0"
+    "version": "0.3.1"
   }
 }

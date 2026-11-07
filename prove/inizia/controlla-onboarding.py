@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""controlla-onboarding.py · redacy 0.3.0
+"""controlla-onboarding.py · redacy 0.3.1
 
 Controlla la cartella dello studio dopo un onboarding di prova (`inizia` coi dati finti di
 dati-finti.sh). Lo usano prova-onboarding-claude.sh e prova-onboarding-codex.sh.
