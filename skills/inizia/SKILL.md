@@ -52,7 +52,7 @@ Se l'uscita ha righe `avviso:`, sono strumenti del plugin che mancano. Non elenc
 
 ## Passo 4. Mappa le fonti
 
-Segui la skill `ordina-dati` per i posti che l'utente ha indicato: guarda ogni fonte in sola lettura, con un sottoagente per fonte dove il programma li ha, e scrivi una riga per fonte in `memoria/fonti-dati.md`. Le regole per guardare (cosa aprire, cosa no) e la forma della riga stanno lì.
+Segui la skill `ordina-dati` per i posti che l'utente ha indicato: guarda ogni fonte in sola lettura, con un sottoagente per fonte in parallelo (su Claude l'agente `mappa-fonte` del plugin, su Codex `spawn_agent`), e scrivi una riga per fonte in `memoria/fonti-dati.md`. Le regole per guardare (cosa aprire, cosa no) e la forma della riga stanno lì.
 
 Poi mostra il riepilogo con la frase «Il riepilogo delle fonti»: una riga per fonte, con cosa hai trovato e che strada prende. Chiudi con «Manca qualcosa?» e aspetta la risposta.
 

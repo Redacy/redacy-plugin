@@ -76,6 +76,9 @@ grep -c '"type":"item.completed"' "$G/codex.jsonl" | sed 's/^/eventi completati:
 echo "riga dell'utente: esce $? (vedi $G/riga-utente.txt)"
 cd "$RADICE" || exit 1
 
+# Una misura, non una condizione: quanti sottoagenti ha lanciato Codex (eventi collab_tool_call)
+echo "nota: chiamate ai sottoagenti di Codex (collab_tool_call): $(grep -o '"type":"collab_tool_call"' "$G/codex.jsonl" | wc -l)"
+
 ARG=()
 [ -n "${SENZA_PANNELLO:-}" ] && ARG+=(--senza-pannello)
 python3 "$QUI/controlla-onboarding.py" --plugin "$RADICE" --studio "$STUDIO" --dati "$DATI" \

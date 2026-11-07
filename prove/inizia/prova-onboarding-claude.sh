@@ -65,6 +65,9 @@ open(sys.argv[2], "w", encoding="utf-8").write("\n\n".join(risposte))
 print(f"sessione: {sessione} · risposte finali: {len(risposte)} · turni: {turni} · costo USD: {costo:.2f}")
 EOF2
 
+# Una misura, non una condizione: quanti sottoagenti mappa-fonte ha lanciato la mappatura
+echo "nota: sottoagenti redacy:mappa-fonte lanciati: $(grep -o '"subagent_type":"redacy:mappa-fonte"' "$G/claude.jsonl" | wc -l)"
+
 ARG=()
 [ -n "${SENZA_PANNELLO:-}" ] && ARG+=(--senza-pannello)
 python3 "$QUI/controlla-onboarding.py" --plugin "$RADICE" --studio "$STUDIO" --dati "$DATI" \
