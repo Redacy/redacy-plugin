@@ -3,8 +3,8 @@
 # L'onboarding di `inizia` su Codex, da terminale, in una cartella vuota, coi dati finti di uno
 # studio di commercialista inventato (dati-finti.sh). Installa il plugin da questa copia del
 # repo, lancia un solo `codex exec` (le risposte e i sì dell'utente nel primo messaggio), poi
-# toglie il plugin, lancia la riga che inizia dà all'utente per finire la cartella (.agents/ e
-# .codex/ sono chiuse nella sandbox) e controlla la cartella con controlla-onboarding.py.
+# toglie il plugin, lancia la riga che inizia dà all'utente per finire la cartella e accendere il
+# pannello (nella sandbox .agents/ e .codex/ sono chiuse e la porta non si apre) e controlla.
 # Finisce con PASSA o FALLISCE <perché>.
 #
 # Uso: bash prove/inizia/prova-onboarding-codex.sh
@@ -54,7 +54,6 @@ flock "$LOCK" bash -c '
   codex plugin marketplace add "$RADICE" > "$G/codex-installa.txt" 2>&1 || exit 11
   codex plugin add redacy@redacy >> "$G/codex-installa.txt" 2>&1 || exit 12
   timeout 600 codex exec --skip-git-repo-check -C "$STUDIO" -s workspace-write \
-    -c "sandbox_workspace_write.network_access=true" \
     --json --output-last-message "$G/finale.txt" "$PROMPT" < /dev/null > "$G/codex.jsonl" 2> "$G/codex.err"
   U=$?
   codex plugin remove redacy@redacy >> "$G/codex-installa.txt" 2>&1
@@ -69,11 +68,13 @@ case "$USCITA" in
 esac
 grep -c '"type":"item.completed"' "$G/codex.jsonl" | sed 's/^/eventi completati: /'
 
-# Il gesto dell'utente: nella sandbox di Codex .agents/ e .codex/ sono in sola lettura, quindi
-# inizia gli dà una riga da lanciare una volta nel terminale. La prova la lancia al suo posto,
-# con lo script di questa copia del plugin (la copia installata in Codex è già stata tolta).
-python3 "$RADICE/skills/inizia/scripts/crea-cartella.py" "$STUDIO" > "$G/riga-utente.txt" 2>&1
+# Il gesto dell'utente: nella sandbox di Codex .agents/ e .codex/ sono in sola lettura e la porta
+# del pannello non si apre, quindi inizia gli dà una riga da lanciare una volta nel terminale:
+# finisce la cartella e accende il pannello. La prova la lancia al suo posto, con lo script di
+# questa copia del plugin (la copia installata in Codex è già stata tolta).
+{ python3 "$RADICE/skills/inizia/scripts/crea-cartella.py" "$STUDIO" && cd "$STUDIO" && python3 .agents/script/pannello.py; } > "$G/riga-utente.txt" 2>&1
 echo "riga dell'utente: esce $? (vedi $G/riga-utente.txt)"
+cd "$RADICE" || exit 1
 
 ARG=()
 [ -n "${SENZA_PANNELLO:-}" ] && ARG+=(--senza-pannello)

@@ -39,13 +39,14 @@ Frase «La chiusura»:
 
 Su Codex la cartella si finisce con due gesti dell'utente, una volta sola. Diglieli in fondo, prima della chiusura, con il comando pronto da copiare.
 
-1. **La riga da lanciare**, solo se `crea-cartella.py` è uscito con 3: la riga `comando:` che ha stampato, intera.
+1. **Una riga da lanciare nel terminale**, che finisce la cartella e accende il pannello. Si compone così, tutta su una riga: la riga `comando:` stampata da `crea-cartella.py` (solo se è uscito con 3), poi `&& cd <cartella dello studio> && python3 .agents/script/pannello.py`. Se la cartella era già completa, basta `cd <cartella dello studio> && python3 .agents/script/pannello.py`. Il pannello stampa il suo indirizzo: l'utente lo apre nel browser.
 2. **I controlli automatici**: la prima volta che apre Codex in questa cartella, Codex chiede se si fida della cartella (sì); poi scrive `/hooks` e approva i due controlli. Va rifatto solo se un controllo cambia.
 
 Frase «Su Codex»:
 
 > Due cose le fai tu, una volta sola.
-> Prima: apri il terminale e lancia questa riga, che finisce la cartella dello studio: `python3 …/crea-cartella.py …`
+> Prima: apri il terminale e lancia questa riga. Finisce la cartella dello studio e accende il pannello, poi ti scrive l'indirizzo da aprire nel browser:
+> `python3 …/crea-cartella.py … && cd … && python3 .agents/script/pannello.py`
 > Poi: apri Codex in questa cartella, digli che ti fidi della cartella e scrivi `/hooks`. Approva i due controlli automatici: servono a fermare un lavoro dal pannello e a controllare le cose da fare.
 
 ## Cosa non dire

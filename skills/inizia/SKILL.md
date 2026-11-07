@@ -84,7 +84,7 @@ Accendi il pannello con la skill `pannello`. Poi spiega il sistema come dice `re
 
 Se il pannello non parte, dillo in una riga e di' come aprirlo dopo («apri il pannello»). Il resto della spiegazione si fa comunque.
 
-**Su Codex** la chiusura ha in più le due cose che l'utente fa una volta, come dice `references/spiegazione-finale.md` (§«Su Codex»): la riga `comando:` da lanciare nel terminale, se lo script è uscito con 3, e l'approvazione dei controlli automatici con `/hooks`.
+**Su Codex** la sandbox non lascia aprire la porta del pannello (e, se `crea-cartella.py` è uscito con 3, non lascia finire la cartella). Non cercare altre strade: la chiusura dà all'utente le due cose che fa una volta, come dice `references/spiegazione-finale.md` (§«Su Codex»): una riga da lanciare nel suo terminale, che finisce la cartella e accende il pannello, e l'approvazione dei controlli automatici con `/hooks`.
 
 Ultima riga nel registro: `- <data e ora> · inizia · onboarding chiuso: <N> fonti, <agenti AI creati>`.
 

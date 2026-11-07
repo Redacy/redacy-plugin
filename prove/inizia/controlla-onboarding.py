@@ -190,6 +190,7 @@ def main():
     if a.harness == "codex":
         segna("crea-cartella.py" in finale, "su Codex la chiusura dà la riga che finisce la cartella (crea-cartella.py)")
         segna("/hooks" in finale, "su Codex la chiusura dice di approvare i controlli con /hooks")
+        segna("pannello.py" in finale, "su Codex la chiusura dà la riga che accende il pannello (pannello.py)")
 
     falliti = [c for ok, c in esiti if not ok]
     print(f"controlli: {len(esiti) - len(falliti)} ok su {len(esiti)}")
