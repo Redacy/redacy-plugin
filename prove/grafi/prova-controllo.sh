@@ -14,7 +14,7 @@ SCRIPTS="$RADICE/skills/crea-grafo/scripts"
 CONTROLLO="$SCRIPTS/controlla-grafo.py"
 BUONI="$AQUI/buoni"
 ROTTI="$AQUI/rotti"
-PROVE_BASE="/home/ubuntu/lab/redacy-plugin-prove/B"
+PROVE_BASE="${REDACY_PROVE:-/home/ubuntu/lab/redacy-plugin-prove/B}"
 
 if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   echo "Uso: bash prove/grafi/prova-controllo.sh"
