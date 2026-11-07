@@ -30,7 +30,7 @@ claude --plugin-dir /percorso/del/plugin
 
 Su Codex: `codex plugin marketplace add /percorso/del/plugin`, poi `codex plugin add redacy@redacy`.
 
-Dopo l'installazione apri una sessione nuova. Serve Python 3 (dalla 3.9), solo libreria standard, niente pip.
+Dopo l'installazione apri una sessione nuova. Serve Python 3, solo libreria standard, niente pip.
 
 ## Come si parte
 
