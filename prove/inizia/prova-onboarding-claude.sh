@@ -66,7 +66,20 @@ print(f"sessione: {sessione} · risposte finali: {len(risposte)} · turni: {turn
 EOF2
 
 # Una misura, non una condizione: quanti sottoagenti mappa-fonte ha lanciato la mappatura
-echo "nota: sottoagenti redacy:mappa-fonte lanciati: $(grep -o '"subagent_type":"redacy:mappa-fonte"' "$G/claude.jsonl" | wc -l)"
+N=$(python3 -c "
+import json, sys
+ids = set()
+for riga in open(sys.argv[1], encoding='utf-8'):
+    try:
+        e = json.loads(riga)
+    except ValueError:
+        continue
+    if e.get('type') == 'assistant':
+        for b in e['message'].get('content', []):
+            if b.get('type') == 'tool_use' and (b.get('input') or {}).get('subagent_type') == 'redacy:mappa-fonte':
+                ids.add(b['id'])
+print(len(ids))" "$G/claude.jsonl")
+echo "nota: sottoagenti redacy:mappa-fonte lanciati: $N"
 
 ARG=()
 [ -n "${SENZA_PANNELLO:-}" ] && ARG+=(--senza-pannello)
