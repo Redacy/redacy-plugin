@@ -65,39 +65,40 @@ def _mostra(valore):
 
 def valida(valore, schema, percorso, errori):
     """Il sottoinsieme di JSON Schema che usano i due schemi."""
+    dove = percorso or "il file"
     tipi = schema.get("type")
     if tipi is not None:
         elenco = tipi if isinstance(tipi, list) else [tipi]
         if not any(_tipo_ok(valore, t) for t in elenco):
             attesi = " o ".join({"string": "testo", "object": "oggetto", "array": "elenco",
                                  "null": "null"}.get(t, t) for t in elenco)
-            errori.append(f"{percorso}: dovrebbe essere {attesi}, trovato {_nome_tipo(valore)}")
+            errori.append(f"{dove}: dovrebbe essere {attesi}, trovato {_nome_tipo(valore)}")
             return
     if "const" in schema and valore != schema["const"]:
-        errori.append(f"{percorso}: deve valere {_mostra(schema['const'])}, trovato {_mostra(valore)}")
+        errori.append(f"{dove}: deve valere {_mostra(schema['const'])}, trovato {_mostra(valore)}")
     if "enum" in schema and valore not in schema["enum"]:
         ammessi = ", ".join(f"«{v}»" for v in schema["enum"])
-        errori.append(f"{percorso}: {_mostra(valore)} non è fra i valori ammessi ({ammessi})")
+        errori.append(f"{dove}: {_mostra(valore)} non è fra i valori ammessi ({ammessi})")
     if isinstance(valore, str):
         if "minLength" in schema and len(valore) < schema["minLength"]:
-            errori.append(f"{percorso}: non può essere vuoto")
+            errori.append(f"{dove}: non può essere vuoto")
         if "pattern" in schema and not re.search(schema["pattern"], valore):
             aiuto = schema.get("description", "")
-            errori.append(f"{percorso}: {_mostra(valore)} non ha la forma giusta"
+            errori.append(f"{dove}: {_mostra(valore)} non ha la forma giusta"
                           + (f" ({aiuto})" if aiuto else ""))
     if isinstance(valore, dict):
         proprieta = schema.get("properties", {})
         for nome in schema.get("required", []):
             if nome not in valore:
-                errori.append(f"{percorso}: manca il campo «{nome}»")
+                errori.append(f"{dove}: manca il campo «{nome}»")
         if schema.get("additionalProperties") is False:
             for nome in valore:
                 if nome not in proprieta:
-                    errori.append(f"{percorso}: campo «{nome}» non previsto (ammessi: "
+                    errori.append(f"{dove}: campo «{nome}» non previsto (ammessi: "
                                   + ", ".join(proprieta) + ")")
         for nome, sotto in proprieta.items():
             if nome in valore:
-                valida(valore[nome], sotto, f"{percorso}.{nome}", errori)
+                valida(valore[nome], sotto, f"{percorso}.{nome}" if percorso else nome, errori)
     if isinstance(valore, list) and "items" in schema:
         for i, voce in enumerate(valore):
             valida(voce, schema["items"], f"{percorso}[{i}]", errori)
@@ -172,7 +173,7 @@ def controlla_file(percorso):
     except (OSError, ValueError):
         return [f"{nome}: lo schema {FILE_CONTROLLATI[nome]} non c'è accanto allo script o è rotto"]
     errori = []
-    valida(dati, schema, nome[:-5], errori)
+    valida(dati, schema, "", errori)
     if not errori:
         controlli_oltre_lo_schema(nome, dati, os.path.dirname(os.path.abspath(percorso)), errori)
     return errori
