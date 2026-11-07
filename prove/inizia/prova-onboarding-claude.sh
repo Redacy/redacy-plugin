@@ -41,11 +41,29 @@ echo "cartella di prova: $G"
 ( cd "$STUDIO" && timeout 600 claude -p --plugin-dir "$RADICE" --model "${MODELLO:-sonnet}" \
     --add-dir "$DATI" --permission-mode acceptEdits \
     --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Task,Agent,Skill" \
-    --output-format json "$PROMPT" ) > "$G/claude.json" 2> "$G/claude.err"
+    --output-format stream-json --verbose "$PROMPT" ) > "$G/claude.jsonl" 2> "$G/claude.err"
 USCITA=$?
 [ "$USCITA" = 0 ] || fallisce "claude -p esce $USCITA (vedi $G/claude.err)"
-python3 -c "import json,sys; d=json.load(open(sys.argv[1])); open(sys.argv[2],'w').write(d.get('result') or ''); print('sessione:', d.get('session_id'), '· turni:', d.get('num_turns'), '· costo USD:', d.get('total_cost_usd'))" \
-  "$G/claude.json" "$G/finale.txt" || fallisce "uscita di claude -p non leggibile"
+# Una sessione può chiudere più di una risposta (lavori in sfondo che tornano dopo): si tengono
+# tutte, nell'ordine, e il messaggio finale da controllare è la loro somma.
+python3 - "$G/claude.jsonl" "$G/finale.txt" <<'EOF2' || fallisce "uscita di claude -p non leggibile"
+import json, sys
+risposte, costo, turni, sessione = [], 0.0, 0, None
+for riga in open(sys.argv[1], encoding="utf-8"):
+    try:
+        e = json.loads(riga)
+    except ValueError:
+        continue
+    if e.get("type") == "result":
+        risposte.append(e.get("result") or "")
+        costo += e.get("total_cost_usd") or 0
+        turni += e.get("num_turns") or 0
+        sessione = e.get("session_id")
+if not risposte:
+    sys.exit(1)
+open(sys.argv[2], "w", encoding="utf-8").write("\n\n".join(risposte))
+print(f"sessione: {sessione} · risposte finali: {len(risposte)} · turni: {turni} · costo USD: {costo:.2f}")
+EOF2
 
 ARG=()
 [ -n "${SENZA_PANNELLO:-}" ] && ARG+=(--senza-pannello)

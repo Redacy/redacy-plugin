@@ -27,7 +27,7 @@ Non aprire più del necessario: per mappare una fonte servono il suo posto e la 
 - su Claude, l'agente `mappa-fonte` del plugin (`agents/mappa-fonte.md`), uno per fonte: gli dai il percorso e ti restituisce la riga per `fonti-dati.md` e, se la fonte è una procedura, i suoi passi;
 - su Codex il plugin non porta agenti: mappa le fonti con sottoagenti in parallelo, uno per fonte, e dai a ognuno le istruzioni di `agents/mappa-fonte.md` (alla radice del plugin, cioè `../../agents/mappa-fonte.md` a partire dalla cartella di questa skill). Se non puoi lanciare sottoagenti, guarda le fonti tu, una alla volta.
 
-Le righe che tornano dai sottoagenti le controlli tu: un percorso che non esiste o un numero non contato non entrano nell'elenco.
+Aspetta i risultati di tutti i sottoagenti prima di andare avanti: niente in sfondo, l'utente aspetta il riepilogo. Le righe che tornano dai sottoagenti le controlli tu: un percorso che non esiste o un numero non contato non entrano nell'elenco.
 
 ## Passo 3. Decidi la strada di ogni fonte
 
