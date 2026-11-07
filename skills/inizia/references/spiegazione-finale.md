@@ -35,6 +35,19 @@ Frase «La chiusura»:
 > Fatto. Lo studio adesso ha la sua memoria, un agente AI per le dichiarazioni e l'elenco dei tuoi dati.
 > La prossima volta scrivimi cosa devi fare, anche solo «prepara la pratica di Rossi»: parto da quello che so. Se mi correggi, a fine lavoro ti propongo di salvarlo, così la volta dopo lo so.
 
+## Su Codex
+
+Su Codex la cartella si finisce con due gesti dell'utente, una volta sola. Diglieli in fondo, prima della chiusura, con il comando pronto da copiare.
+
+1. **La riga da lanciare**, solo se `crea-cartella.py` è uscito con 3: la riga `comando:` che ha stampato, intera.
+2. **I controlli automatici**: la prima volta che apre Codex in questa cartella, Codex chiede se si fida della cartella (sì); poi scrive `/hooks` e approva i due controlli. Va rifatto solo se un controllo cambia.
+
+Frase «Su Codex»:
+
+> Due cose le fai tu, una volta sola.
+> Prima: apri il terminale e lancia questa riga, che finisce la cartella dello studio: `python3 …/crea-cartella.py …`
+> Poi: apri Codex in questa cartella, digli che ti fidi della cartella e scrivi `/hooks`. Approva i due controlli automatici: servono a fermare un lavoro dal pannello e a controllare le cose da fare.
+
 ## Cosa non dire
 
 Niente lodi, niente frasi a effetto («il tuo studio prende forma»), niente numeri promessi. Niente nomi tecnici che l'utente non vedrà mai (skill, hook, sottoagente, JSON). Se qualcosa non è riuscito (il pannello, una fonte che non si apre), una riga, con cosa fare.

@@ -54,7 +54,7 @@ flock "$LOCK" bash -c '
   codex plugin add redacy@redacy >> "$G/codex-installa.txt" 2>&1 || exit 12
   timeout 600 codex exec --skip-git-repo-check -C "$STUDIO" -s workspace-write \
     -c "sandbox_workspace_write.network_access=true" \
-    --json --output-last-message "$G/finale.txt" "$PROMPT" > "$G/codex.jsonl" 2> "$G/codex.err"
+    --json --output-last-message "$G/finale.txt" "$PROMPT" < /dev/null > "$G/codex.jsonl" 2> "$G/codex.err"
   U=$?
   codex plugin remove redacy@redacy >> "$G/codex-installa.txt" 2>&1
   codex plugin marketplace remove redacy >> "$G/codex-installa.txt" 2>&1

@@ -141,5 +141,18 @@ done
 cmp -s "$D2/.claude/launch.json" "$FINTO/skills/pannello/modello/launch.json" || fallisce ".claude/launch.json non è la copia esatta del modello del pannello"
 python3 "$FINTO/skills/inizia/scripts/crea-cartella.py" "$D2" --controlla > /dev/null 2>&1 || fallisce "--controlla sulla cartella del plugin finto non è pulito"
 
+# 10. Cartelle protette (come la sandbox di Codex): fa il resto, esce 3, stampa la riga per finire
+P="$BASE/protetta-$ORA"; mkdir -p "$P/.agents" "$P/.codex"; chmod 555 "$P/.agents" "$P/.codex"
+python3 "$SCRIPT" "$P" > "$BASE/uscita-protetta-$ORA.txt" 2>&1; U=$?
+chmod 755 "$P/.agents" "$P/.codex"
+[ "$U" = 3 ] || fallisce "con .agents/ e .codex/ protette lo script esce $U, non 3"
+grep -q '^non scritto: .agents/' "$BASE/uscita-protetta-$ORA.txt" || fallisce "con .agents/ protetta non dice cosa non ha scritto"
+[ -f "$P/memoria/INDICE.md" ] && [ -f "$P/periodo/todo.json" ] && [ -f "$P/AGENTS.md" ] || fallisce "con .agents/ protetta non ha creato il resto"
+grep -q 'da finire con una riga nel terminale' "$P/memoria/LOG.md" || fallisce "la riga di LOG.md non dice che la cartella è da finire"
+CMD=$(sed -n 's/^comando: //p' "$BASE/uscita-protetta-$ORA.txt")
+[ -n "$CMD" ] || fallisce "con .agents/ protetta non stampa la riga comando:"
+bash -c "$CMD" > "$BASE/uscita-ripresa-$ORA.txt" 2>&1 || fallisce "la riga stampata non finisce la cartella"
+python3 "$SCRIPT" "$P" --controlla > /dev/null 2>&1 || fallisce "dopo la riga stampata --controlla non è pulito"
+
 echo "cartella di prova: $D"
 echo "PASSA"

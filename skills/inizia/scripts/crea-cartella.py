@@ -17,13 +17,16 @@ Non sovrascrive mai un file che c'è già: lo salta e lo dice. Un file sorgente 
 plugin è un avviso, non un errore. Solo libreria standard.
 
 Uscite: 0 fatto (o, con --controlla, niente manca); 1 con --controlla qualcosa manca o non va;
-2 uso sbagliato.
+2 uso sbagliato; 3 fatto in parte: alcune cartelle non si possono scrivere da questa sessione
+(in Codex .agents/ e .codex/ sono protette). Lo script stampa la riga `comando:` da lanciare
+una volta nel terminale per finire.
 """
 
 import argparse
 import datetime
 import json
 import os
+import shlex
 import shutil
 import sys
 from pathlib import Path
@@ -115,6 +118,18 @@ def con_testa(sorgente, origine, versione):
 class Esito:
     def __init__(self):
         self.creati, self.saltati, self.avvisi, self.mancano, self.non_va = [], [], [], [], []
+        self.non_scritti = []
+
+
+def scrivi(esito, rel, azione):
+    """Esegue una scrittura; un permesso negato (la sandbox di Codex tiene .agents/ e .codex/
+    in sola lettura) non ferma lo script: la voce va fra i non scritti."""
+    try:
+        azione()
+        return True
+    except OSError as e:
+        esito.non_scritti.append(f"{rel} ({e.strerror or e})")
+        return False
 
 
 def crea(cartella, radice, versione, esito):
@@ -123,17 +138,19 @@ def crea(cartella, radice, versione, esito):
     for rel in cartelle:
         dest = cartella / rel
         if not dest.exists():
-            dest.mkdir(parents=True, exist_ok=True)
-            esito.creati.append(f"{rel}/")
+            if scrivi(esito, f"{rel}/", lambda d=dest: d.mkdir(parents=True, exist_ok=True)):
+                esito.creati.append(f"{rel}/")
     for rel in file:
         dest = cartella / rel
         if os.path.lexists(dest):
             esito.saltati.append(str(rel))
             continue
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(modello / rel, dest)
-        shutil.copymode(modello / rel, dest)
-        esito.creati.append(str(rel))
+        def copia(d=dest, s=modello / rel):
+            d.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(s, d)
+            shutil.copymode(s, d)
+        if scrivi(esito, str(rel), copia):
+            esito.creati.append(str(rel))
     for rel, bersaglio in COLLEGAMENTI:
         dest = cartella / rel
         if os.path.lexists(dest):
@@ -142,9 +159,11 @@ def crea(cartella, radice, versione, esito):
         try:
             os.symlink(bersaglio, dest, target_is_directory=True)
             esito.creati.append(f"{rel} -> {bersaglio}")
+        except PermissionError as e:
+            esito.non_scritti.append(f"{rel} ({e.strerror or e})")
         except OSError as e:
             esito.avvisi.append(f"{rel}: collegamento non creato ({e}); Claude non vedrà {bersaglio[3:]}")
-    for origine, rel in COPIE:
+    for origine, rel in COPIE + COPIE_TALI:
         sorgente = radice / origine
         dest = cartella / rel
         if not sorgente.is_file():
@@ -153,32 +172,32 @@ def crea(cartella, radice, versione, esito):
         if os.path.lexists(dest):
             esito.saltati.append(rel)
             continue
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(con_testa(sorgente, origine, versione), encoding="utf-8")
-        shutil.copymode(sorgente, dest)
-        esito.creati.append(rel)
-    for origine, rel in COPIE_TALI:
-        sorgente = radice / origine
-        dest = cartella / rel
-        if not sorgente.is_file():
-            esito.avvisi.append(f"{rel}: manca la sorgente {origine} nel plugin, non copiato")
-            continue
-        if os.path.lexists(dest):
-            esito.saltati.append(rel)
-            continue
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(sorgente, dest)
-        esito.creati.append(rel)
+        tale = (origine, rel) in COPIE_TALI
+        def copia(d=dest, s=sorgente, o=origine, t=tale):
+            d.parent.mkdir(parents=True, exist_ok=True)
+            if t:
+                shutil.copyfile(s, d)
+            else:
+                d.write_text(con_testa(s, o, versione), encoding="utf-8")
+                shutil.copymode(s, d)
+        if scrivi(esito, rel, copia):
+            esito.creati.append(rel)
     log = cartella / "memoria/LOG.md"
     if esito.creati and log.is_file():
         quando = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         file_creati = [c for c in esito.creati if not c.endswith("/")]
-        riga = f"- {quando} · inizia · cartella preparata con redacy {versione}: {len(file_creati)} file e collegamenti creati, {len(esito.saltati)} già presenti\n"
-        testo = log.read_text(encoding="utf-8")
-        with log.open("a", encoding="utf-8") as f:
-            if testo and not testo.endswith("\n"):
-                f.write("\n")
-            f.write(riga)
+        riga = (f"- {quando} · inizia · cartella preparata con redacy {versione}: "
+                f"{len(file_creati)} file e collegamenti creati, {len(esito.saltati)} già presenti")
+        if esito.non_scritti:
+            riga += f", {len(esito.non_scritti)} da finire con una riga nel terminale"
+        riga += "\n"
+        def aggiungi():
+            testo = log.read_text(encoding="utf-8")
+            with log.open("a", encoding="utf-8") as f:
+                if testo and not testo.endswith("\n"):
+                    f.write("\n")
+                f.write(riga)
+        scrivi(esito, "memoria/LOG.md", aggiungi)
 
 
 def controlla(cartella, radice, esito):
@@ -245,7 +264,14 @@ def stampa(esito, cartella, solo_controllo):
         print(f"saltato (c'è già): {r}")
     for r in esito.avvisi:
         print(f"avviso: {r}")
-    print(f"esito: {len(esito.creati)} creati, {len(esito.saltati)} saltati, {len(esito.avvisi)} avvisi")
+    for r in esito.non_scritti:
+        print(f"non scritto: {r}")
+    print(f"esito: {len(esito.creati)} creati, {len(esito.saltati)} saltati, {len(esito.avvisi)} avvisi"
+          + (f", {len(esito.non_scritti)} non scritti" if esito.non_scritti else ""))
+    if esito.non_scritti:
+        print("da finire: questa sessione non può scrivere alcune cartelle (in Codex .agents/ e .codex/ "
+              "sono protette). Lancia una volta questa riga nel terminale, fuori da Codex:")
+        print(f"comando: python3 {shlex.quote(str(Path(__file__).resolve()))} {shlex.quote(str(cartella))}")
 
 
 def main(argv=None):
@@ -271,10 +297,14 @@ def main(argv=None):
         controlla(cartella, radice, esito)
         stampa(esito, cartella, True)
         return 1 if (esito.mancano or esito.non_va) else 0
-    cartella.mkdir(parents=True, exist_ok=True)
+    try:
+        cartella.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        print(f"errore: non posso creare {cartella} ({e})", file=sys.stderr)
+        return 2
     crea(cartella, radice, versione_plugin(radice), esito)
     stampa(esito, cartella, False)
-    return 0
+    return 3 if esito.non_scritti else 0
 
 
 if __name__ == "__main__":

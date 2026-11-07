@@ -25,14 +25,14 @@ Non aprire più del necessario: per mappare una fonte servono il suo posto e la 
 **Con i sottoagenti.** Quando le fonti sono più di una, o una cartella ha molti file, affida ogni fonte a un sottoagente, al più tre insieme:
 
 - su Claude, l'agente `mappa-fonte` del plugin (`agents/mappa-fonte.md`), uno per fonte: gli dai il percorso e ti restituisce la riga per `fonti-dati.md` e, se la fonte è una procedura, i suoi passi;
-- su Codex, chiedi a Codex di lanciare un sottoagente per fonte con le stesse istruzioni (le trovi in `agents/mappa-fonte.md`, alla radice del plugin). Se i sottoagenti non ci sono, guarda le fonti tu, una alla volta.
+- su Codex, chiedi a Codex di lanciare un sottoagente per fonte con le stesse istruzioni (le trovi in `agents/mappa-fonte.md` alla radice del plugin, cioè `../../agents/mappa-fonte.md` a partire dalla cartella di questa skill). Se i sottoagenti non ci sono, guarda le fonti tu, una alla volta.
 
 Le righe che tornano dai sottoagenti le controlli tu: un percorso che non esiste o un numero non contato non entrano nell'elenco.
 
 ## Passo 3. Decidi la strada di ogni fonte
 
 - **memoria**: una procedura o una regola di lavoro (come si fa, chi fa cosa, chi approva, cosa non si fa mai). Diventa una pagina `memoria/<nome>.md` coi passi numerati, chi fa cosa e cosa serve, scritta come dice `.agents/regole/memoria.md`. La strada si scrive `memoria [[<nome>]]`.
-- **policy**: una regola su cosa l'agente può fare da solo o deve chiedere («le mail ai clienti le manda solo Laura»). Diventa una riga in `.agents/policy/cosa-faccio-da-solo.md`, nella lista giusta, mai una tabella. Su Codex `.agents/` è in sola lettura: scrivi la regola nella pagina di memoria e di' all'utente la riga da aggiungere.
+- **policy**: una regola su cosa l'agente può fare da solo o deve chiedere («le mail ai clienti le manda solo Laura»). Diventa una riga in `.agents/policy/cosa-faccio-da-solo.md`, nella lista giusta, mai una tabella. Se `.agents/` non si può scrivere (su Codex è in sola lettura), la regola va in `memoria/studio.md`, sotto «Cosa non si fa mai».
 - **resta dov'è**: un dato (pratiche, fogli, archivi, fatture). Si segna il percorso intero.
 - **da collegare**: un servizio non ancora collegato. Il «dove» è la categoria: `~~posta`, `~~calendario`, `~~archivio documenti`, `~~gestionale`, `~~foglio di calcolo`. Lo collega l'utente, quando vuole, con la skill `collega-sensore`.
 - **da chiedere**: non hai capito cos'è o a cosa serve. Una domanda all'utente, poi la strada giusta.
