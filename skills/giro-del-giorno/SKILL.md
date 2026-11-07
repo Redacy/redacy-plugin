@@ -1,24 +1,54 @@
 ---
 name: giro-del-giorno
-description: Guarda lo stato del periodo e dice cosa fare per primo: le prime tre cose, ciò che è bloccato e di chi è la mossa. Usala quando l'utente chiede "cosa c'è oggi", "cosa è urgente", "da dove parto".
+description: Il giro quotidiano sul periodo. Ordina i todo, mostra i primi tre con il motivo, dice cosa aspetta l'utente e cosa è fermo e chi lo sblocca. Si usa quando l'utente dice "cosa c'è oggi", "da dove parto", "cosa devo fare adesso", "giro del giorno", "a che punto siamo", "cosa è in ritardo".
 ---
 
 # Giro del giorno
 
-Obiettivo: togliere all'utente la domanda "da dove parto". Non fai il lavoro: indichi l'ordine e dici perché.
+Una lettura veloce del periodo, per sapere da dove partire. Non è una pianificazione: l'obiettivo e le idee non si toccano qui.
+
+## Cosa leggi
+
+- `periodo/todo.json`: da qui viene l'ordine.
+- `periodo/obiettivo.md`: per capire cosa pesa di più.
+- `periodo/idee.json`: non lo usi per decidere l'ordine. Conti solo quante idee senza esito aspettano.
 
 ## Passi
 
-1. Leggi `periodo/obiettivo.md`, `periodo/todo.md`, `periodo/idee.md` e, se esiste, `memoria/regole/cosa-faccio-da-solo.md` e `memoria/regole/come-lavoro.md`.
-2. Elenca le scadenze con data e di chi è la prossima mossa. Una scadenza esterna vicina con un gesto dell'utente davanti pesa più di un todo vecchio.
-3. Ordina i todo e scegli i primi tre. Per ogni scelta una riga di motivo: perché prima degli altri.
-4. Elenca ciò che è bloccato e chi lo sblocca. Se non sai di chi è la mossa, scrivilo.
-5. Un elenco corto di todo non vuol dire niente da fare: può voler dire lavoro in buona salute. Non inventare compiti.
-6. Se un'idea ti sembra urgente, non la inserire: proponi all'utente di rivederla nella prossima pianificazione.
-7. Se uno stato ti sembra strano, di' prima se è un guasto o una scelta già presa, leggendo la memoria, e poi proponi.
+1. **Calcola l'ordine.** Una scadenza vicina con un gesto dell'utente davanti pesa più di un todo vecchio. "In ritardo" si calcola: scadenza passata e stato diverso da `fatto`. Fra due voci simili vince quella più vicina all'obiettivo.
+2. **Mostra i primi tre**, ciascuno con una riga di motivo. Per esempio: "t2, scade giovedì e il controllo è tuo."
+3. **Dì cosa aspetta l'utente.** Le voci con `chi: "tu"` non fatte, e le voci `ferma` che aspettano una sua scelta, con la nota. Nessun elenco di opzioni: la decisione si prende con `pianifica-periodo`.
+4. **Dì cosa è fermo e chi lo sblocca.** Per ogni voce `ferma` scrivi di chi è la mossa. Se non lo sai, scrivilo: "non so di chi è la mossa".
+5. **Segna ciò che è cambiato**, dicendolo. Se l'utente ti dice che una cosa è fatta, passa la voce a `fatto`. Se è bloccata, passa a `ferma` con una `nota` che dice cosa aspetta. Aggiorna `aggiornato` di ogni voce che tocchi, con la data di oggi.
+6. **Una voce nuova solo se l'utente la chiede**, con `da: "giro"`, un id che non riusa mai uno vecchio e `aggiornato` di oggi.
 
-## Regole
+## Come parli con l'utente
 
-- Non modificare `periodo/obiettivo.md`.
-- Puoi aggiornare `periodo/todo.md` per segnare ciò che è fatto, dicendolo.
-- Azioni che toccano clienti, soldi o atti ufficiali: le prepari, le lasci all'utente.
+Con lui usi le sue parole: "cose da fare" (non todo), "aspetta te", "fermo", "in ritardo". Date come a voce ("giovedì", "ieri"). Il giro è breve: i primi tre, poi cosa aspetta lui, poi cosa è fermo, al più cinque righe per blocco. Niente lodi, niente punti esclamativi.
+
+## Cosa non fai
+
+- Non tocchi `periodo/obiettivo.md` né `periodo/idee.json`.
+- Non inventi compiti. Una lista corta non vuol dire niente da fare: può essere lavoro in salute. Dillo.
+- Se un'idea ti sembra urgente, non la inserisci. Proponi di rivederla con `pianifica-periodo`.
+- Non scegli per l'utente fra due strade. Le descrivi e rimandi a `pianifica-periodo`.
+
+## Uno stato strano
+
+Se una voce ha uno stato che non torna (per esempio `fatto` con una scadenza futura e una nota che parla di un blocco), non correggerla di tuo. Prima leggi `memoria/INDICE.md` e le pagine che c'entrano, poi dì all'utente se ti sembra un guasto oppure una scelta già presa. Se non lo capisci, chiedi.
+
+## Soldi, clienti, atti ufficiali
+
+Se un todo tocca un cliente, dei soldi o un atto ufficiale (un invio, un pagamento, una firma), preparalo: la bozza, il controllo, i numeri. Poi lascialo all'utente e dillo.
+
+## Prima di dire "fatto"
+
+Se hai scritto in `periodo/todo.json`, lancia:
+
+    python3 .agents/hooks/controlla-periodo.py periodo/todo.json
+
+Nel plugin lo script sta in `skills/pianifica-periodo/scripts/`. Se esce 1, correggi e rilancia. Se non hai scritto niente, il controllo non serve.
+
+Se hai segnato qualcosa, aggiungi in fondo a `memoria/LOG.md` una riga, senza riscrivere le altre:
+
+    - 2026-11-07 09:10 · periodo · Giro: t2 fatto, t5 ferma (aspetta il preventivo).
