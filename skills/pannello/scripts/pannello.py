@@ -738,7 +738,11 @@ def apri_socket_libera(cartella, preferita=None):
     for porta in [base] + [47000 + (base - 47000 + i) % 1000 for i in range(1, 60)]:
         try:
             return porta, crea_server(porta)
-        except OSError:
+        except OSError as e:
+            if e.errno in (errno.EPERM, errno.EACCES):
+                raise SystemExit(
+                    "Il sistema non mi lascia aprire una porta su 127.0.0.1 (%s). Succede in Codex dentro la sandbox: "
+                    "lancia lo stesso comando fuori dalla sandbox (chiedi il permesso) o da un terminale tuo." % e.strerror)
             continue
     raise SystemExit("Non trovo una porta libera su 127.0.0.1.")
 

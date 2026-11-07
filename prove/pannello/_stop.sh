@@ -69,7 +69,7 @@ prepara_cartella() {
 prompt_conversazione() {
   local nome="$1" grafo="$2" var="$3"
   cat <<EOF
-Sei la conversazione $nome, nella cartella dello studio. Esegui il grafo $grafo con corsa.py, un comando Bash per volta, nell'ordine, senza raggrupparli.
+Sei la conversazione $nome, nella cartella dello studio. Esegui il grafo $grafo con corsa.py, un comando di shell per volta, nell'ordine, senza raggrupparli.
 Comando 0: python3 .agents/script/corsa.py apri $grafo --avviato-da conversazione --sessione \$$var   (tieni l'id che stampa).
 Poi, per ognuno dei cinque passi (passo-1, passo-2, passo-3, passo-4, passo-5), tre comandi separati: (a) python3 .agents/script/corsa.py passo <id> passo-N inizio ; (b) sleep 8 ; (c) python3 .agents/script/corsa.py passo <id> passo-N fatto --esito "fatto N".
 Alla fine: python3 .agents/script/corsa.py chiudi <id> finita, e una riga di riepilogo.
@@ -140,7 +140,9 @@ assert a["sessione"] and b["sessione"] and a["sessione"] != b["sessione"], (a["s
 EOF
   [ ! -e "$d/grafi/corse/$idb.stop" ] || fallisce "la corsa B ha un file .stop"
   [ ! -e "$d/grafi/corse/.$idb.notificato" ] || fallisce "la conversazione B è stata toccata dall'hook"
-  if [ "$hook" = "si" ]; then
+  if [ "$hook" = "ignora" ]; then
+    if [ -e "$d/grafi/corse/.$ida.notificato" ]; then echo "nota: l'hook ha negato un passo di A (marcatore presente)"; else echo "nota: l'hook non è partito (marcatore assente): lo stop è passato dal livello 1"; fi
+  elif [ "$hook" = "si" ]; then
     [ -e "$d/grafi/corse/.$ida.notificato" ] || fallisce "l'hook non ha mai negato un passo di A (manca .$ida.notificato): lo stop è passato solo dal livello 1"
   else
     [ ! -e "$d/grafi/corse/.$ida.notificato" ] || fallisce "senza hook c'è un marcatore dell'hook"
