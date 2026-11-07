@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # redacy 0.3.0 · prove/periodo/prova-hook-codex.sh
+# PRIMA DI RILANCIARE (a mano, una volta): SOLO_STADIO_1=1 bash prove/periodo/prova-hook-codex.sh prepara la cartella;
+#   poi nel terminale: cd /home/ubuntu/lab/redacy-plugin-prove/C/hook-codex && codex  e dentro Codex scrivi /hooks,
+#   fidati dell'hook PostToolUse (controlla-periodo.py), esci. Il comando da lanciare dopo: bash prove/periodo/prova-hook-codex.sh
 # Lo stesso controllo su Codex, in due stadi.
 #  Stadio 1 (senza modello): l'evento che Codex manda a un hook PostToolUse dopo un apply_patch
 #    (tool_name "apply_patch", la patch in tool_input.command, come dice la documentazione di Codex)
