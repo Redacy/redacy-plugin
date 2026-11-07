@@ -1,0 +1,45 @@
+# Grafo di prova: parte solo quando lo chiedi, prepara una bozza e aspetta il tuo controllo.
+# Dati inventati (studio di commercialista di fantasia).
+grafo: bozza-parcella-cliente
+versione: 2
+obiettivo: Preparare la bozza della parcella di un cliente a partire dall'incarico firmato.
+descrizione: |
+  Legge l'incarico firmato del cliente e prepara la bozza della parcella.
+  Non spedisce niente: la bozza resta nel pannello finché non la guardi tu.
+
+  Come si controlla: apri la bozza, confronta gli importi con l'incarico
+  e decidi se va bene o se va rifatta.
+acceso: false
+innesco: {tipo: parola}
+passi:
+  - id: leggi-incarico
+    tipo: agente
+    nome: Leggi l'incarico
+    descrizione: Legge l'incarico firmato e ne ricava prestazioni e importi concordati.
+    workspace: orchestratore
+    prompt: Leggi l'incarico del cliente indicato e scrivi l'elenco delle prestazioni con gli importi concordati.
+  - id: scrivi-bozza
+    tipo: agente
+    nome: Scrivi la bozza
+    workspace: amministrazione
+    prompt: Con l'elenco delle prestazioni scrivi la bozza della parcella, una riga per prestazione, con totale e IVA.
+  - id: controlla-importi
+    tipo: umano
+    nome: Controlla gli importi
+    descrizione: "Tocca a te: confronti la bozza con l'incarico."
+    forma: decisione
+    dove: il pannello
+tetti:
+  contemporanee: 1
+uscite:
+  - una bozza di parcella nel pannello
+autonomia:
+  livello: L0
+  da: 2026-11-07
+  si: null
+prove:
+  - data: 2026-11-07
+    input: Incarico della ditta Rossi Impianti, tre prestazioni, 1.200 euro più IVA.
+    esito_atteso: Una bozza con tre righe, totale 1.464 euro, nessun invio.
+  - data: 2026-11-09
+    esito_atteso: Se l'incarico non c'è, la corsa si ferma e lo dice.

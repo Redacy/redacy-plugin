@@ -1,0 +1,61 @@
+# Grafo di prova: ogni fattura che arriva in cartella viene letta e controllata.
+# Dati inventati (studio di architettura di fantasia).
+grafo: smista-fatture-in-arrivo
+versione: 3
+obiettivo: Registrare ogni fattura appena arriva, dopo aver controllato IVA e scadenza.
+descrizione: Parte quando arriva un PDF nella cartella delle fatture.
+acceso: false
+innesco:
+  tipo: evento
+  fatto: nuova-fattura
+  file: fonti/fatture/*.pdf
+passi:
+  - id: leggi-fattura
+    tipo: agente
+    nome: Leggi la fattura
+    workspace: orchestratore
+    prompt: {file: istruzioni/leggi-fattura.md}
+    minuti: 10
+  # questi due partono insieme: hanno lo stesso dopo
+  - id: controlla-iva
+    tipo: agente
+    nome: Controlla l'IVA
+    descrizione: Confronta aliquota e totale con quello che dice la fattura.
+    dopo: [leggi-fattura]
+    workspace: contabilita
+    prompt: Controlla che l'aliquota IVA e il totale della fattura letta siano coerenti.
+    modello: leggera
+  - id: controlla-scadenza
+    tipo: agente
+    nome: Controlla la scadenza
+    dopo: [leggi-fattura]
+    workspace: contabilita
+    prompt: "/controlla-scadenza"
+  # questo aspetta tutti e due
+  - id: registra
+    tipo: uscita
+    nome: Registra la fattura
+    descrizione: La fattura entra nel registro, con il suo esito.
+    dopo: [controlla-iva, controlla-scadenza]
+    forma: file
+    dove: il registro delle fatture, nella cartella dello studio
+  - id: conferma-invio
+    tipo: umano
+    nome: Manda il riepilogo al cliente
+    dopo: [registra]
+    forma: invio
+    dove: la tua casella di posta, in bozze
+tetti:
+  contemporanee: 2
+  corse_a_settimana: 40
+uscite:
+  - una riga nel registro delle fatture
+  - una bozza di mail nella tua posta
+autonomia:
+  livello: L2
+  da: 2026-11-07
+  si: "Luca Ferrari, a voce, 2026-11-06"
+prove:
+  - data: 2026-11-08
+    input: Una fattura PDF di 366 euro con IVA al 22 per cento.
+    esito_atteso: La fattura risulta registrata con IVA coerente e scadenza a 30 giorni.

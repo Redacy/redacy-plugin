@@ -1,0 +1,42 @@
+# Esempio: ogni lunedì mattina riepiloga le fatture della settimana.
+# Dati inventati (officina di fantasia).
+grafo: riepilogo-fatture-settimana
+versione: 1
+obiettivo: Ogni lunedì avere in un colpo d'occhio le fatture ricevute e quelle da pagare.
+acceso: true
+innesco:
+  tipo: orario
+  quando: "ogni lunedì alle 08:30 Europe/Rome"
+passi:
+  - id: prepara-fatture
+    tipo: cli
+    nome: Prepara le fatture
+    comando: python3 .agents/script/prepara-fatture.py
+    minuti: 5
+  - id: riepiloga
+    tipo: agente
+    nome: Riepiloga
+    descrizione: Legge le fatture preparate e scrive il riepilogo della settimana.
+    workspace: contabilita
+    prompt: "/riepiloga-fatture"
+    modello: media
+    minuti: 20
+  - id: leggi-riepilogo
+    tipo: umano
+    nome: Leggi il riepilogo
+    forma: lettura
+    dove: il pannello
+  - id: promemoria-pagamenti
+    tipo: uscita
+    nome: Promemoria dei pagamenti
+    descrizione: Un promemoria con le scadenze della settimana.
+    forma: promemoria
+    dove: il calendario, in un evento senza invitati
+tetti: {contemporanee: 1, corse_al_giorno: 1, finestra_minuti: 60}
+uscite:
+  - un riepilogo scritto nel pannello
+  - un promemoria nel calendario
+autonomia: {livello: L1, da: 2026-11-07, si: "Marta Bianchi, nel pannello, alla prima corsa del 2026-11-09"}
+prove:
+  - data: 2026-11-09
+    esito_atteso: Un riepilogo con le fatture della settimana e un promemoria per ogni scadenza.
