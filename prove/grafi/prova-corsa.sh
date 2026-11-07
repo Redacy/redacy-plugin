@@ -103,6 +103,7 @@ uguale "(a) passo 2 inizio" "0" "$(rc C passo "$A" scrivi inizio)"
 uguale "(a) ferma da pannello" "0" "$(rc C ferma "$A" --da pannello --perche "prova")"
 SA=$(F "$A")
 uguale "(a) stato fermata" "fermata" "$(J "$SA" 'c["stato"]')"
+uguale "(a) ferma scrive il file .stop, una riga JSON con chi e quando" "pannello|1" "$(python3 -c 'import json,sys;l=open(sys.argv[1]).read().splitlines();d=json.loads(l[0]);print(d["chi"]+"|"+str(len(l)))' "$D/grafi/corse/$A.stop")"
 uguale "(a) stop.chi" "pannello" "$(J "$SA" 'c["stop"]["chi"]')"
 uguale "(a) stop.perche" "prova" "$(J "$SA" 'c["stop"]["perche"]')"
 controllo "(a) stop.quando e fine valorizzati" python3 -c 'import json,sys;c=json.load(open(sys.argv[1]));assert c["stop"]["quando"] and c["fine"]' "$SA"
@@ -303,8 +304,45 @@ if ls "$BUONI"/*.yaml >/dev/null 2>&1; then
   done
 fi
 
+# ---------------------------------------------------------------- (j) lo stop scritto da fuori (il pannello)
+# Il pannello non lancia corsa.py: crea il file <id>.stop. La corsa lo vede al passo, al battito, alla chiusura.
+STOP_A_MANO='{"chi": "pannello", "quando": "2026-11-07T10:00:00Z", "perche": "prova a mano"}'
+for quale in passo battito chiudi stato; do
+  X=$(C apri giro-prova)
+  C passo "$X" leggi inizio
+  echo "$STOP_A_MANO" > "$D/grafi/corse/$X.stop"
+  case $quale in
+    passo)   MSG=$(C passo "$X" scrivi inizio 2>&1 >/dev/null); RC=$? ;;
+    battito) MSG=$(C battito "$X" 2>&1 >/dev/null); RC=$? ;;
+    chiudi)  MSG=$(C chiudi "$X" finita 2>&1 >/dev/null); RC=$? ;;
+    stato)   MSG=$(C stato "$X" 2>&1 >/dev/null); RC=$? ;;
+  esac
+  if [ "$quale" = stato ]; then ATT=0; else ATT=3; fi
+  uguale "(j) .stop a mano, poi $quale: uscita $ATT" "$ATT" "$RC"
+  if [ "$quale" != stato ]; then
+    controllo "(j) $quale: il messaggio dice chi ha fermato e cosa fare" bash -c 'echo "$1" | grep -q "Corsa fermata da pannello: non fare altri passi, dillo all.utente"' _ "$MSG"
+  fi
+  uguale "(j) $quale: la corsa e' fermata" "fermata" "$(J "$(F "$X")" 'c["stato"]')"
+  uguale "(j) $quale: stop.chi e stop.perche" "pannello|prova a mano" "$(J "$(F "$X")" 'c["stop"]["chi"]+"|"+c["stop"]["perche"]')"
+  uguale "(j) $quale: il passo in corso e' fermato, senza passi nuovi" "fermato|da-fare" "$(J "$(F "$X")" 'c["passi"][0]["stato"]+"|"+c["passi"][1]["stato"]')"
+done
+# elenco consolida e mostra fermata
+X=$(C apri giro-prova); echo "$STOP_A_MANO" > "$D/grafi/corse/$X.stop"
+controllo "(j) elenco mostra fermata una corsa con .stop" bash -c 'C() { (cd "$1" && python3 "$2" "${@:3}"); }; C "$1" "$2" elenco | grep -P "^$3\tfermata"' _ "$D" "$CORSA" "$X"
+# ferma su una corsa gia' chiusa non lascia un .stop
+Y=$(C apri giro-prova); C chiudi "$Y" fallita
+uguale "(j) ferma su corsa chiusa esce 3" "3" "$(rc C ferma "$Y")"
+controllo "(j) e non crea il file .stop" test ! -e "$D/grafi/corse/$Y.stop"
+# la sessione viene dall'ambiente
+Z=$(CLAUDE_CODE_SESSION_ID=sess-claude-1 C apri giro-prova)
+uguale "(j) sessione da CLAUDE_CODE_SESSION_ID" "sess-claude-1" "$(J "$(F "$Z")" 'c["sessione"]')"
+Z=$(env -u CLAUDE_CODE_SESSION_ID CODEX_THREAD_ID=thr-codex-1 bash -c 'cd "$1" && python3 "$2" apri giro-prova' _ "$D" "$CORSA")
+uguale "(j) sessione da CODEX_THREAD_ID" "thr-codex-1" "$(J "$(F "$Z")" 'c["sessione"]')"
+Z=$(CLAUDE_CODE_SESSION_ID=sess-claude-1 C apri giro-prova --sessione esplicita)
+uguale "(j) --sessione vince sull'ambiente" "esplicita" "$(J "$(F "$Z")" 'c["sessione"]')"
+
 # ---------------------------------------------------------------- (g) niente file in giro
-RESTI=$(find "$D/grafi/corse" -type f ! -name '*.json' ! -name '.*.lock' | wc -l | tr -d ' ')
+RESTI=$(find "$D/grafi/corse" -type f ! -name '*.json' ! -name '*.stop' ! -name '.*.lock' | wc -l | tr -d ' ')
 uguale "(g) nessun file temporaneo o estraneo in grafi/corse" "0" "$RESTI"
 uguale "(g) i soli file nascosti sono lucchetti" "0" "$(find "$D/grafi/corse" -type f -name '.*' ! -name '.*.lock' | wc -l | tr -d ' ')"
 uguale "(g) nessun .tmp in tutto lo studio" "0" "$(find "$D" -name '*.tmp' | wc -l | tr -d ' ')"

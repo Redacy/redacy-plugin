@@ -3,13 +3,15 @@
 
 Una corsa e' una volta in cui un grafo (grafi/<nome>.yaml) e' stato eseguito.
 Ogni corsa e' un file grafi/corse/<id>.json, scritto solo da questo script.
+Una richiesta di stop e' un file a parte, grafi/corse/<id>.stop: la prossima volta che la corsa
+fa un passo, un battito o si chiude, questo script la segna fermata ed esce con 3.
 
 Comandi:
   apri     controlla il grafo, crea la corsa e stampa il suo id
   passo    segna l'inizio o la fine di un passo
   battito  dice che la corsa e' ancora viva
   chiudi   chiude la corsa (finita o fallita)
-  ferma    ferma la corsa (lo usa il pannello)
+  ferma    chiede lo stop di una corsa: scrive grafi/corse/<id>.stop (lo usa il pannello)
   stato    mostra una corsa
   elenco   elenca le corse, le piu' recenti prima
 
@@ -119,6 +121,11 @@ def percorso_lucchetto(cartella, id_corsa):
     return os.path.join(cartella_corse(cartella), ".%s.lock" % id_corsa)
 
 
+def percorso_stop(cartella, id_corsa):
+    """La richiesta di stop e' un file a parte (<id>.stop): chi ferma scrive quello, la corsa la scrive solo corsa.py."""
+    return os.path.join(cartella_corse(cartella), id_corsa + ".stop")
+
+
 # ---------------------------------------------------------------- file
 
 @contextlib.contextmanager
@@ -152,6 +159,25 @@ def scrivi_atomico(percorso, dato):
         with contextlib.suppress(OSError):
             os.unlink(tmp)
         raise
+
+
+def scrivi_atomico_riga(percorso, dato):
+    """Come scrivi_atomico, ma una sola riga JSON (il file .stop). Se c'e' gia', resta il primo."""
+    cartella = os.path.dirname(percorso)
+    fd, tmp = tempfile.mkstemp(prefix=".%s." % os.path.basename(percorso), suffix=".tmp", dir=cartella)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(json.dumps(dato, ensure_ascii=False) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.chmod(tmp, 0o644)
+        try:
+            os.link(tmp, percorso)      # non sovrascrive: chi ha chiesto per primo resta
+        except FileExistsError:
+            pass
+    finally:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp)
 
 
 def leggi_corsa(percorso):
@@ -188,12 +214,57 @@ def _una_riga(testo):
     return " ".join(str(testo).split())
 
 
+def leggi_stop(cartella, id_corsa):
+    """La richiesta di stop di una corsa (dict con chi, quando, perche), o None se non c'e'."""
+    try:
+        with open(percorso_stop(cartella, id_corsa), encoding="utf-8") as f:
+            testo = f.read().strip()
+    except OSError:
+        return None
+    try:
+        dato = json.loads(testo.splitlines()[0]) if testo else {}
+    except (ValueError, IndexError):
+        dato = {}
+    if not isinstance(dato, dict):
+        dato = {}
+    return {
+        "chi": _una_riga(dato.get("chi")) or "sconosciuto",
+        "quando": dato.get("quando") or scrivi_ora(adesso_utc()),
+        "perche": _una_riga(dato.get("perche")) or "",
+    }
+
+
+def _applica_stop(corsa, stop, ora):
+    """Mette la corsa in stato fermata (in corso -> fermata, passi in corso -> fermato)."""
+    adesso = scrivi_ora(ora)
+    corsa["stop"] = stop
+    corsa["stato"] = "fermata"
+    corsa["fine"] = adesso
+    corsa["ultimo_segno"] = adesso
+    for p in corsa["passi"]:
+        if p["stato"] == "in-corso":
+            p["stato"] = "fermato"
+            p["fine"] = adesso
+
+
+def _messaggio_stop(stop):
+    return "Corsa fermata da %s: non fare altri passi, dillo all'utente." % stop["chi"]
+
+
+def stato_effettivo(corsa, cartella):
+    """Lo stato che vede chi legge: una corsa in corso con un file .stop e' gia' 'fermata'."""
+    if corsa.get("stato") == "in-corso" and leggi_stop(cartella, corsa.get("id", "")):
+        return "fermata"
+    return corsa.get("stato")
+
+
 # ---------------------------------------------------------------- modifica di una corsa
 
 def aggiorna(cartella, id_corsa, funzione):
     """Legge la corsa sotto lucchetto, applica `funzione(corsa, ora)`, scrive e restituisce.
 
-    Se la corsa non c'e': ErroreCorsa 2. Se non e' piu' in corso: ErroreCorsa 3.
+    Se la corsa non c'e': ErroreCorsa 2. Se non e' piu' in corso, o se c'e' una richiesta di stop
+    (la corsa diventa fermata): ErroreCorsa 3.
     Se `funzione` solleva un errore, il file non cambia.
     """
     percorso = percorso_corsa(cartella, id_corsa)
@@ -211,9 +282,28 @@ def aggiorna(cartella, id_corsa, funzione):
                 % (id_corsa, corsa["stato"]),
             )
         ora = adesso_utc()
+        stop = leggi_stop(cartella, id_corsa)
+        if stop is not None:
+            _applica_stop(corsa, stop, ora)
+            scrivi_atomico(percorso, corsa)
+            raise ErroreCorsa(3, _messaggio_stop(stop))
         funzione(corsa, ora)
         corsa["ultimo_segno"] = scrivi_ora(ora)
         scrivi_atomico(percorso, corsa)
+    return corsa
+
+
+def consolida_stop(cartella, id_corsa):
+    """Se c'e' una richiesta di stop su una corsa in corso, la scrive nella corsa. Restituisce la corsa letta."""
+    percorso = percorso_corsa(cartella, id_corsa)
+    if not os.path.isfile(percorso):
+        raise ErroreCorsa(2, "La corsa %s non c'e'." % id_corsa)
+    with lucchetto(percorso_lucchetto(cartella, id_corsa)):
+        corsa = leggi_corsa(percorso)
+        stop = leggi_stop(cartella, id_corsa)
+        if corsa["stato"] == "in-corso" and stop is not None:
+            _applica_stop(corsa, stop, adesso_utc())
+            scrivi_atomico(percorso, corsa)
     return corsa
 
 
@@ -279,7 +369,7 @@ def cmd_apri(args):
             "ultimo_segno": scrivi_ora(ora),
             "persa_dopo_minuti": args.persa_dopo,
             "fine": None,
-            "sessione": args.sessione,
+            "sessione": args.sessione or os.environ.get("CLAUDE_CODE_SESSION_ID") or os.environ.get("CODEX_THREAD_ID") or None,
             "stop": None,
             "passi": passi,
         }
@@ -347,18 +437,17 @@ def cmd_chiudi(args):
 
 def cmd_ferma(args):
     cartella = trova_cartella(esplicita=args.cartella)
-
-    def f(corsa, ora):
-        adesso = scrivi_ora(ora)
-        corsa["stop"] = {"chi": args.da, "quando": adesso, "perche": _una_riga(args.perche) or ""}
-        corsa["stato"] = "fermata"
-        corsa["fine"] = adesso
-        for p in corsa["passi"]:
-            if p["stato"] == "in-corso":
-                p["stato"] = "fermato"
-                p["fine"] = adesso
-
-    aggiorna(cartella, args.id, f)
+    percorso = percorso_corsa(cartella, args.id)
+    if not os.path.isfile(percorso):
+        raise ErroreCorsa(2, "La corsa %s non c'e'." % args.id)
+    corsa = consolida_stop(cartella, args.id)
+    if corsa["stato"] != "in-corso":
+        raise ErroreCorsa(3, "La corsa %s non e' in corso (%s): non c'e' niente da fermare." % (args.id, corsa["stato"]))
+    scrivi_atomico_riga(
+        percorso_stop(cartella, args.id),
+        {"chi": _una_riga(args.da) or "utente", "quando": scrivi_ora(adesso_utc()), "perche": _una_riga(args.perche) or ""},
+    )
+    consolida_stop(cartella, args.id)
     return 0
 
 
@@ -371,10 +460,9 @@ def etichetta_stato(corsa, adesso=None):
 def cmd_stato(args):
     cartella = trova_cartella(esplicita=args.cartella)
     percorso = percorso_corsa(cartella, args.id)
-    try:
-        corsa = leggi_corsa(percorso)
-    except FileNotFoundError:
+    if not os.path.isfile(percorso):
         raise ErroreCorsa(2, "La corsa %s non c'e'." % args.id)
+    corsa = consolida_stop(cartella, args.id)
     print(json.dumps(corsa, ensure_ascii=False, indent=2))
     print(etichetta_stato(corsa))
     return 0
@@ -389,7 +477,7 @@ def cmd_elenco(args):
         if nome.startswith(".") or not nome.endswith(".json"):
             continue
         try:
-            corse.append(leggi_corsa(os.path.join(cartella_c, nome)))
+            corse.append(consolida_stop(cartella, nome[:-5]))
         except (OSError, ErroreCorsa) as e:
             print("avviso: salto %s: %s" % (nome, getattr(e, "messaggio", e)), file=sys.stderr)
     if not corse:

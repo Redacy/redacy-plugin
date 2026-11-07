@@ -138,6 +138,7 @@ Una corsa è una volta che il grafo gira. Le regole complete stanno nell'`AGENTS
 1. Apri la corsa: `python3 .agents/script/corsa.py apri <grafo> --avviato-da conversazione`. Stampa l'id.
 2. Per ogni passo, nell'ordine: `corsa.py passo <id> <passo> inizio`, fai il lavoro, `corsa.py passo <id> <passo> fatto --esito "<cosa hai prodotto>"`.
 3. Alla fine `corsa.py chiudi <id> finita`, e racconta all'utente cosa è successo passo per passo.
+4. Se un comando di `corsa.py` esce con 3, la corsa è stata fermata: ti fermi subito e lo dici all'utente, senza riprovare.
 
 Per provarlo senza rischi, esegui una corsa a `L0` con dati inventati o con una copia del materiale.
 

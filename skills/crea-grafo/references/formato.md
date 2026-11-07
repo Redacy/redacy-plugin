@@ -115,8 +115,8 @@ Una corsa è un file JSON, scritto solo da `corsa.py`. L'`id` è `<grafo>-AAAAMM
 | `ultimo_segno` | l'ora dell'ultimo segno di vita: ogni `apri`, `passo`, `battito`, `chiudi` lo aggiorna |
 | `persa_dopo_minuti` | dopo quanti minuti senza segno di vita il pannello mostra la corsa «persa» invece che «in corso»: 20, scritto nel file all'apertura (`apri --persa-dopo N` lo cambia) |
 | `fine` | quando è finita, fallita o fermata; `null` finché è in corso |
-| `sessione` | l'identificativo della conversazione o della sessione che la esegue (testo), `null` se non c'è; serve allo stop |
-| `stop` | `null`, oppure `{"chi": "pannello", "quando": "...Z", "perche": "..."}`: chi ha chiesto di fermarla e quando |
+| `sessione` | l'identificativo della conversazione che la esegue (testo), `null` se non c'è. `apri` lo legge da `--sessione`, altrimenti dall'ambiente: `CLAUDE_CODE_SESSION_ID` in Claude, `CODEX_THREAD_ID` in Codex. Lo stop lo confronta con la sessione che sta lavorando |
+| `stop` | `null`, oppure `{"chi": "pannello", "quando": "...Z", "perche": "..."}`: la richiesta di stop copiata qui da `corsa.py` quando la vede (vedi «Lo stop») |
 | `passi` | la lista dei passi, nell'ordine del grafo, creata all'apertura con tutti `da-fare` |
 
 Ogni voce di `passi`:
@@ -129,6 +129,10 @@ Ogni voce di `passi`:
 | `fine` | quando è finito, `null` se non è finito |
 | `esito` | una riga: cosa ha prodotto («3 bozze in bozze della posta»), `null` se non c'è |
 | `nota` | una riga libera: perché è fallito, cosa aspetta, `null` se non c'è |
+
+### Lo stop
+
+La richiesta di stop è un **file a parte**, `grafi/corse/<id>.stop`: una riga JSON `{"chi": "pannello", "quando": "2026-11-07T10:00:00Z", "perche": "..."}`. Lo crea `corsa.py ferma <id> --da <chi>`, o il pannello nello stesso modo. Così il `.json` della corsa ha un solo scrittore, `corsa.py`. Quando c'è il `.stop`, `corsa.py` (a ogni `passo`, `battito`, `chiudi`, e a `stato` e `elenco`) segna la corsa `fermata` (`fine`, `stop` con chi e quando, i passi `in-corso` diventano `fermato`) ed esce con 3 stampando «Corsa fermata da <chi>: non fare altri passi, dillo all'utente.». Se il primo `passo` dopo la richiesta è un `inizio`, il passo non parte. Chi legge il `.json` senza passare da `corsa.py` tratta `in-corso` con un `.stop` accanto come `fermata`. Lo stop regge anche dove l'hook `ferma.py` non è approvato (Codex chiede l'approvazione di ogni hook, una volta per cartella): ciò che garantisce lo stop è il controllo di `corsa.py` prima di ogni passo, l'hook è una garanzia in più. I file `.stop` restano accanto alla corsa e non si cancellano.
 
 Una corsa **persa** non è un valore di `stato`: lo decide chi legge. È persa se `stato` è `in-corso` e `ora - ultimo_segno > persa_dopo_minuti`.
 
@@ -166,16 +170,16 @@ Sta in `.agents/script/` (copiato da `inizia`) e nel plugin in `skills/crea-graf
 | `passo <id> <passo> inizio\|fatto\|fallito [--nota T] [--esito T]` | aggiorna il passo e `ultimo_segno` |
 | `battito <id>` | aggiorna solo `ultimo_segno` |
 | `chiudi <id> finita\|fallita` | chiude; i passi `da-fare` diventano `saltato`; con un passo `in-corso` rifiuta |
-| `ferma <id> [--da CHI] [--perche T]` | scrive `stop`, mette la corsa `fermata`, i passi `in-corso` `fermato`; lo usa il pannello |
-| `stato <id>` | stampa il JSON della corsa e una riga «in corso», «persa» o lo stato |
-| `elenco` | una riga per corsa, dalla più recente, con lo stato (persa compresa) |
+| `ferma <id> [--da CHI] [--perche T]` | scrive `grafi/corse/<id>.stop` e segna subito la corsa `fermata` (i passi `in-corso` diventano `fermato`); se la corsa non è in corso esce 3 e non scrive niente |
+| `stato <id>` | applica un eventuale `.stop`, poi stampa il JSON della corsa e una riga «in corso», «persa» o lo stato |
+| `elenco` | una riga per corsa, dalla più recente, con lo stato (persa compresa; applica gli eventuali `.stop`) |
 
-Uscite: 0 ok; 1 uso sbagliato o grafo non valido; 2 corsa o grafo che non c'è; 3 la corsa non è più in corso (fermata o chiusa): chi riceve 3 smette di lavorare.
+Uscite: 0 ok; 1 uso sbagliato o grafo non valido; 2 corsa o grafo che non c'è; 3 la corsa non è più in corso (fermata o chiusa) o c'è una richiesta di stop: chi riceve 3 smette di lavorare.
 
 ## 6. Come si esegue una corsa (le cinque righe per `AGENTS.md`)
 
 1. Prima di lavorare a un grafo: `python3 .agents/script/corsa.py apri <grafo> --avviato-da conversazione --sessione <id della sessione>`; stampa l'id, tienilo.
-2. A ogni passo, nell'ordine del grafo (per i passi con lo stesso `dopo`, uno alla volta): `corsa.py passo <id> <passo> inizio`, fai il lavoro del passo, poi `passo <id> <passo> fatto --esito "<cosa hai prodotto>"` (o `fallito --nota "<perché>"`). Un passo `umano` si segna `fatto` quando hai consegnato, scrivendo cosa aspetta l'utente.
+2. **Prima di ogni passo**, nell'ordine del grafo (per i passi con lo stesso `dopo`, uno alla volta): `corsa.py passo <id> <passo> inizio` (controlla anche se qualcuno ha chiesto lo stop), fai il lavoro del passo, poi `passo <id> <passo> fatto --esito "<cosa hai prodotto>"` (o `fallito --nota "<perché>"`). Un passo `umano` si segna `fatto` quando hai consegnato, scrivendo cosa aspetta l'utente.
 3. Se un passo dura a lungo, lancia `corsa.py battito <id>` ogni pochi minuti: senza segni per 20 minuti il pannello mostra la corsa «persa».
 4. Alla fine: `corsa.py chiudi <id> finita` (o `fallita` se un passo è fallito e non si recupera), e dici all'utente cosa è successo, passo per passo.
-5. Se un hook nega un passo, o un comando di `corsa.py` esce con 3, la corsa è stata fermata: non riprovare, non cambiare strada, non chiuderla; scrivi una riga in `memoria/LOG.md` e dici all'utente che si è fermata e a quale passo.
+5. Se un comando di `corsa.py` esce con 3, o un hook nega un passo, la corsa è stata fermata: ti fermi subito, non riprovi, non cambi strada, non la chiudi; scrivi una riga in `memoria/LOG.md` e dici all'utente che si è fermata e a quale passo.
