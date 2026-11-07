@@ -178,7 +178,8 @@ def main():
     # 10. Il messaggio finale spiega il sistema
     finale = Path(a.finale).read_text(encoding="utf-8") if a.finale and Path(a.finale).is_file() else ""
     segna(re.search(r"pannello", finale, re.I) is not None, "il messaggio finale parla del pannello")
-    if not a.senza_pannello:
+    if not a.senza_pannello and a.harness == "claude":
+        # su Codex l'indirizzo lo stampa la riga che lancia l'utente, non l'agente
         segna(re.search(r"127\.0\.0\.1|localhost", finale) is not None, "il messaggio finale dà l'indirizzo del pannello")
     segna(re.search(r"memoria", finale, re.I) is not None, "il messaggio finale dice della memoria dello studio")
     nomi_ws = [d.name for d in ws]
