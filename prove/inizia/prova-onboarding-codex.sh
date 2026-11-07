@@ -3,7 +3,8 @@
 # L'onboarding di `inizia` su Codex, da terminale, in una cartella vuota, coi dati finti di uno
 # studio di commercialista inventato (dati-finti.sh). Installa il plugin da questa copia del
 # repo, lancia un solo `codex exec` (le risposte e i sì dell'utente nel primo messaggio), poi
-# toglie il plugin e controlla la cartella con controlla-onboarding.py.
+# toglie il plugin, lancia la riga che inizia dà all'utente per finire la cartella (.agents/ e
+# .codex/ sono chiuse nella sandbox) e controlla la cartella con controlla-onboarding.py.
 # Finisce con PASSA o FALLISCE <perché>.
 #
 # Uso: bash prove/inizia/prova-onboarding-codex.sh
@@ -67,6 +68,12 @@ case "$USCITA" in
   *) fallisce "codex exec esce $USCITA (vedi $G/codex.err)" ;;
 esac
 grep -c '"type":"item.completed"' "$G/codex.jsonl" | sed 's/^/eventi completati: /'
+
+# Il gesto dell'utente: nella sandbox di Codex .agents/ e .codex/ sono in sola lettura, quindi
+# inizia gli dà una riga da lanciare una volta nel terminale. La prova la lancia al suo posto,
+# con lo script di questa copia del plugin (la copia installata in Codex è già stata tolta).
+python3 "$RADICE/skills/inizia/scripts/crea-cartella.py" "$STUDIO" > "$G/riga-utente.txt" 2>&1
+echo "riga dell'utente: esce $? (vedi $G/riga-utente.txt)"
 
 ARG=()
 [ -n "${SENZA_PANNELLO:-}" ] && ARG+=(--senza-pannello)

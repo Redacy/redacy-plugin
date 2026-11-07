@@ -186,6 +186,10 @@ def main():
     segna(re.search(r"prossima volta|d'ora in poi|da adesso|adesso puoi|quando vuoi|cosa succede", finale, re.I) is not None,
           "il messaggio finale dice cosa succederà")
 
+    if a.harness == "codex":
+        segna("crea-cartella.py" in finale, "su Codex la chiusura dà la riga che finisce la cartella (crea-cartella.py)")
+        segna("/hooks" in finale, "su Codex la chiusura dice di approvare i controlli con /hooks")
+
     falliti = [c for ok, c in esiti if not ok]
     print(f"controlli: {len(esiti) - len(falliti)} ok su {len(esiti)}")
     if falliti:
