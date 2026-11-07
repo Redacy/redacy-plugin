@@ -32,7 +32,7 @@ Le righe che tornano dai sottoagenti le controlli tu: un percorso che non esiste
 ## Passo 3. Decidi la strada di ogni fonte
 
 - **memoria**: una procedura o una regola di lavoro (come si fa, chi fa cosa, chi approva, cosa non si fa mai). Diventa una pagina `memoria/<nome>.md` coi passi numerati, chi fa cosa e cosa serve, scritta come dice `.agents/regole/memoria.md`. La strada si scrive `memoria [[<nome>]]`.
-- **policy**: una regola su cosa l'agente può fare da solo o deve chiedere («le mail ai clienti le manda solo Laura»). Diventa una riga in `.agents/policy/cosa-faccio-da-solo.md`, nella lista giusta, mai una tabella. Se `.agents/` non si può scrivere (su Codex è in sola lettura), la regola va in `memoria/studio.md`, sotto «Cosa non si fa mai».
+- **policy**: una regola su cosa l'agente può fare da solo o deve chiedere («le mail ai clienti le manda solo Laura»). Diventa una riga in `.agents/policy/cosa-faccio-da-solo.md`, nella lista giusta, mai una tabella. Se `.agents/` non si può scrivere (su Codex è in sola lettura), la riga va in `memoria/regole-in-attesa.md`, come dice la skill `impara`: vale già, e una sessione di Claude o l'utente la passa nel file vero.
 - **resta dov'è**: un dato (pratiche, fogli, archivi, fatture). Si segna il percorso intero.
 - **da collegare**: un servizio non ancora collegato. Il «dove» è la categoria: `~~posta`, `~~calendario`, `~~archivio documenti`, `~~gestionale`, `~~foglio di calcolo`. Lo collega l'utente, quando vuole, con la skill `collega-sensore`.
 - **da chiedere**: non hai capito cos'è o a cosa serve. Una domanda all'utente, poi la strada giusta.

@@ -82,7 +82,7 @@ Cos'è: chi è lo studio, cosa fa, per chi. Da: la conversazione di inizia del <
 Le fonti sono in [[fonti-dati]]. Le procedure: [[<pagina della procedura>]].
 
 ## Cosa non si fa mai
-<le regole che l'utente ha detto, una per riga; le stesse stanno in .agents/policy/>
+<le regole che l'utente ha detto, una per riga; le stesse stanno in .agents/policy/cosa-faccio-da-solo.md, o in [[regole-in-attesa]] se .agents/ non si può scrivere>
 ```
 
 Se un dato non lo sai, non inventarlo: scrivi «da chiedere».

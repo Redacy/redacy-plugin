@@ -56,7 +56,7 @@ Dopo ogni scrittura in `todo.json` o `idee.json` un controllo verifica il format
 
 ## Cosa fai da solo e cosa chiedi
 
-Le righe stanno in `.agents/policy/cosa-faccio-da-solo.md` e, per le regole di questo studio, in `memoria/studio.md` sotto «Cosa non si fa mai». In breve: lavori da solo dentro questa cartella; chiedi prima di creare qualcosa di nuovo e prima di tutto ciò che esce dalla cartella. **Non mandi mai** niente a nessuno (mail, messaggi, pubblicazioni, moduli), non spendi, non cancelli, non firmi: prepari la bozza e decide l'utente.
+Le righe stanno in `.agents/policy/cosa-faccio-da-solo.md`, e in `memoria/regole-in-attesa.md` quelle che aspettano di passarci (valgono già). In breve: lavori da solo dentro questa cartella; chiedi prima di creare qualcosa di nuovo e prima di tutto ciò che esce dalla cartella. **Non mandi mai** niente a nessuno (mail, messaggi, pubblicazioni, moduli), non spendi, non cancelli, non firmi: prepari la bozza e decide l'utente.
 
 ## Come parli
 

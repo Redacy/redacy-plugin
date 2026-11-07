@@ -100,11 +100,12 @@ def main():
     # 4. La regola di Laura: nella policy (Claude) o almeno in memoria (Codex tiene .agents/ in sola lettura)
     pol = studio / ".agents/policy/cosa-faccio-da-solo.md"
     in_policy = pol.is_file() and "Laura" in pol.read_text(encoding="utf-8")
-    in_memoria = any("Laura" in p.read_text(encoding="utf-8") for p in (studio / "memoria").glob("*.md"))
+    attesa = studio / "memoria/regole-in-attesa.md"
+    in_memoria = attesa.is_file() and "Laura" in attesa.read_text(encoding="utf-8")
     if a.harness == "claude":
         segna(in_policy, "la regola «le mail ai clienti le manda solo Laura» è nella policy")
     else:
-        segna(in_policy or in_memoria, "la regola «le mail ai clienti le manda solo Laura» è nella policy o in memoria")
+        segna(in_policy or in_memoria, "la regola «le mail ai clienti le manda solo Laura» è nella policy o in memoria/regole-in-attesa.md")
     if pol.is_file():
         segna(not any(l.lstrip().startswith("|") for l in pol.read_text(encoding="utf-8").splitlines()),
               "la policy è fatta di righe, senza tabelle")
