@@ -32,7 +32,7 @@ for p in AGENTS.md CLAUDE.md .agents/hooks.json .agents/policy/cosa-faccio-da-so
          .agents/regole/memoria.md .agents/regole/testi-per-persone.md \
          .claude/settings.json .codex/config.toml .codex/hooks.json \
          memoria/INDICE.md memoria/LOG.md memoria/fonti-dati.md \
-         periodo/obiettivo.md periodo/todo.json periodo/idee.json fonti/LEGGIMI.md; do
+         periodo/obiettivo.md periodo/todo.json periodo/idee.json fonti/LEGGIMI.md interfaccia/.gitignore; do
   [ -f "$D/$p" ] || fallisce "manca il file $p"
 done
 for p in .agents/skills .agents/regole .agents/policy .agents/hooks .agents/script \
@@ -45,6 +45,7 @@ find "$D" -name .tienimi | grep -q . && fallisce "un segnaposto .tienimi è fini
 
 # 3. La forma dei file
 [ "$(cat "$D/CLAUDE.md")" = "@AGENTS.md" ] || fallisce "CLAUDE.md non è @AGENTS.md"
+grep -qx 'pannello.json' "$D/interfaccia/.gitignore" && grep -qx 'pannello.log' "$D/interfaccia/.gitignore" || fallisce "interfaccia/.gitignore non tiene fuori da git pannello.json e pannello.log"
 PAROLE=$(wc -w < "$D/AGENTS.md")
 [ "$PAROLE" -lt 1500 ] || fallisce "AGENTS.md ha $PAROLE parole, il tetto è 1500"
 grep -q 'memoria/INDICE.md' "$D/AGENTS.md" || fallisce "AGENTS.md non dice di leggere memoria/INDICE.md"
