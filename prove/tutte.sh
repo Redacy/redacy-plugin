@@ -69,8 +69,9 @@ PY
   echo "$(ls -d skills/*/ | wc -l | tr -d ' ') skill, ognuna con SKILL.md e name giusto"
   # nessun nome di skill tolta, nessuna versione vecchia (la prova stessa è esclusa)
   local vecchi
-  vecchi="$(grep -rnE "chiedi-allo-studio|parcheggia-idea|prepara-bundle|impara-lo-studio|0\.2\.0" . \
-            --exclude-dir=.git --exclude-dir=__pycache__ --exclude=tutte.sh -I || true)"
+  # i nomi sono scritti a pezzi, così questo file non li contiene e il controllo non trova se stesso
+  local tolti="chiedi-allo-""studio|parcheggia-""idea|prepara-""bundle|impara-lo-""studio|0\.2\.""0"
+  vecchi="$(grep -rnE "$tolti" . --exclude-dir=.git --exclude-dir=__pycache__ -I || true)"
   [ -z "$vecchi" ] || { echo "FALLISCE nomi tolti o versione vecchia ancora presenti:"; echo "$vecchi" | head -5; return 1; }
   echo "nessun nome tolto, nessuna versione 0.2.0"
   echo "ok"
