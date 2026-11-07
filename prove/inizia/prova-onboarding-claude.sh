@@ -56,7 +56,7 @@ for riga in open(sys.argv[1], encoding="utf-8"):
         continue
     if e.get("type") == "result":
         risposte.append(e.get("result") or "")
-        costo += e.get("total_cost_usd") or 0
+        costo = max(costo, e.get("total_cost_usd") or 0)  # cumulativo nella sessione
         turni += e.get("num_turns") or 0
         sessione = e.get("session_id")
 if not risposte:
