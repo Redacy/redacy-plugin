@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "redacy 0.3.0 · skills/pianifica-periodo/scripts/idee.schema.json · schema di periodo/idee.json: una voce = un'idea arrivata fuori periodo",
+  "title": "periodo/idee.json",
+  "type": "object",
+  "required": ["versione", "periodo", "idee"],
+  "additionalProperties": false,
+  "properties": {
+    "versione": {
+      "const": "0.3.0",
+      "description": "versione dello schema"
+    },
+    "periodo": {
+      "type": "string",
+      "description": "il periodo in corso quando le idee sono arrivate; vuoto finché non c'è un periodo"
+    },
+    "idee": {
+      "type": "array",
+      "description": "le idee, una per voce; non si cancellano: si pesano",
+      "items": {
+        "type": "object",
+        "required": ["id", "idea", "da_dove", "arrivata"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^i[0-9]+$",
+            "description": "identificatore, i1, i2, ...; non si riusa mai"
+          },
+          "idea": {
+            "type": "string",
+            "minLength": 1,
+            "description": "l'idea in una o due frasi, con le parole dell'utente"
+          },
+          "da_dove": {
+            "type": "string",
+            "minLength": 1,
+            "description": "da dove arriva: «conversazione», «utente» o il percorso di un file"
+          },
+          "arrivata": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "data AAAA-MM-GG in cui è arrivata"
+          },
+          "esito": {
+            "type": ["object", "null"],
+            "description": "assente o null finché l'idea non viene pesata con l'utente",
+            "required": ["stato", "data", "perche"],
+            "additionalProperties": false,
+            "properties": {
+              "stato": {
+                "enum": ["portata nel periodo", "scartata", "rimandata"],
+                "description": "cosa se ne è fatto"
+              },
+              "data": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                "description": "data AAAA-MM-GG in cui è stata pesata"
+              },
+              "perche": {
+                "type": "string",
+                "minLength": 1,
+                "description": "il motivo, in una riga"
+              },
+              "todo": {
+                "type": "string",
+                "pattern": "^t[0-9]+$",
+                "description": "facoltativa, solo se portata nel periodo: l'id della voce in todo.json"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
