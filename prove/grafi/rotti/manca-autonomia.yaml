@@ -1,0 +1,13 @@
+# ROTTO: manca il campo obbligatorio `autonomia` (l'ultimo blocco del grafo).
+grafo: manca-autonomia
+versione: 1
+obiettivo: Un grafo a cui manca il blocco autonomia.
+acceso: false
+innesco: {tipo: parola}
+passi:
+  - id: lavora
+    tipo: agente
+    workspace: orchestratore
+    prompt: Fai il lavoro.
+tetti: {contemporanee: 1}
+uscite: []

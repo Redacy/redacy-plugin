@@ -1,0 +1,16 @@
+# ROTTO: usa un'ancora (&base) e un alias (*base), che il formato non ammette.
+grafo: yaml-con-ancora
+versione: 1
+obiettivo: Un grafo che riusa un blocco con un'ancora.
+acceso: false
+innesco: {tipo: parola}
+passi:
+  - id: lavora
+    tipo: agente
+    workspace: orchestratore
+    prompt: Fai il lavoro.
+tetti: &base
+  contemporanee: 1
+uscite: []
+autonomia:
+  <<: *base

@@ -1,0 +1,19 @@
+# ROTTO: il passo `scrivi` ha `dopo: [leggi-tutto]` ma non c'è nessun passo con quell'id.
+grafo: dopo-inesistente
+versione: 1
+obiettivo: Un grafo con una freccia che punta a un passo che non c'è.
+acceso: false
+innesco: {tipo: parola}
+passi:
+  - id: leggi
+    tipo: agente
+    workspace: orchestratore
+    prompt: Leggi il materiale.
+  - id: scrivi
+    tipo: agente
+    dopo: [leggi-tutto]
+    workspace: orchestratore
+    prompt: Scrivi la sintesi.
+tetti: {contemporanee: 1}
+uscite: []
+autonomia: {livello: L0, da: 2026-11-07, si: null}
