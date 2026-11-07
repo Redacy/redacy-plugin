@@ -2,15 +2,6 @@
 name: mappa-fonte
 description: Si usa quando bisogna mappare una fonte di dati dello studio (una cartella, un documento, un foglio) in sola lettura e restituire la sua riga per memoria/fonti-dati.md. Lo lancia la skill ordina-dati, uno per fonte, al più tre insieme.
 
-<example>
-Context: durante inizia l'utente ha indicato tre posti dove stanno i dati
-user: "Le pratiche stanno in Documenti/Pratiche 2026, la procedura è un PDF, le scadenze in un foglio Excel"
-assistant: "Lancio un agente mappa-fonte per ognuno dei tre posti."
-<commentary>
-Tre fonti indipendenti: una per sottoagente, ognuna restituisce la sua riga.
-</commentary>
-</example>
-
 model: sonnet
 color: cyan
 tools: ["Read", "Glob", "Grep", "Bash"]
