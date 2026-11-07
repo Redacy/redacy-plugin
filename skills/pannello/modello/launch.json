@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pannello redacy",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [".agents/script/pannello.py", "--primo-piano", "--porta", "47474"],
+      "port": 47474,
+      "autoPort": false
+    }
+  ]
+}
