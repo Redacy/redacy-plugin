@@ -46,7 +46,7 @@ Accetta percorsi e nomi di servizi. Non chiedere mai password, codici o credenzi
 
 Di' in una riga cosa crei e dove, poi aspetta il sì. Dopo il sì lancia `crea-cartella.py <cartella>`. Lo script scrive anche la prima riga del registro (`memoria/LOG.md`).
 
-Se l'uscita ha righe `avviso:`, sono strumenti del plugin che mancano: non dirlo all'utente come un errore, scrivilo nel riepilogo finale in una riga.
+Se l'uscita ha righe `avviso:`, sono strumenti del plugin che mancano. Non elencarli all'utente: nella spiegazione finale basta una riga senza nomi tecnici («alcuni strumenti arriveranno con il prossimo aggiornamento del plugin»).
 
 ## Passo 4. Mappa le fonti
 
