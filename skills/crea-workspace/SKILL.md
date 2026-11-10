@@ -1,6 +1,7 @@
 ---
 name: crea-workspace
-description: Crea un workspace, cioè un agente AI intero per un lavoro nuovo che l'utente non ha ancora fatto fare, dentro workspace/<nome>/ della sua cartella. Si usa quando dice "crea un agente per...", "ho un lavoro nuovo", "apri un workspace per...", "mi serve qualcuno che si occupi di...", "da oggi i preventivi li fai tu", oppure quando arriva un lavoro che nessun workspace esistente sa fare. Un lavoro che si ripete uguale non è un workspace: è un grafo, e serve la skill crea-grafo.
+description: >-
+  Crea un workspace, cioè un agente AI intero per un lavoro nuovo che l'utente non ha ancora fatto fare, dentro workspace/<nome>/ della sua cartella. Si usa quando dice "crea un agente per...", "ho un lavoro nuovo", "apri un workspace per...", "mi serve qualcuno che si occupi di...", "da oggi i preventivi li fai tu", oppure quando arriva un lavoro che nessun workspace esistente sa fare. Un lavoro che si ripete uguale non è un workspace: è un grafo, e serve la skill crea-grafo.
 ---
 
 # Crea un workspace

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-onboarding-codex.sh · redacy 0.3.1
+# prova-onboarding-codex.sh · redacy 0.4.0
 # L'onboarding di `inizia` su Codex, da terminale, in una cartella vuota, coi dati finti di uno
 # studio di commercialista inventato (dati-finti.sh). Installa il plugin da questa copia del
 # repo, lancia un solo `codex exec` (le risposte e i sì dell'utente nel primo messaggio), poi
@@ -23,7 +23,7 @@ ORA="$(date +%Y%m%d-%H%M%S)-$$"
 G="$BASE/onboarding-codex-$ORA"
 DATI="$G/dati-studio"
 STUDIO="$G/studio-fabbri-moretti"
-LOCK="${CODEX_LOCK:-/home/ubuntu/lab/redacy-plugin-prove/.codex.lock}"
+LOCK="${CODEX_LOCK:-${TMPDIR:-/tmp}/redacy-plugin-prove/.codex.lock}"; mkdir -p "$(dirname "$LOCK")"
 [ -d "$(dirname "$LOCK")" ] || LOCK="$G/.codex.lock"
 fallisce() { echo "FALLISCE $*"; exit 1; }
 

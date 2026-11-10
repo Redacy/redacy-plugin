@@ -1,4 +1,4 @@
-# redacy 0.3.1 · skills/crea-workspace/scripts/controlla-workspace.py
+# redacy 0.4.0 · skills/crea-workspace/scripts/controlla-workspace.py
 """Controlla la cartella di un workspace (workspace/<nome>/).
 
 Uso: python3 controlla-workspace.py CARTELLA
@@ -139,5 +139,16 @@ def main(argv):
     return 0
 
 
+def flussi_utf8():
+    """Su Windows i flussi che non sono un terminale usano la tabella locale (cp1252): chi li legge vuole UTF-8."""
+    for f in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if not f.isatty():
+                f.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 if __name__ == "__main__":
+    flussi_utf8()
     sys.exit(main(sys.argv[1:]))

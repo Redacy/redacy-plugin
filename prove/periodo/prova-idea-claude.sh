@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.3.1 · prove/periodo/prova-idea-claude.sh
+# redacy 0.4.0 · prove/periodo/prova-idea-claude.sh
 # A metà di un lavoro l'utente dice un'idea fuori periodo: finisce in periodo/idee.json, non in periodo/todo.json,
 # e il lavoro in corso continua. La riga di AGENTS.md è la stessa che propone _lavoro/C/schemi.md (la scrive A).
 set -u
@@ -7,7 +7,7 @@ QUI="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN="$(cd "$QUI/../.." && pwd)"
 S="$PLUGIN/skills/pianifica-periodo"
 C="$S/scripts/controlla-periodo.py"
-P="${PROVE:-/home/ubuntu/lab/redacy-plugin-prove/C}/idea-claude"
+P="${PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/C}/idea-claude"
 fallisce() { echo "FALLISCE $1"; exit 1; }
 command -v claude >/dev/null || fallisce "claude non c'è"
 

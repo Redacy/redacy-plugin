@@ -1,4 +1,4 @@
-<!-- redacy 0.3.1 · origine nel plugin: skills/inizia/modello/memoria/fonti-dati.md -->
+<!-- redacy 0.4.0 · origine nel plugin: skills/inizia/modello/memoria/fonti-dati.md -->
 # Dove stanno i dati dello studio
 
 Una riga per fonte: cosa è, dove sta, cosa contiene, che strada ha preso. I dati restano dove sono: qui si segna dove trovarli. Lo scrivono `inizia` e `ordina-dati`. Collegata da [[INDICE]].

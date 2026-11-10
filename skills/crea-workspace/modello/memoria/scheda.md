@@ -1,4 +1,4 @@
-<!-- redacy 0.3.1 · skills/crea-workspace/modello/memoria/scheda.md -->
+<!-- redacy 0.4.0 · skills/crea-workspace/modello/memoria/scheda.md -->
 # {{nome}}
 
 Creato il {{data}}.

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# redacy 0.3.1 - prove/grafi/prova-corsa.sh
+# redacy 0.4.0 - prove/grafi/prova-corsa.sh
 # Prova corsa.py su una cartella di studio finta. Una riga per controllo,
 # in fondo una sola riga: PASSA oppure FALLISCE <perche'>.
 # Uso: bash prove/grafi/prova-corsa.sh [--tieni]   (--tieni lascia la cartella di prova)
-# La cartella di prova sta sotto $REDACY_PROVE (default /home/ubuntu/lab/redacy-plugin-prove/B).
+# La cartella di prova sta sotto $REDACY_PROVE (default ${TMPDIR:-/tmp}/redacy-plugin-prove/B).
 
 export PYTHONDONTWRITEBYTECODE=1
 set -u
@@ -17,7 +17,7 @@ TIENI=0
 QUI=$(cd "$(dirname "$0")" && pwd)
 SCRIPT_DIR=$(cd "$QUI/../../skills/crea-grafo/scripts" && pwd)
 CORSA="$SCRIPT_DIR/corsa.py"
-BASE=${REDACY_PROVE:-/home/ubuntu/lab/redacy-plugin-prove/B}
+BASE=${REDACY_PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/B}
 mkdir -p "$BASE"
 D=$(mktemp -d "$BASE/corsa-XXXX")
 unset REDACY_CARTELLA

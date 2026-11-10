@@ -1,4 +1,4 @@
-# redacy 0.3.1 · skills/crea-grafo/scripts/yaml_ridotto.py
+# redacy 0.4.0 · skills/crea-grafo/scripts/yaml_ridotto.py
 """Lettore del sottoinsieme di yaml usato dai grafi di redacy.
 
 Solo libreria standard, niente PyYAML. Ammesso: mappe e liste a blocchi,

@@ -1,6 +1,7 @@
 ---
 name: impara
-description: Salva ciò che il professionista insegna e ciò che si impara dal lavoro fatto, nella forma giusta: una pagina di memoria, una regola, una skill, uno script, un controllo automatico o un processo a passi fissi. Usala quando l'utente insegna ("ricordati che", "da noi si fa così", "ti spiego come lavoro"), quando ti corregge ("no, così non va", "questo lo faccio io"), oppure a fine lavoro ("abbiamo finito, cosa hai imparato?", "salva come si fa", "da ora in poi fallo sempre così").
+description: >-
+  Salva ciò che il professionista insegna e ciò che si impara dal lavoro fatto, nella forma giusta: una pagina di memoria, una regola, una skill, uno script, un controllo automatico o un processo a passi fissi. Usala quando l'utente insegna ("ricordati che", "da noi si fa così", "ti spiego come lavoro"), quando ti corregge ("no, così non va", "questo lo faccio io"), oppure a fine lavoro ("abbiamo finito, cosa hai imparato?", "salva come si fa", "da ora in poi fallo sempre così").
 ---
 
 # Impara

@@ -27,7 +27,9 @@ import datetime
 import json
 import os
 import shlex
+import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -61,6 +63,104 @@ ADATTATORI_HOOK = [".agents/hooks.json", ".claude/settings.json", ".codex/hooks.
 FILE_JSON = [".agents/hooks.json", ".claude/settings.json", ".codex/hooks.json",
              "periodo/todo.json", "periodo/idee.json"]
 POLICY = ".agents/policy"
+
+
+# ---------------------------------------------------------------- Windows
+# Su macOS e Linux niente di questo parte: si copia il modello com'è. Su Windows `python3` di solito non
+# c'è (c'è `python` o `py -3`), PowerShell 5.1 non ha `&&` e i collegamenti simbolici chiedono privilegi:
+# i file che nascono da qui portano il comando giusto per la macchina su cui gira questo script.
+
+def su_windows():
+    """Vero su Windows. Ogni ramo solo-Windows di questo file passa di qui (le prove lo forzano)."""
+    return os.name == "nt"
+
+
+def python_windows(esito=None):
+    """Come una shell di Windows lancia questo stesso Python: `python`, `py -3` o `python3`.
+
+    Il primo che risponde da Python 3 (lo stub di Microsoft Store risponde con un errore, e si scarta).
+    Se nessuno risponde, restituisce `python` e mette un avviso."""
+    if esito is not None and getattr(esito, "python", None):
+        return esito.python
+    trovato = None
+    for nome in (["python"], ["py", "-3"], ["python3"]):
+        try:
+            r = subprocess.run(nome + ["-c", "import sys; print(sys.version_info[0])"],
+                               capture_output=True, text=True, timeout=20)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if r.returncode == 0 and r.stdout.strip() == "3":
+            trovato = " ".join(nome)
+            break
+    if trovato is None:
+        trovato = "python"
+        if esito is not None:
+            esito.avvisi.append("non trovo `python` né `py -3` sul PATH: i comandi degli hook dicono `python`; "
+                                "installa Python 3 e rilancia (o scrivi tu il nome giusto in .agents/hooks.json, "
+                                ".claude/settings.json e .codex/hooks.json)")
+    if esito is not None:
+        esito.python = trovato
+    return trovato
+
+
+def comando_hook(python, script):
+    """La riga di un hook che va bene in bash (Git Bash) e in PowerShell: niente `&&`, niente `[ ]`, niente
+    variabili di shell. Se lo script non c'è non fa niente ed esce 0 (Python da solo, con un file mancante,
+    esce 2 e bloccherebbe). Il `; exit $LASTEXITCODE` finale fa uscire PowerShell con il codice dello script
+    (senza, un 2 diventa 1 e il messaggio non arriva al modello); in bash la variabile è vuota e non cambia niente."""
+    return (python + " -c \"import os,runpy;f=os.path.join(os.environ.get('CLAUDE_PROJECT_DIR','.'),"
+            "'.agents','hooks','" + script + "');os.path.isfile(f) and runpy.run_path(f,run_name='__main__')\""
+            "; exit $LASTEXITCODE")
+
+
+def adatta_hook_windows(testo, python):
+    """Il JSON degli hook con ogni comando riscritto per Windows. Le altre chiavi restano come sono."""
+    dati = json.loads(testo)
+
+    def giro(nodo):
+        if isinstance(nodo, dict):
+            c = nodo.get("command")
+            if isinstance(c, str):
+                m = re.search(r"/\.agents/hooks/([A-Za-z0-9_.-]+\.py)", c)
+                if m:
+                    nodo["command"] = comando_hook(python, m.group(1))
+            for v in nodo.values():
+                giro(v)
+        elif isinstance(nodo, list):
+            for v in nodo:
+                giro(v)
+
+    giro(dati)
+    return json.dumps(dati, indent=2, ensure_ascii=False) + "\n"
+
+
+def adatta_launch_windows(testo, eseguibile):
+    """launch.json lancia Python senza shell: su Windows serve il Python che c'è, non `python3`."""
+    dati = json.loads(testo)
+    for voce in dati.get("configurations", []) if isinstance(dati, dict) else []:
+        if isinstance(voce, dict) and voce.get("runtimeExecutable") == "python3":
+            voce["runtimeExecutable"] = eseguibile
+    return json.dumps(dati, indent=2, ensure_ascii=False) + "\n"
+
+
+def giunzione_windows(dest, bersaglio):
+    """Un collegamento di cartella che non chiede privilegi (mklink /J). Vero se è riuscito."""
+    try:
+        r = subprocess.run(["cmd", "/c", "mklink", "/J", str(dest), str(bersaglio)],
+                           capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return r.returncode == 0
+
+
+def flussi_utf8():
+    """Su Windows i flussi che non sono un terminale usano la tabella locale (cp1252): chi li legge vuole UTF-8."""
+    for f in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if not f.isatty():
+                f.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
 
 
 def radice_plugin(da_argomento):
@@ -126,6 +226,7 @@ class Esito:
     def __init__(self):
         self.creati, self.saltati, self.avvisi, self.mancano, self.non_va = [], [], [], [], []
         self.non_scritti = []
+        self.python = None
 
 
 def scrivi(esito, rel, azione):
@@ -152,9 +253,12 @@ def crea(cartella, radice, versione, esito):
         if os.path.lexists(dest):
             esito.saltati.append(str(rel))
             continue
-        def copia(d=dest, s=modello / rel):
+        def copia(d=dest, s=modello / rel, r=str(rel).replace(os.sep, "/")):
             d.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(s, d)
+            if su_windows() and r in ADATTATORI_HOOK:
+                d.write_text(adatta_hook_windows(s.read_text(encoding="utf-8"), python_windows(esito)), encoding="utf-8")
+            else:
+                shutil.copyfile(s, d)
             shutil.copymode(s, d)
         if scrivi(esito, str(rel), copia):
             esito.creati.append(str(rel))
@@ -166,10 +270,13 @@ def crea(cartella, radice, versione, esito):
         try:
             os.symlink(bersaglio, dest, target_is_directory=True)
             esito.creati.append(f"{rel} -> {bersaglio}")
-        except PermissionError as e:
-            esito.non_scritti.append(f"{rel} ({e.strerror or e})")
         except OSError as e:
-            esito.avvisi.append(f"{rel}: collegamento non creato ({e}); Claude non vedrà {bersaglio[3:]}")
+            if su_windows() and giunzione_windows(dest, (dest.parent / bersaglio).resolve()):
+                esito.creati.append(f"{rel} -> {bersaglio} (giunzione)")
+            elif isinstance(e, PermissionError):
+                esito.non_scritti.append(f"{rel} ({e.strerror or e})")
+            else:
+                esito.avvisi.append(f"{rel}: collegamento non creato ({e}); Claude non vedrà {bersaglio[3:]}")
     for origine, rel in COPIE + COPIE_TALI:
         sorgente = radice / origine
         dest = cartella / rel
@@ -182,7 +289,10 @@ def crea(cartella, radice, versione, esito):
         tale = (origine, rel) in COPIE_TALI
         def copia(d=dest, s=sorgente, o=origine, t=tale):
             d.parent.mkdir(parents=True, exist_ok=True)
-            if t:
+            if t and su_windows():
+                d.write_text(adatta_launch_windows(s.read_text(encoding="utf-8"), sys.executable or "python"),
+                             encoding="utf-8")
+            elif t:
                 shutil.copyfile(s, d)
             else:
                 d.write_text(con_testa(s, o, versione), encoding="utf-8")
@@ -278,7 +388,10 @@ def stampa(esito, cartella, solo_controllo):
     if esito.non_scritti:
         print("da finire: questa sessione non può scrivere alcune cartelle (in Codex .agents/ e .codex/ "
               "sono protette). Lancia una volta questa riga nel terminale, fuori da Codex:")
-        print(f"comando: python3 {shlex.quote(str(Path(__file__).resolve()))} {shlex.quote(str(cartella))}")
+        if su_windows():  # PowerShell e cmd: virgolette doppie, niente shlex, niente &&
+            print(f'comando: {python_windows(esito)} "{Path(__file__).resolve()}" "{cartella}"')
+        else:
+            print(f"comando: python3 {shlex.quote(str(Path(__file__).resolve()))} {shlex.quote(str(cartella))}")
 
 
 def main(argv=None):
@@ -315,4 +428,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    flussi_utf8()
     sys.exit(main())

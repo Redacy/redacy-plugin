@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-pagina.sh · redacy 0.3.1
+# prova-pagina.sh · redacy 0.4.0
 # La pagina del pannello in un browser vero, contro il server vero, su una cartella fatta da `inizia`
 # con dati finti e una corsa per stato:
 #  - pagina.html è quella che esce dai pezzi in skills/pannello/sorgenti (costruisci.py --controlla);
@@ -9,13 +9,13 @@
 # dicendolo). Finisce con PASSA o FALLISCE <perché>.
 #
 # Uso: bash prove/pannello/prova-pagina.sh
-# Le cartelle di prova vanno in $REDACY_PROVE (default /home/ubuntu/lab/redacy-plugin-prove/D).
+# Le cartelle di prova vanno in $REDACY_PROVE (default ${TMPDIR:-/tmp}/redacy-plugin-prove/D).
 set -u
 
 RADICE="$(cd "$(dirname "$0")/../.." && pwd)"
 PANNELLO="$RADICE/skills/pannello/scripts/pannello.py"
 PREPARA="$RADICE/prove/pannello/_prepara.py"
-BASE="${REDACY_PROVE:-/home/ubuntu/lab/redacy-plugin-prove/D}"
+BASE="${REDACY_PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/D}"
 ORA="$(date +%Y%m%d-%H%M%S)-$$"
 G="$BASE/pagina-$ORA"
 D="$G/studio"

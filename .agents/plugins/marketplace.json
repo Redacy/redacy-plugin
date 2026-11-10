@@ -1,5 +1,8 @@
 {
   "name": "redacy",
+  "interface": {
+    "displayName": "Redacy"
+  },
   "plugins": [
     {
       "name": "redacy",
@@ -12,7 +15,7 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity",
-      "version": "0.3.1"
+      "version": "0.4.0"
     }
   ]
 }

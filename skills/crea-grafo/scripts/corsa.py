@@ -1,4 +1,4 @@
-# redacy 0.3.1 - skills/crea-grafo/scripts/corsa.py
+# redacy 0.4.0 - skills/crea-grafo/scripts/corsa.py
 """Tiene il registro delle corse di un grafo.
 
 Una corsa e' una volta in cui un grafo (grafi/<nome>.yaml) e' stato eseguito.
@@ -26,13 +26,13 @@ trova_cartella(), leggi_corsa(percorso), e_persa(corsa, adesso=None).
 import argparse
 import contextlib
 import datetime
-import fcntl
 import importlib.util
 import json
 import os
 import re
 import sys
 import tempfile
+import time
 
 QUI = os.path.dirname(os.path.abspath(__file__))
 if QUI not in sys.path:
@@ -128,18 +128,60 @@ def percorso_stop(cartella, id_corsa):
 
 # ---------------------------------------------------------------- file
 
+def su_windows():
+    """Vero su Windows. I rami solo-Windows di questo file passano di qui (le prove lo forzano)."""
+    return os.name == "nt"
+
+
+def blocca_file(fd):
+    """Lucchetto esclusivo su un file aperto, aspetta finche' lo ottiene. Unix: fcntl.flock. Windows: msvcrt.locking."""
+    if su_windows():
+        import msvcrt
+        os.lseek(fd, 0, os.SEEK_SET)
+        while True:
+            try:
+                msvcrt.locking(fd, msvcrt.LK_LOCK, 1)   # riprova da solo per circa 10 secondi, poi OSError
+                return
+            except OSError:
+                time.sleep(0.05)
+    import fcntl
+    fcntl.flock(fd, fcntl.LOCK_EX)
+
+
+def sblocca_file(fd):
+    if su_windows():
+        import msvcrt
+        with contextlib.suppress(OSError):
+            os.lseek(fd, 0, os.SEEK_SET)
+            msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+        return
+    import fcntl
+    fcntl.flock(fd, fcntl.LOCK_UN)
+
+
 @contextlib.contextmanager
 def lucchetto(percorso):
-    """Lucchetto esclusivo su un file nascosto (fcntl.flock). Si libera da solo."""
+    """Lucchetto esclusivo su un file nascosto. Si libera da solo."""
     fd = os.open(percorso, os.O_RDWR | os.O_CREAT, 0o644)
     try:
-        fcntl.flock(fd, fcntl.LOCK_EX)
+        blocca_file(fd)
         yield
     finally:
         try:
-            fcntl.flock(fd, fcntl.LOCK_UN)
+            sblocca_file(fd)
         finally:
             os.close(fd)
+
+
+def sostituisci(tmp, dest):
+    """os.replace. Su Windows, se il pannello ha il file aperto in lettura in quell'istante, riprova per un secondo."""
+    for tentativo in range(20):
+        try:
+            return os.replace(tmp, dest)
+        except PermissionError:
+            if not su_windows() or tentativo == 19:
+                raise
+            time.sleep(0.05)
 
 
 def scrivi_atomico(percorso, dato):
@@ -154,7 +196,7 @@ def scrivi_atomico(percorso, dato):
             f.flush()
             os.fsync(f.fileno())
         os.chmod(tmp, 0o644)
-        os.replace(tmp, percorso)
+        sostituisci(tmp, percorso)
     except BaseException:
         with contextlib.suppress(OSError):
             os.unlink(tmp)
@@ -606,5 +648,16 @@ def main(argv=None):
         return 1
 
 
+def flussi_utf8():
+    """Su Windows i flussi che non sono un terminale usano la tabella locale (cp1252): chi li legge vuole UTF-8."""
+    for f in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if not f.isatty():
+                f.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 if __name__ == "__main__":
+    flussi_utf8()
     sys.exit(main())

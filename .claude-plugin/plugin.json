@@ -1,9 +1,27 @@
 {
   "name": "redacy",
-  "description": "Un orchestratore in locale per il tuo studio: ordina i dati, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello.",
-  "version": "0.3.1",
+  "displayName": "Redacy",
+  "description": "Un orchestratore in locale per il tuo studio: ordina i dati e i file, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello. A local orchestrator for a small professional firm: maps and tidies your files, creates AI agents and repeatable processes, keeps the work period and shows it all in a local dashboard. In Italian.",
+  "version": "0.4.0",
   "author": {
-    "name": "Redacy"
+    "name": "Redacy",
+    "url": "https://redacy.com"
   },
-  "license": "MIT"
+  "homepage": "https://redacy.com",
+  "repository": "https://github.com/Redacy/redacy-plugin",
+  "license": "MIT",
+  "keywords": [
+    "orchestrator",
+    "agents",
+    "workflow",
+    "memory",
+    "dashboard",
+    "small-business",
+    "italiano"
+  ],
+  "icon": "./assets/icon.png",
+  "documentationUrl": "https://github.com/Redacy/redacy-plugin#readme",
+  "supportUrl": "https://github.com/Redacy/redacy-plugin/issues",
+  "privacyPolicyUrl": "https://github.com/Redacy/redacy-plugin/blob/main/PRIVACY.md",
+  "termsOfServiceUrl": "https://github.com/Redacy/redacy-plugin/blob/main/LICENSE"
 }

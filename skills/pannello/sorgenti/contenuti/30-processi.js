@@ -126,13 +126,13 @@ function passoSchedaHtml(ist, g, p) {
   else if (p.tipo === 'cli') cosa = 'Lancia un comando: <code class="pc-cod">' + esc(p.comando || '') + '</code>';
   else if (p.tipo === 'uscita') cosa = 'Lascia il risultato' + (forma ? ' come ' + esc(forma) : '');
   else if (p.tipo === 'umano') cosa = 'Aspetta te: rileggi e decidi' + (forma ? ' (' + esc(forma) + ')' : '');
-  return '<div class="pc-scroll"><header class="pc-passo-testa"><span class="pc-passo-ic">' + ico(tp.ic, 26) + '</span><div><p class="pc-meta">' + esc(tp.et) + ' · passo ' + (idx + 1) + ' di ' + arr(g.passi).length + ' del processo ' + esc(nomeProc(g.grafo)) + '</p><h2 class="pc-tit">' + esc(p.nome || umano(p.id)) + '</h2></div>' + (s ? tag(s) : '') + '</header>' +
+  return '<div class="pc-scroll"><header class="pc-passo-testa"><span class="pc-passo-ic">' + ico(tp.ic, 26) + '</span><div><p class="pc-meta">' + esc(tp.et) + ' · passo ' + (idx + 1) + ' di ' + arr(g.passi).length + ' del processo ' + esc(nomeProc(g.grafo)) + '</p><h1 class="pc-tit">' + esc(p.nome || umano(p.id)) + '</h1></div>' + (s ? tag(s) : '') + '</header>' +
     '<dl class="pc-dl pc-dl-grande">' + riga('Cosa fa', cosa) +
     riga('In che area lavora', area ? '<button type="button" class="pc-chip" data-az="vai" data-p="aree" data-v="' + esc(area.nome) + '">' + esc(area.titolo) + '</button> <span class="pc-tenue">' + esc(area.serve) + '</span>' : (p.workspace ? esc(p.workspace) : '')) +
     riga('Dove lascia il risultato', p.dove ? esc(p.dove) + (forma && p.tipo !== 'agente' ? ' <span class="pc-tenue">(' + esc(forma) + ')</span>' : '') : '') +
     riga('Prima', prima.length ? prima.map(chipPasso).join(' ') : '<span class="pc-tenue">È il primo: parte ' + esc(quandoParte(g).toLowerCase()) + '</span>') +
     riga('Dopo', dopo.length ? dopo.map(chipPasso).join(' ') : '<span class="pc-tenue">È l\'ultimo passo</span>') + '</dl>' +
-    '<h3 class="pc-sez">Nell\'ultima volta che è girato</h3>' + (ns.c ? '<div class="pc-ultima"><dl class="pc-dl"><div><dt>Quando</dt><dd>' + esc(cap(quando(ns.c.inizio))) + (rp && rp.inizio ? ' · il passo è partito ' + esc(quando(rp.inizio)) : '') + '</dd></div>' +
+    '<h2 class="pc-sez">Nell\'ultima volta che è girato</h2>' + (ns.c ? '<div class="pc-ultima"><dl class="pc-dl"><div><dt>Quando</dt><dd>' + esc(cap(quando(ns.c.inizio))) + (rp && rp.inizio ? ' · il passo è partito ' + esc(quando(rp.inizio)) : '') + '</dd></div>' +
       '<div><dt>Com\'è andata</dt><dd>' + (s ? tag(s) : '') + '</dd></div>' + (rp && rp.esito ? '<div><dt>Esito</dt><dd>' + esc(rp.esito) + '</dd></div>' : '') + (rp && rp.nota ? '<div><dt>Nota</dt><dd>' + esc(rp.nota) + '</dd></div>' : '') + '</dl></div>' : '<p class="pc-vuoto">Non è ancora girato.</p>') +
     sezioneFile(g.file) + '</div>';
 }
@@ -167,19 +167,19 @@ P.processi = {
     const e = ist.pila[0];
     if (!e) {
       const gs = grafi();
-      return '<div class="pc-scroll"><header class="pc-intro"><h2 class="pc-tit">I tuoi processi</h2><p class="pc-p pc-tenue">Lavori che seguono sempre gli stessi passi. Apri un processo per vedere come funziona, passo per passo.</p></header><div class="pc-proc-lista">' +
-        (gs.length ? gs.map(schedaProcesso).join('') : '<p class="pc-vuoto">Non c\'è ancora nessun processo.</p>') + '</div></div>';
+      return '<div class="pc-scroll"><header class="pc-intro"><h1 class="pc-tit">I tuoi processi</h1><p class="pc-p pc-tenue">Lavori che seguono sempre gli stessi passi. Apri un processo per vedere come funziona, passo per passo.</p></header><div class="pc-proc-lista">' +
+        (gs.length ? gs.map(schedaProcesso).join('') : '<p class="pc-vuoto">Non c\'è ancora nessun processo. Quando un lavoro si ripete uguale, ' + chiedi('automatizza questo lavoro') + '</p>') + '</div></div>';
     }
     const g = grafoPer(e.id); if (!g) return '<div class="pc-scroll"><p class="pc-vuoto">Processo non trovato.</p></div>';
     if (ist.pila[1] && ist.pila[1].t === 'p') { const p = defPasso(g, ist.pila[1].id); if (p) return passoSchedaHtml(ist, g, p); }
     const au = autonomiaParole(g);
-    return '<div class="pc-scroll"><header class="pc-passo-testa"><div><h2 class="pc-tit">' + esc(nomeProc(g.grafo)) + '</h2></div><span class="pc-tag ' + (g.acceso ? 'pc-t-ok' : 'pc-t-calmo') + '">' + ico(g.acceso ? 'power' : 'minus', 14) + '<span>' + (g.acceso ? 'Acceso' : 'Spento') + '</span></span></header>' +
+    return '<div class="pc-scroll"><header class="pc-passo-testa"><div><h1 class="pc-tit">' + esc(nomeProc(g.grafo)) + '</h1></div><span class="pc-tag ' + (g.acceso ? 'pc-t-ok' : 'pc-t-calmo') + '">' + ico(g.acceso ? 'power' : 'minus', 14) + '<span>' + (g.acceso ? 'Acceso' : 'Spento') + '</span></span></header>' +
       '<p class="pc-obj-g">' + esc(g.obiettivo) + '</p>' + (g.descrizione ? '<p class="pc-p">' + esc(String(g.descrizione).trim()) + '</p>' : '') +
       '<dl class="pc-dl pc-dl-grande"><div><dt>Quando parte</dt><dd>' + esc(quandoParte(g)) + '</dd></div><div><dt>Quanto fa da solo</dt><dd>' + esc(au.cosa) + '. <span class="pc-tenue">' + esc(au.chi) + '.</span></dd></div>' +
       '<div><dt>Limiti</dt><dd>' + esc(tettiParole(g)) + '</dd></div><div><dt>Cosa produce</dt><dd>' + (arr(g.uscite).length ? esc(arr(g.uscite).join(', ')) : '<span class="pc-tenue">niente di scritto</span>') + '</dd></div></dl>' +
-      '<h3 class="pc-sez">Passo per passo</h3>' + wfHtml(ist, g, W) + legendaStati(g) +
+      '<h2 class="pc-sez">Passo per passo</h2>' + wfHtml(ist, g, W) + legendaStati(g) +
       '<p class="pc-suggerimento">Tocca un passo per vedere cosa fa.</p>' +
-      '<h3 class="pc-sez">Le ultime volte che è girato</h3>' + righeCorse(g) + sezioneFile(g.file) + '</div>';
+      '<h2 class="pc-sez">Le ultime volte che è girato</h2>' + righeCorse(g) + sezioneFile(g.file) + '</div>';
   },
   anteprima(ist) {
     const g = gAnteprima(); const gs = grafi(); const acc = gs.filter((x) => x.acceso).length;

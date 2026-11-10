@@ -1,6 +1,6 @@
 
 /* ---------- MEMORIA: il grafo a forze, scritto qui, niente librerie ---------- */
-const PAL = ['#3a66d9', '#f0a63a', '#9a63d0', '#27a98b', '#d9577f', '#7aa0e8'];
+const PAL = ['#2f6fb6', '#d9902c', '#1f9a80', '#c75a48', '#7c8a2e', '#5b7f95'];
 let MEMC = {};
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function assesta(nodes, edges, vert) {
@@ -175,13 +175,13 @@ function paginaMem(ist, n) {
   const chips = (ks) => ks.map((k) => { const x = nodiMem().find((q) => q.chiave === k); return x ? '<button type="button" class="pc-chip' + (x.mancante ? ' pc-chip-manca' : '') + '" data-az="wiki" data-k="' + esc(k) + '">' + esc(x.titolo) + '</button>' : ''; }).join(' ');
   const cita = arr(n.citata_da);
   const verso = arr(S.memoria_grafo.archi).filter((e) => e.da === n.chiave).map((e) => e.a);
-  if (n.mancante) return '<div class="pc-scroll pc-pag"><div class="pc-pag-testa"><span class="pc-tag pc-t-calmo">' + ico('note', 14) + '<span>Pagina da scrivere</span></span></div><h2 class="pc-tit">' + esc(n.titolo) + '</h2>' +
+  if (n.mancante) return '<div class="pc-scroll pc-pag"><div class="pc-pag-testa"><span class="pc-tag pc-t-calmo">' + ico('note', 14) + '<span>Pagina da scrivere</span></span></div><h1 class="pc-tit">' + esc(n.titolo) + '</h1>' +
     '<p class="pc-p">Questa pagina non c\'è ancora: la citano ' + (cita.length ? chips(cita) : 'altre pagine') + '.</p><p class="pc-p pc-tenue">Quando l\'agente la scrive, comparirà qui come pagina e nel grafo come cerchio pieno.</p></div>';
   const src = F[n.dove]; const r = src != null ? md(src, { uid: ist.uid + 'm', area: n.area }) : null;
   return '<div class="pc-scroll pc-pag"><div class="pc-pag-testa"><span class="pc-area-pt" style="background:' + coloreArea(memModello(), n.area) + '"></span><span class="pc-meta">Area ' + esc(n.area) + ' · <code class="pc-cod">' + esc(n.dove) + '</code></span></div>' +
     '<div class="pc-md">' + (r ? r.html : '<p class="pc-vuoto">Il testo di questa pagina non è nei dati.</p>') + '</div>' +
-    (verso.length ? '<h3 class="pc-sez">Rimanda a</h3><p class="pc-chips">' + chips(verso) + '</p>' : '') +
-    '<h3 class="pc-sez">Citata da</h3>' + (cita.length ? '<p class="pc-chips">' + chips(cita) + '</p>' : '<p class="pc-vuoto">Nessun\'altra pagina la cita.</p>') + '</div>';
+    (verso.length ? '<h2 class="pc-sez">Rimanda a</h2><p class="pc-chips">' + chips(verso) + '</p>' : '') +
+    '<h2 class="pc-sez">Citata da</h2>' + (cita.length ? '<p class="pc-chips">' + chips(cita) + '</p>' : '<p class="pc-vuoto">Nessun\'altra pagina la cita.</p>') + '</div>';
 }
 function aggiornaRisultati(ist, M) {
   const q = M.input.value; const lista = M.ctl.setFiltro(q);
@@ -194,7 +194,7 @@ function memCostruisci(ist) {
   const bw = document.createElement('div'); bw.className = 'pc-barra-w'; root.appendChild(bw);
   const dom = document.createElement('div'); dom.className = 'pc-corpo pc-mem'; root.appendChild(dom);
   const m = memModello();
-  dom.innerHTML = '<div class="pc-mem-g"><div class="pc-mem-sopra"><label class="pc-cerca"><span class="pc-sr">Cerca una pagina per titolo</span>' + ico('search', 16) + '<input type="search" class="pc-cerca-i" placeholder="Cerca una pagina per titolo" autocomplete="off" spellcheck="false"></label>' +
+  dom.innerHTML = '<div class="pc-mem-g"><div class="pc-mem-sopra"><header class="pc-mem-testa"><h1 class="pc-tit">Quello che lo studio sa</h1><p class="pc-p pc-tenue">Ogni cerchio è una pagina di memoria, le linee sono i collegamenti. Tocca un cerchio per leggerla.</p></header><label class="pc-cerca"><span class="pc-sr">Cerca una pagina per titolo</span>' + ico('search', 16) + '<input type="search" class="pc-cerca-i" placeholder="Cerca una pagina per titolo" autocomplete="off" spellcheck="false"></label>' +
     '<ul class="pc-ris" hidden></ul></div><div class="pc-mem-cv"><canvas class="pc-cv" role="img" aria-label="Il grafo della memoria: ' + m.nodes.length + ' pagine collegate fra loro. Per aprirne una usa la ricerca o l\'elenco."></canvas></div>' +
     '<ul class="pc-leg pc-leg-mem">' + m.aree.map((a) => '<li><span class="pc-area-pt" style="background:' + coloreArea(m, a) + '"></span>' + esc(a) + '</li>').join('') + (m.nodes.some((x) => x.miss) ? '<li><span class="pc-area-pt pc-area-pt-m"></span>da scrivere</li>' : '') + '</ul>' +
     '<details class="pc-elenco"><summary>' + ico('file', 16) + '<span>Elenco delle pagine</span></summary><p class="pc-chips">' + m.nodes.map((n) => '<button type="button" class="pc-chip' + (n.miss ? ' pc-chip-manca' : '') + '" data-az="wiki" data-k="' + esc(n.k) + '">' + esc(n.t) + '</button>').join(' ') + '</p></details></div><div class="pc-mem-p"></div>';

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.3.1 · skills/pannello/scripts/ferma.py
+# redacy 0.4.0 · skills/pannello/scripts/ferma.py
 """Hook PreToolUse: nega i passi di una corsa che l'utente ha fermato dal pannello.
 
 Sta in .agents/hooks/ della cartella dello studio (lo copia `inizia`) e gira prima di ogni strumento,
@@ -27,6 +27,11 @@ import sys
 FINESTRA_SECONDI = 60
 NOME_OK = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 FORMATO_ORA = "%Y-%m-%dT%H:%M:%SZ"
+
+
+def su_windows():
+    """Vero su Windows. I rami solo-Windows di questo file passano di qui (le prove lo forzano)."""
+    return os.name == "nt"
 
 
 def adesso():
@@ -61,7 +66,10 @@ def sessioni(evento):
 def legge_log(evento):
     """Vero se lo strumento scrive nel registro (memoria/LOG.md): quella scrittura passa."""
     try:
-        return "memoria/LOG.md" in json.dumps(evento.get("tool_input") or {}, ensure_ascii=False)
+        testo = json.dumps(evento.get("tool_input") or {}, ensure_ascii=False)
+        if su_windows():  # il percorso ha la barra rovesciata, doppia nel JSON
+            testo = testo.replace("\\\\", "/")
+        return "memoria/LOG.md" in testo
     except (TypeError, ValueError):
         return False
 
@@ -137,5 +145,16 @@ def main():
     return 0
 
 
+def flussi_utf8():
+    """Su Windows i flussi che non sono un terminale usano la tabella locale (cp1252): chi li legge vuole UTF-8."""
+    for f in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if not f.isatty():
+                f.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 if __name__ == "__main__":
+    flussi_utf8()
     sys.exit(main())

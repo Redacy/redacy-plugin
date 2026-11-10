@@ -15,7 +15,7 @@ Leggi `memoria/fonti-dati.md`: una fonte che c'è già si aggiorna nella sua rig
 
 ## Passo 2. Guarda ogni fonte, in sola lettura
 
-- **Una cartella**: conta file e sottocartelle (al più tre livelli), i tipi di file, come sono nominati (una cartella per cliente? per anno?), le date più vecchie e più recenti. Apri al più uno o due file piccoli per capire cosa contengono.
+- **Una cartella**: i numeri li dà `scripts/inventario.py`, in sola lettura: file e cartelle, profondità, tipi, date più vecchia e più recente, come sono nominati i file, doppioni, cartelle vuote, file molto grandi, nomi che Windows o OneDrive rifiutano. Su Claude `python3 "${CLAUDE_PLUGIN_ROOT}/skills/ordina-dati/scripts/inventario.py" <cartella> --testo` (senza `--testo` dà il JSON); su Codex il file `scripts/inventario.py` accanto a questo `SKILL.md`, con lo stesso comando. Su Windows, se `python3` non risponde, `py` o `python`. Niente conti con comandi improvvisati. Poi apri al più uno o due file piccoli per capire cosa contengono.
 - **Un documento** (PDF, Word, markdown, testo): leggi l'inizio per dire cos'è. Se è una procedura o una regola di lavoro, leggilo tutto.
 - **Un foglio** (CSV, Excel): leggi la prima riga (le colonne) e conta le righe. Se non riesci ad aprirlo, chiedi all'utente quali colonne ha.
 - **Posta, calendario, Drive, un gestionale online**: non guardare dentro. Se il collegamento c'è già, puoi elencare le cartelle o le etichette, dopo il sì dell'utente. Se non c'è, segna la categoria e basta.
@@ -24,8 +24,8 @@ Non aprire più del necessario: per mappare una fonte servono il suo posto e la 
 
 **Con i sottoagenti.** Con due fonti o più (o una cartella con molti file) non guardarle tu: affida ogni fonte che si apre (cartelle, documenti, fogli) a un sottoagente, in parallelo, al più tre insieme. Posta, calendario e servizi non collegati non vanno a un sottoagente: li segni tu.
 
-- su Claude, l'agente `mappa-fonte` del plugin (`agents/mappa-fonte.md`), uno per fonte: gli dai il percorso e ti restituisce la riga per `fonti-dati.md` e, se la fonte è una procedura, i suoi passi;
-- su Codex il plugin non porta agenti: lancia tu i sottoagenti (`spawn_agent`), uno per fonte, in parallelo, e dai a ognuno le istruzioni di `agents/mappa-fonte.md` (alla radice del plugin, cioè `../../agents/mappa-fonte.md` a partire dalla cartella di questa skill). Se non puoi lanciare sottoagenti, guarda le fonti tu, una alla volta.
+- su Claude, l'agente `mappa-fonte` del plugin (`agents/mappa-fonte.md`), uno per fonte: gli dai il percorso della fonte e il percorso intero di `inventario.py` (quello del comando qui sopra, già risolto), e ti restituisce la riga per `fonti-dati.md` e, se la fonte è una procedura, i suoi passi;
+- su Codex il plugin non porta agenti: lancia tu i sottoagenti (`spawn_agent`), uno per fonte, in parallelo, e dai a ognuno le istruzioni di `agents/mappa-fonte.md` (alla radice del plugin, cioè `../../agents/mappa-fonte.md` a partire dalla cartella di questa skill) e il percorso intero di `inventario.py`. Se non puoi lanciare sottoagenti, guarda le fonti tu, una alla volta.
 
 Aspetta i risultati di tutti i sottoagenti prima di andare avanti: niente in sfondo, l'utente aspetta il riepilogo. Le righe che tornano dai sottoagenti le controlli tu: un percorso che non esiste o un numero non contato non entrano nell'elenco.
 
@@ -52,11 +52,11 @@ Poi scrivi:
 
 ## Se l'utente vuole anche riordinare una cartella
 
-Solo se lo chiede lui. Proponi una struttura semplice, al più tre livelli, e mostra una riga per file: dove sta, dove andrebbe, perché. Aspetta un sì esplicito. Dopo il sì sposta senza cancellare e senza sovrascrivere (se il nome c'è già, aggiungi un suffisso), poi aggiorna la riga in `fonti-dati.md`. Mai fuori dalla cartella che ha indicato.
+Questa skill non sposta niente. Il riordino vero, solo se lo chiede lui, lo fa la skill `riordina-cartella`: piano scritto, sì esplicito, registro e ritorno indietro.
 
 ## Regole
 
-- Sola lettura, salvo il riordino chiesto e confermato.
+- Sola lettura. Spostare e rinominare è della skill `riordina-cartella`.
 - Mai copiare i dati in `memoria/`: si segna dove stanno.
 - I dati personali di clienti e persone non entrano in memoria: il nome di un cliente sì, i suoi dati no.
 - Mai chiedere password o credenziali.

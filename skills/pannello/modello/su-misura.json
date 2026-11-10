@@ -2,7 +2,7 @@
   "titolo": "",
   "primo": "oggi",
   "ordine": ["oggi", "processi", "periodo", "memoria", "aree"],
-  "sfondo": "galassia",
+  "tema": "auto",
   "frase": true,
-  "accento": { "chiaro": "#5148d8", "scuro": "#8f8cff" }
+  "accento": { "chiaro": "#1f2733", "scuro": "#e9ebee" }
 }

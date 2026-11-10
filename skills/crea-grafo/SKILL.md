@@ -1,6 +1,7 @@
 ---
 name: crea-grafo
-description: Trasforma un lavoro che si ripete uguale in un grafo valido, cioè un file grafi/<nome>.yaml con i passi, l'innesco, il passo che tocca all'utente e i limiti. Si usa quando l'utente dice "fallo ogni mattina", "automatizza questo lavoro", "ogni volta che arriva una fattura...", "ogni lunedì prepara...", "trasforma questo in un grafo", "voglio che questo giri da solo". Un lavoro nuovo, mai fatto prima, non è un grafo: serve prima un workspace con crea-workspace.
+description: >-
+  Trasforma un lavoro che si ripete uguale in un grafo valido, cioè un file grafi/<nome>.yaml con i passi, l'innesco, il passo che tocca all'utente e i limiti. Si usa quando l'utente dice "fallo ogni mattina", "automatizza questo lavoro", "ogni volta che arriva una fattura...", "ogni lunedì prepara...", "trasforma questo in un grafo", "voglio che questo giri da solo". Un lavoro nuovo, mai fatto prima, non è un grafo: serve prima un workspace con crea-workspace.
 ---
 
 # Crea un grafo

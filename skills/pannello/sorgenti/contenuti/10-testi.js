@@ -208,7 +208,7 @@ function sezioneFile(path, opz) {
     if (/\.ya?ml$/.test(path)) corpo = vista(yamlParse(txt));
     else if (/\.json$/.test(path)) corpo = vista(JSON.parse(txt));
   } catch (e) { corpo = '<p class="pc-p pc-tenue">Non riesco a leggere questo file come schede: guarda il testo qui sotto.</p>'; }
-  return '<section class="pc-file"><h3 class="pc-sez">' + (opz.titolo || 'Guarda il file com\'è scritto') + '</h3>' +
+  return '<section class="pc-file"><h2 class="pc-sez">' + (opz.titolo || 'Guarda il file com\'è scritto') + '</h2>' +
     '<div class="pc-file-nome">' + ico('file', 16) + '<code>' + esc(path) + '</code></div>' + corpo +
     '<details class="pc-grezzo"' + (opz.aperto ? ' open' : '') + '><summary>' + ico('code', 16) + '<span>Mostra il testo grezzo</span></summary><pre class="pc-pre pc-pre-colori"><code>' + coloraPer(path, txt) + '</code></pre></details></section>';
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _catena.sh · redacy 0.3.1 · gli anelli comuni di catena-claude.sh e catena-codex.sh (si leggono con `source`)
+# _catena.sh · redacy 0.4.0 · gli anelli comuni di catena-claude.sh e catena-codex.sh (si leggono con `source`)
 #
 # La catena: inizia -> crea-workspace -> crea-grafo -> corsa -> pannello -> stop, in una cartella
 # che parte vuota. Ogni anello si controlla sui file, non sulle parole dell'agente.
@@ -154,7 +154,7 @@ stop_conversazioni() {
   if [ "$harness" = "claude" ]; then
     fatto "stop con due conversazioni su Claude: A fermata dalla pagina al passo 2, B finita; l'hook ferma.py ha negato un passo (livelli 1 e 2)"
   else
-    fatto "stop con due conversazioni su Codex: A fermata al passo 2, B finita (livello 1; stadio 2 degli hook: serve /hooks di Gabriele, vedi prove/pannello/prova-stop-codex.sh)"
+    fatto "stop con due conversazioni su Codex: A fermata al passo 2, B finita (livello 1; stadio 2 degli hook: serve /hooks dell'utente, vedi prove/pannello/prova-stop-codex.sh)"
   fi
 }
 

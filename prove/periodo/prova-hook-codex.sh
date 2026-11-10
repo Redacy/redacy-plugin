@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# redacy 0.3.1 · prove/periodo/prova-hook-codex.sh
+# redacy 0.4.0 · prove/periodo/prova-hook-codex.sh
 # PRIMA DI RILANCIARE (a mano, una volta): SOLO_STADIO_1=1 bash prove/periodo/prova-hook-codex.sh prepara la cartella;
-#   poi nel terminale: cd /home/ubuntu/lab/redacy-plugin-prove/C/hook-codex && codex  e dentro Codex scrivi /hooks,
+#   poi nel terminale: cd ${TMPDIR:-/tmp}/redacy-plugin-prove/C/hook-codex && codex  e dentro Codex scrivi /hooks,
 #   fidati dell'hook PostToolUse (controlla-periodo.py), esci. Il comando da lanciare dopo: bash prove/periodo/prova-hook-codex.sh
 # Lo stesso controllo su Codex, in due stadi.
 #  Stadio 1 (senza modello): l'evento che Codex manda a un hook PostToolUse dopo un apply_patch
@@ -16,8 +16,8 @@ QUI="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN="$(cd "$QUI/../.." && pwd)"
 S="$PLUGIN/skills/pianifica-periodo"
 C="$S/scripts/controlla-periodo.py"
-P="${PROVE:-/home/ubuntu/lab/redacy-plugin-prove/C}/hook-codex"
-LOCK=/home/ubuntu/lab/redacy-plugin-prove/.codex.lock
+P="${PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/C}/hook-codex"
+LOCK="${TMPDIR:-/tmp}/redacy-plugin-prove/.codex.lock"; mkdir -p "$(dirname "$LOCK")"
 fallisce() { echo "FALLISCE $1"; exit 1; }
 
 mkdir -p "$P/periodo" "$P/.agents/hooks" "$P/.codex"

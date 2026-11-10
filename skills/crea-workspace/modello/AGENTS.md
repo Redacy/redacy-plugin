@@ -1,4 +1,4 @@
-<!-- redacy 0.3.1 · skills/crea-workspace/modello/AGENTS.md -->
+<!-- redacy 0.4.0 · skills/crea-workspace/modello/AGENTS.md -->
 # {{nome}}
 
 {{descrizione}}
@@ -30,6 +30,8 @@ I dati restano dove sono. Non li copiare qui: leggili dal percorso.
 3. Le regole del mestiere stanno in `.agents/policy/`, a elenchi di righe, mai in tabelle. Rispettale prima di agire.
 4. Non inviare niente a nessuno e non toccare soldi senza il sì dell'utente. Prepara la bozza e fermati.
 5. A fine lavoro aggiungi una riga in fondo a `../../memoria/LOG.md` (il registro dello studio): `- AAAA-MM-GG HH:MM · tipo · frase`.
+
+Su Windows, dove una skill o un comando dicono `python3`, si usa `python` (o `py -3`).
 
 ## Lingua
 

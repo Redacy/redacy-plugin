@@ -1,4 +1,4 @@
-# redacy 0.3.1 · skills/crea-grafo/scripts/controlla-grafo.py
+# redacy 0.4.0 · skills/crea-grafo/scripts/controlla-grafo.py
 """Controlla i grafi (grafi/<nome>.yaml) contro il formato di redacy.
 
 Si usa da riga di comando (controlla-grafo.py <file|cartella>) e si può
@@ -663,5 +663,16 @@ def main(argv):
     return 1 if errori_tot else 0
 
 
+def flussi_utf8():
+    """Su Windows i flussi che non sono un terminale usano la tabella locale (cp1252): chi li legge vuole UTF-8."""
+    for f in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if not f.isatty():
+                f.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 if __name__ == "__main__":
+    flussi_utf8()
     sys.exit(main(sys.argv[1:]))

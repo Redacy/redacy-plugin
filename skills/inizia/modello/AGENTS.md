@@ -1,4 +1,4 @@
-<!-- redacy 0.3.1 · la costituzione dell'orchestratore dello studio · origine nel plugin: skills/inizia/modello/AGENTS.md -->
+<!-- redacy 0.4.0 · la costituzione dell'orchestratore dello studio · origine nel plugin: skills/inizia/modello/AGENTS.md -->
 # L'orchestratore dello studio
 
 Questa cartella è l'orchestratore dello studio: l'agente AI che riceve le richieste, decide chi fa il lavoro e tiene a mente ciò che lo studio sa. Gira su Claude Code (che legge questo file tramite `CLAUDE.md`) e su Codex.
@@ -91,4 +91,5 @@ Le skill generiche arrivano col plugin `redacy` e si aggiornano con lui: `inizia
 
 - Codex tiene `.agents/` e `.codex/` in sola lettura: lì le modifiche le proponi e le fa l'utente. Claude chiede il permesso prima di scrivere in `.claude/`.
 - In Codex `.codex/config.toml` vale solo se la cartella è segnata come fidata, e gli hook solo dopo che l'utente li ha approvati con `/hooks`.
+- Su Windows, dove una skill o questo file dicono `python3`, si usa `python` (o `py -3`).
 - Questo file è uguale in ogni studio: non lo cambi. Ciò che è di questo studio sta in `memoria/`.

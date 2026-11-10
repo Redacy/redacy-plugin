@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.3.1 · prove/grafi/prova-controllo.sh
+# redacy 0.4.0 · prove/grafi/prova-controllo.sh
 #
 # Prova tecnica di controlla-grafo.py e yaml_ridotto.py.
 # Accetta i grafi buoni, rifiuta quelli rotti e una serie di casi piccoli,
@@ -14,7 +14,7 @@ SCRIPTS="$RADICE/skills/crea-grafo/scripts"
 CONTROLLO="$SCRIPTS/controlla-grafo.py"
 BUONI="$AQUI/buoni"
 ROTTI="$AQUI/rotti"
-PROVE_BASE="${REDACY_PROVE:-/home/ubuntu/lab/redacy-plugin-prove/B}"
+PROVE_BASE="${REDACY_PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/B}"
 
 if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   echo "Uso: bash prove/grafi/prova-controllo.sh"

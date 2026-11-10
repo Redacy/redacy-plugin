@@ -53,6 +53,7 @@ function monta(id, el, modo) {
     const a = el2.dataset.az;
     if (a === 'indietro') { ist.indietro(); return; }
     if (a === 'vai') { vaiA(ist, el2.dataset.p, el2.dataset.v); return; }
+    if (a === 'copia') { copia(el2); return; }
     if (a === 'ancora') { const t = document.getElementById(el2.dataset.id); const sc = $(root, '.pc-scroll'); if (t && sc) scrollA(sc, t); return; }
     const r = mod.az ? mod.az(ist, a, el2, e) : null;
     if (r == null && a === 'wiki') { vaiA(ist, 'memoria', el2.dataset.k); return; }
@@ -69,12 +70,12 @@ function riassunto(id) {
     righe.push(o.lav.length ? (o.lav.length === 1 ? '1 lavoro sta girando' : o.lav.length + ' lavori stanno girando') : 'Nessun lavoro in corso');
     if (o.rit) righe.push(o.rit === 1 ? '1 in ritardo' : o.rit + ' in ritardo');
     if (o.dg.length) righe.push(o.dg.length === 1 ? '1 da guardare' : o.dg.length + ' da guardare');
-    return { numero: o.perTe, etichetta: o.perTe === 1 ? 'cosa aspetta te' : 'cose aspettano te', righe: righe, stato: (o.perTe || o.dg.length) ? 'attenzione' : o.lav.length ? 'corre' : 'ok' };
+    return { guardare: o.dg.length, numero: o.perTe, etichetta: o.perTe === 1 ? 'cosa aspetta te' : 'cose aspettano te', righe: righe, stato: (o.perTe || o.dg.length) ? 'attenzione' : o.lav.length ? 'corre' : 'ok' };
   }
   if (id === 'processi') {
     const gs = grafi(), acc = gs.filter((g) => g.acceso).length; const run = lavorando().length, persi = perse().length;
     const righe = [acc + (acc === 1 ? ' acceso' : ' accesi')]; if (run) righe.push(run === 1 ? '1 sta lavorando' : run + ' stanno lavorando'); if (persi) righe.push(persi === 1 ? '1 non dà notizie' : persi + ' non danno notizie');
-    return { numero: gs.length, etichetta: gs.length === 1 ? 'processo' : 'processi', righe: righe, stato: persi ? 'attenzione' : run ? 'corre' : 'ok' };
+    return { corre: run > 0, numero: gs.length, etichetta: gs.length === 1 ? 'processo' : 'processi', righe: righe, stato: persi ? 'attenzione' : run ? 'corre' : 'ok' };
   }
   if (id === 'periodo') {
     const T = todoLista(), fatte = T.filter((t) => t.stato === 'fatto').length, aperte = T.length - fatte; const rit = T.filter((t) => t.stato !== 'fatto' && t.scadenza && giorniFra(t.scadenza, oggiYMD()) > 0).length;

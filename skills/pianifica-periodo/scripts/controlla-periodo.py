@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.3.1 · skills/pianifica-periodo/scripts/controlla-periodo.py
+# redacy 0.4.0 · skills/pianifica-periodo/scripts/controlla-periodo.py
 """Controlla periodo/todo.json e periodo/idee.json contro i loro schemi.
 
 Solo libreria standard. I due schemi (todo.schema.json, idee.schema.json) si
@@ -181,6 +181,11 @@ def controlla_file(percorso):
 
 # ----------------------------------------------------------------- l'hook
 
+def su_windows():
+    """Vero su Windows. I rami solo-Windows di questo file passano di qui (le prove lo forzano)."""
+    return os.name == "nt"
+
+
 def file_toccati(evento):
     """I periodo/todo.json e periodo/idee.json che l'evento nomina, come percorsi assoluti.
 
@@ -191,7 +196,18 @@ def file_toccati(evento):
     cartella = evento.get("cwd") or os.getcwd()
     testo = json.dumps(evento.get("tool_input", ""), ensure_ascii=False)
     trovati = []
-    for m in re.finditer(r"((?:[^\s\"'\\=:;|<>()]|\\/)*periodo/(?:todo|idee)\.json)", testo):
+    # Claude Code: il percorso intero sta in tool_input.file_path. Lo si legge da lì, così un percorso con
+    # spazi (C:\Users\Mario Rossi\...) non si spezza come farebbe nel testo di un comando.
+    fp = evento.get("tool_input", {}).get("file_path") if isinstance(evento.get("tool_input"), dict) else None
+    if isinstance(fp, str):
+        norm = fp.replace("\\", "/") if su_windows() else fp
+        if re.search(r"(?:^|/)periodo/(?:todo|idee)\.json$", norm):
+            return [os.path.normpath(norm if os.path.isabs(norm) else os.path.join(cartella, norm))]
+    disco = ""
+    if su_windows():  # i percorsi hanno la barra rovesciata, doppia nel JSON, e la lettera del disco
+        testo = testo.replace("\\\\", "/")
+        disco = "(?:[A-Za-z]:)?"
+    for m in re.finditer(r"(" + disco + r"(?:[^\s\"'\\=:;|<>()]|\\/)*periodo/(?:todo|idee)\.json)", testo):
         p = m.group(1).replace("\\/", "/")
         assoluto = p if os.path.isabs(p) else os.path.join(cartella, p)
         assoluto = os.path.normpath(assoluto)
@@ -233,7 +249,8 @@ def da_hook():
         if errori:
             relativo = os.path.relpath(percorso, evento.get("cwd") or os.getcwd())
             messaggi.append(f"{relativo} non è valido:\n- " + "\n- ".join(errori)
-                            + "\nCorreggi il file adesso, poi rilancia: python3 .agents/hooks/controlla-periodo.py "
+                            + "\nCorreggi il file adesso, poi rilancia: " + ("python" if su_windows() else "python3")
+                            + " .agents/hooks/controlla-periodo.py "
                             + relativo)
     if messaggi:
         segnala_al_modello("\n\n".join(messaggi))
@@ -262,5 +279,16 @@ def main(argv):
     return esito
 
 
+def flussi_utf8():
+    """Su Windows i flussi che non sono un terminale usano la tabella locale (cp1252): chi li legge vuole UTF-8."""
+    for f in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if not f.isatty():
+                f.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 if __name__ == "__main__":
+    flussi_utf8()
     sys.exit(main(sys.argv))

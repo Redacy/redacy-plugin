@@ -183,7 +183,7 @@ function giorniRitardo(t) { return t && t.scadenza ? Math.max(0, giorniFra(t.sca
 
 /* da dove arriva un todo, e dove porta il campo "dove" */
 function daParole(da) {
-  const m = { giro: 'dal giro del giorno', piano: 'dal piano del periodo', conversazione: 'da una conversazione', corsa: 'da un lavoro' };
+  const m = { giro: 'dal giro del giorno', piano: 'dal piano del periodo', conversazione: 'da una conversazione', corsa: 'da un lavoro', utente: 'aggiunta da te' };
   return m[da] || (da ? 'da ' + da : 'dal piano del periodo');
 }
 function linkFile(p) {

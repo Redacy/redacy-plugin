@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-server.sh · redacy 0.3.1
+# prova-server.sh · redacy 0.4.0
 # Prova il server del pannello su una cartella dello studio fatta da `inizia` (crea-cartella.py),
 # con dati finti e una corsa per stato scritta da corsa.py:
 #  - il server parte, la pagina e tutte le viste rispondono 200 e dicono cose giuste;
@@ -12,13 +12,13 @@
 # Finisce con PASSA o FALLISCE <perché>.
 #
 # Uso: bash prove/pannello/prova-server.sh
-# Le cartelle di prova vanno in $REDACY_PROVE (default /home/ubuntu/lab/redacy-plugin-prove/D).
+# Le cartelle di prova vanno in $REDACY_PROVE (default ${TMPDIR:-/tmp}/redacy-plugin-prove/D).
 set -u
 
 RADICE="$(cd "$(dirname "$0")/../.." && pwd)"
 PANNELLO="$RADICE/skills/pannello/scripts/pannello.py"
 PREPARA="$RADICE/prove/pannello/_prepara.py"
-BASE="${REDACY_PROVE:-/home/ubuntu/lab/redacy-plugin-prove/D}"
+BASE="${REDACY_PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/D}"
 ORA="$(date +%Y%m%d-%H%M%S)-$$"
 D="$BASE/server-$ORA/studio"
 mkdir -p "$BASE/server-$ORA"
@@ -135,13 +135,13 @@ FIRMA2="$(curl -s "$URL/api/file-firma" | python3 -c "import json,sys;print(json
 # 4c. Le scelte su misura: senza file niente, col file solo le chiavi note e valide
 [ "$(curl -s "$URL/api/su-misura")" = "{}" ] || fallisce "senza interfaccia/su-misura.json la vista su-misura non è vuota"
 cat > "$D/interfaccia/su-misura.json" <<'EOF'
-{"sfondo": "tinta", "primo": "processi", "ordine": ["memoria", "oggi", "boh", "oggi"], "frase": false,
+{"tema": "scuro", "sfondo": "galassia", "primo": "processi", "ordine": ["memoria", "oggi", "boh", "oggi"], "frase": false,
  "accento": {"chiaro": "#0a7d5a", "scuro": "rosso"}, "titolo": "  Studio Prova  ", "script": "<script>"}
 EOF
 curl -s "$URL/api/su-misura" | python3 -c "
 import json, sys
 m = json.load(sys.stdin)
-atteso = {'sfondo': 'tinta', 'primo': 'processi', 'ordine': ['memoria', 'oggi', 'processi', 'periodo', 'aree'], 'frase': False,
+atteso = {'tema': 'scuro', 'primo': 'processi', 'ordine': ['memoria', 'oggi', 'processi', 'periodo', 'aree'], 'frase': False,
           'accento': {'chiaro': '#0a7d5a'}, 'titolo': 'Studio Prova'}
 assert m == atteso, m
 " || fallisce "la vista su-misura non tiene solo le chiavi valide"

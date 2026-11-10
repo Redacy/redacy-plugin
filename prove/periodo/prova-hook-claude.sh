@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.3.1 · prove/periodo/prova-hook-claude.sh
+# redacy 0.4.0 · prove/periodo/prova-hook-claude.sh
 # In una cartella di prova con l'adattatore di Claude Code, una sessione scrive un todo.json rotto
 # e l'hook di controllo lo segnala. Si vede nella trascrizione (stream-json): il messaggio dell'hook
 # arriva alla sessione, non è solo ciò che la sessione ha scritto.
@@ -7,7 +7,7 @@ set -u
 QUI="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN="$(cd "$QUI/../.." && pwd)"
 S="$PLUGIN/skills/pianifica-periodo"
-P="${PROVE:-/home/ubuntu/lab/redacy-plugin-prove/C}/hook-claude"
+P="${PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/C}/hook-claude"
 fallisce() { echo "FALLISCE $1"; exit 1; }
 command -v claude >/dev/null || fallisce "claude non c'è"
 

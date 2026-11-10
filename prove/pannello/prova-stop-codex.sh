@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-stop-codex.sh · redacy 0.3.1
+# prova-stop-codex.sh · redacy 0.4.0
 # Lo stop dal pannello con Codex, due conversazioni (`codex exec`) nella stessa cartella dello studio.
 #
 # STADIO 1 (default, parte da solo): lo stop senza hook. Gli hook di Codex partono solo dopo che
@@ -7,7 +7,7 @@
 #   dopo lo stop e la conversazione si ferma. La corsa dell'altra conversazione non è toccata.
 #   Usa 2 chiamate a `codex exec` (budget D: 3).
 #
-# STADIO 2 (l'hook ferma.py dopo il /hooks di Gabriele): due righe a mano, una volta sola.
+# STADIO 2 (l'hook ferma.py dopo il /hooks dell'utente): due righe a mano, una volta sola.
 #   1) bash prove/pannello/prova-stop-codex.sh 2 prepara     crea la cartella di prova e dice dove andare
 #   2) cd <la cartella che stampa> && codex      poi nell'interfaccia scrivi /hooks, approva i tre hook, esci
 #   Poi:  bash prove/pannello/prova-stop-codex.sh 2          lancia la prova e vuole il marcatore dell'hook
@@ -17,7 +17,7 @@
 # Uso: bash prove/pannello/prova-stop-codex.sh [1|2 [prepara]]
 set -u
 RADICE="$(cd "$(dirname "$0")/../.." && pwd)"
-BASE="${REDACY_PROVE:-/home/ubuntu/lab/redacy-plugin-prove/D}"
+BASE="${REDACY_PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/D}"
 STADIO="${1:-1}"
 ORA="$(date +%Y%m%d-%H%M%S)-$$"
 LAVORO="$BASE/stop-codex-$ORA"
@@ -42,7 +42,7 @@ fi
 python3 "$PANNELLO" --cartella "$D" > "$LAVORO.pannello.txt" 2>&1 || fallisce "il pannello non parte: $(cat "$LAVORO.pannello.txt")"
 mkdir -p "$LAVORO"
 
-exec 9>/home/ubuntu/lab/redacy-plugin-prove/.codex.lock; flock 9
+mkdir -p "${TMPDIR:-/tmp}/redacy-plugin-prove"; exec 9>"${TMPDIR:-/tmp}/redacy-plugin-prove/.codex.lock"; flock 9
 CODEX=(codex exec --skip-git-repo-check -C "$D" -s workspace-write --json -c "projects={\"$D\"={trust_level=\"trusted\"}}")
 ( timeout 600 "${CODEX[@]}" "$(prompt_conversazione A giro-lento CODEX_THREAD_ID)" < /dev/null > "$LAVORO/A.jsonl" 2> "$LAVORO/A.err" ) &
 pa=$!

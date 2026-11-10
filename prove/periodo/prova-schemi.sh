@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# redacy 0.3.1 · prove/periodo/prova-schemi.sh
+# redacy 0.4.0 · prove/periodo/prova-schemi.sh
 # Il controllo accetta i file buoni e i vuoti, rifiuta un todo.json e un idee.json rotti col messaggio giusto.
-# Cartelle di prova: $PROVE (default /home/ubuntu/lab/redacy-plugin-prove/C/schemi). Nessun dato vero.
+# Cartelle di prova: $PROVE (default ${TMPDIR:-/tmp}/redacy-plugin-prove/C/schemi). Nessun dato vero.
 set -u
 QUI="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN="$(cd "$QUI/../.." && pwd)"
 S="$PLUGIN/skills/pianifica-periodo"
 C="$S/scripts/controlla-periodo.py"
-P="${PROVE:-/home/ubuntu/lab/redacy-plugin-prove/C}/schemi"
+P="${PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/C}/schemi"
 rm -rf "$P"; mkdir -p "$P/buoni/periodo" "$P/vuoti/periodo" "$P/rotti/periodo"
 fallisce() { echo "FALLISCE $1"; exit 1; }
 

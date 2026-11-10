@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.3.1 · skills/pannello/scripts/pannello.py
+# redacy 0.4.0 · skills/pannello/scripts/pannello.py
 """Il pannello: una pagina sola, in locale, che mostra lo studio e ferma una corsa.
 
 Un server su 127.0.0.1, solo libreria standard, uno per cartella dello studio.
@@ -33,7 +33,6 @@ Content-Security-Policy senza rete; i file si leggono solo da percorsi fissi del
 import argparse
 import datetime
 import errno
-import fcntl
 import hmac
 import http.client
 import http.server
@@ -65,6 +64,16 @@ MAX_CORSE = 30
 MAX_CORPO_POST = 4096
 RIGHE_LOG = 8
 QUI = os.path.dirname(os.path.abspath(__file__))
+
+# Flag di CreateProcess (Windows). Scritti a mano: in subprocess ci sono solo su Windows.
+DETACHED_PROCESS = 0x00000008
+CREATE_NEW_PROCESS_GROUP = 0x00000200
+CREATE_NO_WINDOW = 0x08000000
+
+
+def su_windows():
+    """Vero su Windows. Ogni ramo solo-Windows di questo file passa di qui (le prove lo forzano)."""
+    return os.name == "nt"
 
 CSP = ("default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
        "img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; "
@@ -570,7 +579,7 @@ def vista_file(cartella):
 
 
 PANNELLI = ("oggi", "processi", "periodo", "memoria", "aree")
-SFONDI = ("galassia", "scrivania", "tinta")
+TEMI = ("auto", "chiaro", "scuro")
 COLORE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
@@ -591,8 +600,8 @@ def vista_su_misura(cartella):
     if not isinstance(dato, dict):
         return {}
     out = {}
-    if dato.get("sfondo") in SFONDI:
-        out["sfondo"] = dato["sfondo"]
+    if dato.get("tema") in TEMI:
+        out["tema"] = dato["tema"]
     if dato.get("primo") in PANNELLI:
         out["primo"] = dato["primo"]
     if isinstance(dato.get("ordine"), list):
@@ -751,7 +760,8 @@ def ferma_corsa(cartella, id_corsa, perche=""):
         if perche:
             cmd += ["--perche", perche]
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=15, cwd=cartella)
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=15, cwd=cartella,
+                               **({"creationflags": CREATE_NO_WINDOW} if su_windows() else {}))
         except (OSError, subprocess.TimeoutExpired):
             return 500, {"ok": False, "errore": "Non sono riuscito a fermare la corsa."}
         if r.returncode == 0:
@@ -791,6 +801,17 @@ def leggi_info(cartella):
     return dato if isinstance(dato, dict) else None
 
 
+def sostituisci(tmp, dest):
+    """os.replace. Su Windows, se un altro processo ha il file aperto in lettura in quell'istante, riprova per un secondo."""
+    for tentativo in range(20):
+        try:
+            return os.replace(tmp, dest)
+        except PermissionError:
+            if not su_windows() or tentativo == 19:
+                raise
+            time.sleep(0.05)
+
+
 def scrivi_info(cartella, info):
     d = os.path.join(cartella, "interfaccia")
     os.makedirs(d, exist_ok=True)
@@ -799,17 +820,69 @@ def scrivi_info(cartella, info):
         json.dump(info, f, ensure_ascii=False, indent=2)
         f.write("\n")
     os.chmod(tmp, 0o600)
-    os.replace(tmp, percorso_info(cartella))
+    sostituisci(tmp, percorso_info(cartella))
+
+
+def pid_vivo_windows(pid):
+    """Su Windows os.kill(pid, 0) non è un controllo: può terminare il processo. Qui si chiede solo il suo stato."""
+    import ctypes
+    from ctypes import wintypes
+    k = ctypes.WinDLL("kernel32", use_last_error=True)
+    k.OpenProcess.restype = wintypes.HANDLE
+    k.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    k.GetExitCodeProcess.restype = wintypes.BOOL
+    k.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+    k.CloseHandle.argtypes = [wintypes.HANDLE]
+    h = k.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+    if not h:
+        return ctypes.get_last_error() == 5  # ACCESS_DENIED: c'è, ma non è nostro
+    try:
+        codice = wintypes.DWORD()
+        if not k.GetExitCodeProcess(h, ctypes.byref(codice)):
+            return False
+        return codice.value == 259  # STILL_ACTIVE
+    finally:
+        k.CloseHandle(h)
 
 
 def pid_vivo(pid):
     if not isinstance(pid, int) or pid <= 0:
         return False
+    if su_windows():
+        return pid_vivo_windows(pid)
     try:
         os.kill(pid, 0)
     except OSError as e:
         return e.errno == errno.EPERM
     return True
+
+
+def blocca_file(fd):
+    """Lucchetto esclusivo su un file aperto: aspetta finché lo ottiene. Unix: fcntl.flock. Windows: msvcrt.locking."""
+    if su_windows():
+        import msvcrt
+        os.lseek(fd, 0, os.SEEK_SET)
+        while True:
+            try:
+                msvcrt.locking(fd, msvcrt.LK_LOCK, 1)  # riprova da solo per circa 10 secondi, poi OSError
+                return
+            except OSError:
+                time.sleep(0.05)
+    import fcntl
+    fcntl.flock(fd, fcntl.LOCK_EX)
+
+
+def sblocca_file(fd):
+    if su_windows():
+        import msvcrt
+        try:
+            os.lseek(fd, 0, os.SEEK_SET)
+            msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+        except OSError:
+            pass
+        return
+    import fcntl
+    fcntl.flock(fd, fcntl.LOCK_UN)
 
 
 def risponde(porta, cartella, timeout=1.5):
@@ -857,6 +930,11 @@ def apri_socket_libera(cartella, preferita=None):
     raise SystemExit("Non trovo una porta libera su 127.0.0.1.")
 
 
+def eseguibile_python():
+    """Come launch.json lancia Python: `python3` su macOS e Linux, il Python che sta girando su Windows."""
+    return sys.executable if su_windows() and sys.executable else "python3"
+
+
 def aggiorna_launch(cartella, porta):
     """Tiene d'accordo .claude/launch.json col pannello acceso: cambia solo la voce del pannello, e solo se il file c'è."""
     p = os.path.join(cartella, ".claude", "launch.json")
@@ -876,7 +954,7 @@ def aggiorna_launch(cartella, porta):
     for v in voci:
         if isinstance(v, dict) and v.get("name") == NOME_VOCE_LAUNCH:
             voce = v
-    nuova = {"name": NOME_VOCE_LAUNCH, "runtimeExecutable": "python3",
+    nuova = {"name": NOME_VOCE_LAUNCH, "runtimeExecutable": eseguibile_python(),
              "runtimeArgs": [".agents/script/pannello.py", "--primo-piano", "--porta", str(porta)],
              "port": porta, "autoPort": False}
     if voce == nuova:
@@ -1040,7 +1118,8 @@ class Gestore(http.server.BaseHTTPRequestHandler):
 
 class ServerPannello(http.server.ThreadingHTTPServer):
     daemon_threads = True
-    allow_reuse_address = True
+    # Su Windows SO_REUSEADDR lascia aprire una seconda porta uguale a una già in ascolto: lì no.
+    allow_reuse_address = not su_windows()
     request_queue_size = 16
 
 
@@ -1095,11 +1174,32 @@ def servi(cartella, porta, server, ore_inattivo):
         server.server_close()
 
 
+def avvia_staccato_windows(cartella, porta, ore_inattivo):
+    """Windows: lancia questo stesso file come processo figlio staccato, senza finestra, e aspetta che risponda.
+
+    Il figlio fa quello che fa il ramo Unix dopo il fork: apre la porta, scrive interfaccia/pannello.json
+    (porta, pid, gettone) e serve. Il genitore lo legge da lì, come sul ramo Unix. Restituisce le informazioni."""
+    cmd = [sys.executable, os.path.abspath(__file__), "--cartella", cartella, "--primo-piano",
+           "--porta", str(porta), "--inattivo-ore", str(ore_inattivo)]
+    with open(os.path.join(cartella, "interfaccia", "pannello.log"), "ab") as log:
+        figlio = subprocess.Popen(cmd, cwd=cartella, stdin=subprocess.DEVNULL, stdout=log, stderr=log, close_fds=True,
+                                  creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW)
+    fine = time.time() + 15
+    while time.time() < fine:
+        info = acceso(cartella)
+        if info:
+            return info
+        if figlio.poll() is not None:
+            break
+        time.sleep(0.1)
+    raise SystemExit("Il pannello non è partito: guarda interfaccia/pannello.log.")
+
+
 def accendi(cartella, porta_scelta, primo_piano, ore_inattivo):
     """Riusa il pannello acceso o ne accende uno. Restituisce (info, nuovo)."""
     os.makedirs(os.path.join(cartella, "interfaccia"), exist_ok=True)
     lucchetto = os.open(os.path.join(cartella, "interfaccia", ".pannello.lock"), os.O_RDWR | os.O_CREAT, 0o600)
-    fcntl.flock(lucchetto, fcntl.LOCK_EX)
+    blocca_file(lucchetto)
     try:
         info = acceso(cartella)
         if info:
@@ -1114,6 +1214,13 @@ def accendi(cartella, porta_scelta, primo_piano, ore_inattivo):
             lucchetto = None
             servi(cartella, porta, server, ore_inattivo)
             return None, True
+        if su_windows():
+            # Niente fork: si chiude la porta e il lucchetto, e un figlio staccato rifà il giro in primo piano.
+            server.server_close()
+            sblocca_file(lucchetto)
+            os.close(lucchetto)
+            lucchetto = None
+            return avvia_staccato_windows(cartella, porta, ore_inattivo), True
         pid = os.fork()
         if pid > 0:
             server.server_close()
@@ -1144,6 +1251,7 @@ def accendi(cartella, porta_scelta, primo_piano, ore_inattivo):
         os._exit(0)
     finally:
         if lucchetto is not None:
+            sblocca_file(lucchetto)
             os.close(lucchetto)
 
 
@@ -1153,12 +1261,20 @@ def spegni(cartella):
         print("Non c'è un pannello acceso per questa cartella.")
         return 0
     try:
-        os.kill(info["pid"], signal.SIGTERM)
+        os.kill(info["pid"], signal.SIGTERM)  # su Windows termina il processo di colpo: il server non tiene niente in sospeso
     except OSError:
         pass
     fine = time.time() + 5
     while time.time() < fine and pid_vivo(info["pid"]):
         time.sleep(0.1)
+    if su_windows():
+        # il server terminato così non ha tolto da sé pannello.json
+        try:
+            attuale = leggi_info(cartella)
+            if attuale and attuale.get("pid") == info["pid"]:
+                os.unlink(percorso_info(cartella))
+        except OSError:
+            pass
     print("Pannello spento.")
     return 0
 

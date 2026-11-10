@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-cartella.sh · redacy 0.3.1
+# prova-cartella.sh · redacy 0.4.0
 # Crea una cartella vuota, lancia crea-cartella.py, controlla l'albero, rilancia e controlla
 # che non sovrascriva nulla. Prova anche la copia degli script delle altre skill (con la
 # versione e l'origine in testa) su un plugin finto, così il risultato non dipende da cosa

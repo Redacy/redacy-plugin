@@ -12,7 +12,7 @@ Il server legge il file a ogni apertura della pagina e tiene solo le chiavi qui 
 - **Quando l'utente lo chiede.** Per esempio:
   - «voglio vedere prima i processi»;
   - «mettici il colore dello studio»;
-  - «lo sfondo è troppo vivace»;
+  - «lo voglio scuro»;
   - «non mi serve la frase in alto».
 
 ## Le chiavi
@@ -20,11 +20,11 @@ Il server legge il file a ogni apertura della pagina e tiene solo le chiavi qui 
 | Chiave | Valori | Cosa cambia | Come scegli |
 |---|---|---|---|
 | `titolo` | testo, al massimo 60 caratteri | Il nome in alto a sinistra. Vuoto vuol dire il nome della cartella. | Il nome dello studio come lo dice l'utente: «Studio Ferrante», non «studio-ferrante». |
-| `primo` | `oggi`, `processi`, `periodo`, `memoria`, `aree` | Il pannello grande della casa, quello che vede appena apre. | Di solito `oggi`. `processi` se il suo lavoro con lo studio è soprattutto seguire processi che girano da soli. |
-| `ordine` | i cinque nomi, in ordine | L'ordine delle cartelle e del dock in basso. | Quelli che usa di più vanno prima. Se ne manca uno, la pagina lo aggiunge in fondo. |
-| `sfondo` | `galassia`, `scrivania`, `tinta` | Lo sfondo di partenza. Se l'utente ne sceglie un altro dalla pagina, vince la sua scelta. | `galassia` di partenza. `scrivania` o `tinta` per chi vuole una pagina sobria o lavora su un computer lento. |
-| `frase` | `true`, `false` | La frase in cima alla casa: cosa aspetta lui e cosa sta lavorando. | `true`. `false` solo se l'utente dice che non gli serve. |
-| `accento` | `{"chiaro": "#rrggbb", "scuro": "#rrggbb"}` | Il colore dei bottoni e delle cose scelte, nel tema chiaro e in quello scuro. | Il colore dello studio, se lo conosci (logo, sito). `chiaro` deve leggersi su bianco con un contrasto di almeno 4.5:1. `scuro` deve leggersi su un fondo quasi nero, quindi è più chiaro. Se non sei sicuro, lascia quelli del modello. |
+| `primo` | `oggi`, `processi`, `periodo`, `memoria`, `aree` | Il pannello che si apre per primo. | Di solito `oggi`. `processi` se il suo lavoro con lo studio è soprattutto seguire processi che girano da soli. |
+| `ordine` | i cinque nomi, in ordine | L'ordine nella barra a sinistra (in basso sul telefono). | Quelli che usa di più vanno prima. Se ne manca uno, la pagina lo aggiunge in fondo. |
+| `tema` | `auto`, `chiaro`, `scuro` | Il tema di partenza. Se l'utente ne sceglie un altro dal bottone «Tema» della pagina, vince la sua scelta. | `auto`: segue il computer. `chiaro` o `scuro` solo se l'utente lo chiede. |
+| `frase` | `true`, `false` | La frase in cima a Oggi: cosa aspetta lui e cosa sta lavorando. | `true`. `false` solo se l'utente dice che non gli serve. |
+| `accento` | `{"chiaro": "#rrggbb", "scuro": "#rrggbb"}` | Il colore della sigla dello studio, dei bottoni pieni e del contorno di ciò che è scelto, nel tema chiaro e in quello scuro. | Il colore dello studio, se lo conosci (logo, sito). `chiaro` deve leggersi su bianco con un contrasto di almeno 4.5:1. `scuro` deve leggersi su un fondo quasi nero, quindi è più chiaro. Se non sei sicuro, lascia quelli del modello. |
 
 ## Come lo controlli
 

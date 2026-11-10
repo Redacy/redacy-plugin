@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-stop-claude.sh · redacy 0.3.1
+# prova-stop-claude.sh · redacy 0.4.0
 # Lo stop dal pannello con Claude Code, in due scenari, ognuno con due conversazioni (`claude -p`)
 # nella stessa cartella dello studio:
 #   1. senza l'hook: lo stop passa dal livello 1, corsa.py esce con 3 al comando dopo lo stop;
@@ -11,7 +11,7 @@
 # Uso: bash prove/pannello/prova-stop-claude.sh
 set -u
 RADICE="$(cd "$(dirname "$0")/../.." && pwd)"
-BASE="${REDACY_PROVE:-/home/ubuntu/lab/redacy-plugin-prove/D}"
+BASE="${REDACY_PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove/D}"
 ORA="$(date +%Y%m%d-%H%M%S)-$$"
 LAVORO="$BASE/stop-claude-$ORA"
 mkdir -p "$LAVORO"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tutte.sh · redacy 0.3.1
+# tutte.sh · redacy 0.4.0
 # Lancia tutte le prove che non chiamano nessun modello, una riga per prova, e in fondo
 #   ESITO: PASSA     oppure     ESITO: FALLISCE <le prove che non passano>
 # Non serve un account Claude o Codex. Serve Python 3, bash e curl. Dura meno di un minuto.
@@ -53,11 +53,21 @@ versioni[".agents/plugins/marketplace.json"] = mx["plugins"][0].get("version")
 if len(set(versioni.values())) != 1:
     print("FALLISCE le versioni non coincidono:", versioni); sys.exit(1)
 cx = json.load(open(".codex-plugin/plugin.json", encoding="utf-8"))
-if "interface" in cx:
-    print("FALLISCE in .codex-plugin/plugin.json interface è in cima: va sotto extensions.com.openai"); sys.exit(1)
-if "displayName" not in cx.get("extensions", {}).get("com.openai", {}).get("interface", {}):
-    print("FALLISCE manca extensions.com.openai.interface.displayName"); sys.exit(1)
-print("versione", list(versioni.values())[0], "nei quattro file; interface sotto extensions.com.openai")
+# .codex-plugin/plugin.json è il file che i plugin pubblicati usano oggi (openai/plugins): lì interface sta in cima.
+# La forma con extensions["com.openai"] vale per un plugin.json alla radice, che questo plugin non ha.
+ic = cx.get("interface", {})
+if "extensions" in cx or "displayName" not in ic:
+    print("FALLISCE in .codex-plugin/plugin.json interface va in cima, con displayName"); sys.exit(1)
+if len(ic.get("shortDescription", "")) > 30 or len(ic.get("displayName", "")) > 30:
+    print("FALLISCE displayName e shortDescription di Codex: al più 30 caratteri"); sys.exit(1)
+import os
+for k in ("logo", "composerIcon"):
+    if not os.path.isfile(ic.get(k, "")):
+        print("FALLISCE manca l'immagine di interface." + k); sys.exit(1)
+icona = json.load(open(".claude-plugin/plugin.json", encoding="utf-8")).get("icon", "")
+if not os.path.isfile(icona):
+    print("FALLISCE manca l'icona di .claude-plugin/plugin.json"); sys.exit(1)
+print("versione", list(versioni.values())[0], "nei quattro file; interface di Codex in cima, icone presenti")
 PY
   # ogni skill ha SKILL.md con name uguale alla cartella
   local d n
@@ -108,8 +118,11 @@ prova "grafi: il controllo" bash "$RADICE/prove/grafi/prova-controllo.sh"
 prova "grafi: le corse e lo stop" bash "$RADICE/prove/grafi/prova-corsa.sh"
 prova "periodo: gli schemi e il controllo" bash "$RADICE/prove/periodo/prova-schemi.sh"
 prova "inizia: la cartella" bash "$RADICE/prove/inizia/prova-cartella.sh"
+prova "ordina: l'inventario" bash "$RADICE/prove/ordina/prova-inventario.sh"
+prova "ordina: il riordino e l'annulla" bash "$RADICE/prove/ordina/prova-riordina.sh"
 prova "pannello: il server e lo stop" bash "$RADICE/prove/pannello/prova-server.sh"
 prova "pannello: la pagina vera nel browser" bash "$RADICE/prove/pannello/prova-pagina.sh"
+prova "windows: i rami portabili" bash "$RADICE/prove/windows/prova-portabile.sh"
 
 [ -z "$TOGLI" ] || rm -rf "$TOGLI"
 if [ -z "$FALLITE" ]; then echo "ESITO: PASSA"; exit 0; fi

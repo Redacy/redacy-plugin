@@ -1,4 +1,4 @@
-# redacy 0.3.1 · prove/grafi/_comune.sh
+# redacy 0.4.0 · prove/grafi/_comune.sh
 #
 # Codice comune di prova-crea-claude.sh e prova-crea-codex.sh: non si lancia,
 # si carica con "source". Chi lo carica definisce la funzione
@@ -16,7 +16,7 @@ RADICE="$(cd "$AQUI_COMUNE/../.." && pwd)"
 SCRIPTS_GRAFO="$RADICE/skills/crea-grafo/scripts"
 SCRIPTS_WS="$RADICE/skills/crea-workspace/scripts"
 CREA_CARTELLA="$RADICE/skills/inizia/scripts/crea-cartella.py"
-PROVE_BASE="${REDACY_PROVE_BASE:-/home/ubuntu/lab/redacy-plugin-prove/B}"
+PROVE_BASE="${REDACY_PROVE_BASE:-${TMPDIR:-/tmp}/redacy-plugin-prove/B}"
 TEMPO_MAX=600
 export PYTHONDONTWRITEBYTECODE=1
 

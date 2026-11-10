@@ -1,6 +1,7 @@
 ---
 name: inizia
-description: Prepara la cartella dello studio e fa l'onboarding. Chiede quali lavori l'utente vuole affidare a un agente AI e dove stanno già dati e procedure, mappa le fonti, crea i primi agenti AI e apre il pannello spiegando cosa ha creato. Si usa la prima volta in una cartella, o quando l'utente dice «iniziamo», «prepara lo studio», «da dove parto», «cosa sai fare». Se la cartella è già uno studio non rifà l'intervista: mostra lo stato e chiede cosa c'è di nuovo.
+description: >-
+  Prepara la cartella dello studio e fa l'onboarding. Chiede quali lavori l'utente vuole affidare a un agente AI e dove stanno già dati e procedure, mappa le fonti, crea i primi agenti AI e apre il pannello spiegando cosa ha creato. Si usa la prima volta in una cartella, o quando l'utente dice «iniziamo», «prepara lo studio», «da dove parto», «cosa sai fare». Se la cartella è già uno studio non rifà l'intervista: mostra lo stato e chiede cosa c'è di nuovo.
 ---
 
 # Inizia

@@ -1,7 +1,7 @@
 ---
 summary: del tu, frasi corte, una domanda alla volta, le parole dell'utente prima delle nostre; prima cosa fai, poi il sì, poi lo fai; mai un invio
 ---
-<!-- redacy 0.3.1 · origine nel plugin: skills/inizia/modello/.agents/regole/testi-per-persone.md -->
+<!-- redacy 0.4.0 · origine nel plugin: skills/inizia/modello/.agents/regole/testi-per-persone.md -->
 
 # Come si scrive a una persona
 

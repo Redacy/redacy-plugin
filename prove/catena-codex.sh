@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# catena-codex.sh · redacy 0.3.1
+# catena-codex.sh · redacy 0.4.0
 # La catena intera su Codex, da terminale, in una cartella vuota:
 #   inizia -> crea-workspace -> crea-grafo -> corsa -> pannello -> stop
 # Come catena-claude.sh, con le differenze che Codex impone (misurate, vedi README):
@@ -7,7 +7,7 @@
 #     inizia dà all'utente UNA riga da lanciare nel terminale (finisce la cartella e accende il pannello);
 #     la lancia lo script di prova, come farebbe l'utente (lo fa prove/inizia/prova-onboarding-codex.sh);
 #   - lo stop è provato al livello 1 (corsa.py esce con 3 dopo lo stop). Lo STADIO 2, l'hook ferma.py,
-#     parte solo dopo che l'utente approva gli hook con /hooks: è un gesto di Gabriele, non di questo
+#     parte solo dopo che l'utente approva gli hook con /hooks: è un gesto dell'utente, non di questo
 #     script (due righe a mano in testa a prove/pannello/prova-stop-codex.sh).
 #
 # Installa il plugin in ~/.codex da questa copia del repo, sotto flock, e lo toglie alla fine; prima
@@ -22,7 +22,7 @@ set -u
 RADICE="$(cd "$(dirname "$0")/.." && pwd)"
 BASE="${REDACY_PROVE:-$(mktemp -d)}"
 HARNESS=codex
-LOCK="${CODEX_LOCK:-/home/ubuntu/lab/redacy-plugin-prove/.codex.lock}"
+LOCK="${CODEX_LOCK:-${TMPDIR:-/tmp}/redacy-plugin-prove/.codex.lock}"; mkdir -p "$(dirname "$LOCK")"
 [ -d "$(dirname "$LOCK")" ] || LOCK="$BASE/.codex.lock"
 if [ -n "${CATENA_G:-}" ]; then G="$CATENA_G"; else G="$BASE/catena-codex-$(date +%Y%m%d-%H%M%S)-$$"; fi
 mkdir -p "$G"

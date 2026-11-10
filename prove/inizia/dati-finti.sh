@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dati-finti.sh · redacy 0.3.1
+# dati-finti.sh · redacy 0.4.0
 # Scrive in <cartella> i dati di uno studio di commercialista INVENTATO (nomi, clienti e numeri
 # finti): una procedura in markdown, una cartella di pratiche, un foglio .csv delle scadenze.
 # La posta non è un file: la prova la nomina nel messaggio («la posta è su Gmail»).
