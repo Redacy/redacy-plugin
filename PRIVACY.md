@@ -19,7 +19,7 @@ Niente. Il plugin non ha telemetria, non ha un account e non parla con nessun se
 
 ## Il supporto umano
 
-Il bottone «Richiedi supporto umano» del pannello apre `https://redacy.com` e prepara un riepilogo dello studio (il nome dello studio, l'obiettivo, i nomi di aree e processi, i numeri, l'ultimo problema). Il riepilogo lo incolli tu nella richiesta, se vuoi. Da solo il plugin non manda niente.
+Il bottone «Richiedi supporto umano» del pannello apre `https://redacy.com/contatti`, dove si prenota un appuntamento, e prepara un riepilogo dello studio (il nome dello studio, l'obiettivo, i nomi di aree e processi, i numeri, l'ultimo problema). Il riepilogo lo incolli tu nella richiesta, se vuoi. Da solo il plugin non manda niente.
 
 ## Contatti
 

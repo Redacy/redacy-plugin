@@ -116,7 +116,7 @@ assert not any(n["id"] == "LOG" for n in m["nodi"]), "LOG.md non è una pagina"
 chiavi = {n["chiave"] for n in m["nodi"]}
 assert "dichiarazioni/procedura-dichiarazioni" in chiavi and "studio/procedura-dichiarazioni" in chiavi
 assert all(a["da"] in chiavi and a["a"] in chiavi for a in m["archi"])
-assert "Cosa mi serve:" in s["supporto"]["testo"] and s["supporto"]["url"] == "https://redacy.com"
+assert "Cosa mi serve:" in s["supporto"]["testo"] and s["supporto"]["url"] == "https://redacy.com/contatti"
 assert "Manca la colonna delle scadenze" in s["supporto"]["testo"]
 EOF
 

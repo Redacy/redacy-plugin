@@ -773,7 +773,7 @@ body.diviso .fin:not(.fuoco) .fin-n, body.diviso .fin:not(.fuoco) .fin-ic { colo
     <h3>Riepilogo dello studio</h3>
     <div id="sup-corpo"></div>
     <div class="azioni">
-      <a class="primario" id="sup-link" href="https://redacy.com" target="_blank" rel="noopener">Richiedi supporto umano</a>
+      <a class="primario" id="sup-link" href="https://redacy.com/contatti" target="_blank" rel="noopener">Richiedi supporto umano</a>
       <button type="button" class="secondario" id="sup-chiudi">Chiudi</button>
     </div>
     <p class="esito" id="sup-esito" role="status"></p>
@@ -2640,7 +2640,7 @@ function avvia() {
   function suppDati() { return dato().supporto || {}; }
   function riempiSupporto() {
     var s = suppDati(), t = typeof s.testo === 'string' ? s.testo : '';
-    fogLink.href = s.url || 'https://redacy.com';
+    fogLink.href = s.url || 'https://redacy.com/contatti';
     var cur = fogC.firstChild;
     if (t) {
       if (!cur || cur.tagName !== 'PRE') { fogC.replaceChildren(); var pre = document.createElement('pre'); pre.id = 'sup-pre'; pre.tabIndex = 0; pre.setAttribute('aria-label', 'Riepilogo dello studio'); fogC.appendChild(pre); cur = pre; }
@@ -2676,7 +2676,7 @@ function avvia() {
     try { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {}
   }
   function copiaRiepilogo(t) {
-    var ok = function () { fogEsito.textContent = 'Riepilogo copiato. Incollalo nella richiesta su redacy.com.'; };
+    var ok = function () { fogEsito.textContent = 'Riepilogo copiato. Incollalo nella richiesta quando prenoti su redacy.com/contatti.'; };
     var no = function () { fogEsito.textContent = 'Seleziona il riepilogo e copialo.'; };
     var vecchio = function () { selezionaRiepilogo(); var r = false; try { r = document.execCommand('copy'); } catch (e) {} if (r) ok(); else no(); };
     try {

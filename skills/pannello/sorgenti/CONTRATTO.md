@@ -87,7 +87,7 @@ Sul `document` arriva `contenuti:dati` dopo `Contenuti.carica`. Il guscio aggior
   - Il focus si vede. Tutto ciò che si clicca è un `<button>` o un `<a>`.
 - **Gesti.**
   - Un solo gesto sulle esecuzioni, «Ferma», con una conferma dentro la pagina (mai `confirm`).
-  - Il supporto copia un riepilogo e apre `https://redacy.com`. Da lì non parte niente.
+  - Il supporto copia un riepilogo e apre `https://redacy.com/contatti`, la pagina dove si prenota un appuntamento. Da lì non parte niente.
 - **Parole.**
   - Italiano semplice, scritto dalla parte di chi usa la pagina.
   - Le parole del prodotto sono processo, area, memoria e periodo.

@@ -52,7 +52,7 @@ import zlib
 
 VERSIONE_FORMATO = 1
 NOME_PANNELLO = "redacy"
-URL_SUPPORTO = "https://redacy.com"
+URL_SUPPORTO = "https://redacy.com/contatti"
 NOME_VOCE_LAUNCH = "pannello redacy"
 NOME_OK = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 FORMATO_ORA = "%Y-%m-%dT%H:%M:%SZ"

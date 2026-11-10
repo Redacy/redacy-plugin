@@ -87,7 +87,7 @@ Nome, colori, sfondo e ordine delle finestre si adattano al tuo studio: basta ch
 
 ## Serve una mano?
 
-Il bottone «Supporto umano» del pannello ti porta da noi, su [redacy.com](https://redacy.com). Se vuoi che lo impostiamo insieme sul tuo studio, o un agente gestito da noi, partiamo da lì. Per un difetto del plugin apri una [segnalazione](https://github.com/Redacy/redacy-plugin/issues).
+Il bottone «Supporto umano» del pannello ti porta su [redacy.com/contatti](https://redacy.com/contatti), dove prenoti mezz'ora con noi. Se vuoi che lo impostiamo insieme sul tuo studio, o un agente gestito da noi, partiamo da lì. Per un difetto del plugin apri una [segnalazione](https://github.com/Redacy/redacy-plugin/issues).
 
 ## Licenza
 
