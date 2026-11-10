@@ -1,7 +1,7 @@
 {
   "name": "redacy",
   "displayName": "Redacy",
-  "description": "Un orchestratore in locale per il tuo studio: ordina i dati e i file, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello. A local orchestrator for a small professional firm: maps and tidies your files, creates AI agents and repeatable processes, keeps the work period and shows it all in a local dashboard. In Italian.",
+  "description": "Trasforma Claude o ChatGPT in un agente sempre attivo per il tuo studio: sa dove stanno i tuoi dati, li tiene in ordine, porta avanti i lavori che si ripetono e mostra tutto in un pannello sul tuo computer. Turns Claude or ChatGPT into an always-on agent for a small professional firm: it knows where your data lives, keeps it tidy, runs the jobs that repeat and shows everything in a local dashboard. In Italian.",
   "version": "0.4.2",
   "author": {
     "name": "Redacy",

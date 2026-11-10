@@ -1,7 +1,7 @@
 {
   "name": "redacy",
   "version": "0.4.2",
-  "description": "Un orchestratore in locale per il tuo studio: ordina i dati e i file, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello.",
+  "description": "Trasforma Claude o ChatGPT in un agente sempre attivo per il tuo studio: sa dove stanno i tuoi dati, li tiene in ordine, porta avanti i lavori che si ripetono e mostra tutto in un pannello sul tuo computer.",
   "author": {
     "name": "Redacy",
     "url": "https://redacy.com"
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Redacy",
     "shortDescription": "Agenti AI per il tuo studio",
-    "longDescription": "Con `inizia` la cartella dello studio diventa un orchestratore: mappa dove stanno i dati, mette in ordine le cartelle con un piano che approvi tu (`riordina-cartella`), crea agenti AI (`crea-workspace`) e processi che si ripetono (`crea-grafo`), tiene il periodo di lavoro e mostra tutto in un pannello sul tuo computer, con uno stop. A local orchestrator for a small professional firm: maps and tidies your files, creates AI agents and repeatable processes, keeps the work period and shows it all in a local dashboard. In Italian.",
+    "longDescription": "Trasforma Claude o ChatGPT in un agente sempre attivo per il tuo studio. Con `inizia` prepara la cartella: mappa dove stanno i dati, mette in ordine le cartelle con un piano che approvi tu (`riordina-cartella`), crea agenti AI (`crea-workspace`) e processi che si ripetono (`crea-grafo`), tiene il periodo di lavoro e mostra tutto in un pannello sul tuo computer, con uno stop. Turns Claude or ChatGPT into an always-on agent for a small professional firm: it knows where your data lives, keeps it tidy, runs the jobs that repeat and shows everything in a local dashboard. In Italian.",
     "developerName": "Redacy",
     "category": "Productivity",
     "capabilities": [
@@ -45,6 +45,7 @@
     "logoDark": "./assets/icon.png",
     "screenshots": [
       "./assets/schermate/scrivania.png",
+      "./assets/schermate/processi.png",
       "./assets/schermate/oggi.png"
     ]
   }
