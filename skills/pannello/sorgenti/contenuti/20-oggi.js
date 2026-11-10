@@ -156,13 +156,20 @@ P.oggi = {
       '</div></div></div>';
   },
   anteprima(ist) {
-    const o = statoOggi(); const n = o.perTe;
+    const o = statoOggi();
+    const riga = (cls, ic, t, s) => '<li class="pc-ao-r ' + cls + '"><span class="pc-ao-ic">' + ico(ic, 15) + '</span><span class="pc-ao-t">' + esc(t) + '</span><span class="pc-ao-s">' + esc(s) + '</span></li>';
     const righe = [];
-    righe.push('<p class="pc-an-r pc-s-corre">' + ico('dots', 16) + '<span>' + (o.lav.length === 1 ? '1 sta lavorando' : o.lav.length + ' stanno lavorando') + '</span></p>');
-    if (o.rit) righe.push('<p class="pc-an-r pc-an-amb">' + ico('alert', 16) + '<span>' + (o.rit === 1 ? '1 in ritardo' : o.rit + ' in ritardo') + '</span></p>');
-    if (o.dg.length) righe.push('<p class="pc-an-r pc-an-err">' + ico('x', 16) + '<span>' + (o.dg.length === 1 ? '1 da guardare' : o.dg.length + ' da guardare') + '</span></p>');
-    if (!o.rit && !o.dg.length) righe.push('<p class="pc-an-r pc-s-ok">' + ico('check', 16) + '<span>il resto è a posto</span></p>');
-    return '<div class="pc-an pc-an-oggi' + (n ? ' pc-an-att' : '') + '"><p class="pc-an-data">' + esc(cap(fWGM.format(adesso()))) + '</p><div class="pc-an-corpo"><div class="pc-big' + (n ? ' pc-big-att' : '') + '">' + n + '</div><div class="pc-an-testo"><p class="pc-an-et">' + (n === 1 ? 'cosa aspetta te' : 'cose aspettano te') + '</p>' + righe.join('') + '</div></div></div>';
+    o.t.forEach((x) => righe.push(riga(x.ritardo ? 'pc-ao-att' : 'pc-ao-te', 'flag', x.tipo === 'passo' ? (x.def.nome || umano(x.passo.id)) : (x.t.cosa || x.id), x.ritardo ? 'In ritardo' : 'Aspetta te')));
+    o.dg.forEach((c) => righe.push(riga('pc-ao-err', eff(c) === 'persa' ? 'alert' : 'x', nomeProc(c.grafo), eff(c) === 'persa' ? 'Non dà notizie' : 'Non è riuscito')));
+    o.lav.forEach((c) => { const pc = passoCorrente(c, grafoPer(c.grafo)); righe.push(riga('pc-ao-corre', 'dots', nomeProc(c.grafo), pc ? 'Passo ' + pc.n + ' di ' + pc.tot : 'Sta lavorando')); });
+    const data = '<p class="pc-an-data">' + esc(cap(fWGM.format(adesso()))) + '</p>';
+    if (!righe.length) {
+      const nuovo = !grafi().length && !todoLista().length;
+      if (nuovo) return '<div class="pc-an pc-an-oggi"><p class="pc-an-data">Per cominciare</p><ol class="pc-ao">' + PASSI.map((p, i) => '<li class="pc-ao-r"><span class="pc-ao-ic pc-ao-num">' + (i + 1) + '</span><span class="pc-ao-t">' + esc(p[0]) + '</span><span class="pc-ao-s">«' + esc(p[2]) + '»</span></li>').join('') + '</ol></div>';
+      return '<div class="pc-an pc-an-oggi">' + data + '<div class="pc-ao-vuoto"><span class="pc-ao-ok">' + ico('check', 22) + '</span><p class="pc-an-et">Niente aspetta te</p><p class="pc-an-sub2">Nessun lavoro in corso, niente da guardare.</p></div></div>';
+    }
+    const MAX = 6, resto = righe.length - MAX;
+    return '<div class="pc-an pc-an-oggi">' + data + '<ul class="pc-ao">' + righe.slice(0, MAX).join('') + '</ul>' + (resto > 0 ? '<p class="pc-an-pie pc-ao-pie">' + (resto === 1 ? 'e un\'altra cosa' : 'e altre ' + resto + ' cose') + '</p>' : '') + '</div>';
   },
   vai() { return false; },
   az(ist, a, el) {

@@ -74,7 +74,7 @@ Le prime tre sono quelle che usi di più. Le altre le chiama l'agente quando ser
 
 ## Il pannello e lo stop
 
-Il pannello è una pagina sola sul tuo computer (127.0.0.1). Ha cinque pannelli in una barra a sinistra (in basso sul telefono) e si apre su Oggi:
+Il pannello è una pagina sola sul tuo computer (127.0.0.1). È una scrivania con finestre: si apre con una frase («2 cose aspettano te») e cinque finestre in miniatura, vive. Un clic su una miniatura la apre; su schermi larghi puoi tenerne due affiancate, sul telefono si vede una finestra alla volta. In basso c'è il dock per passare da una all'altra, e in alto il bottone «Aspetto» per sfondo e tema. Le finestre sono:
 - Oggi: cosa tocca a te, cosa c'è da guardare, cosa sta lavorando, a che punto è il periodo;
 - Processi: disegnati come un flusso, dal loro file;
 - Periodo: obiettivo, cose da fare, idee;
@@ -83,7 +83,7 @@ Il pannello è una pagina sola sul tuo computer (127.0.0.1). Ha cinque pannelli 
 
 Ogni cosa si apre fino al file da cui viene, impaginato. Il pannello mostra, il lavoro si chiede all'agente: dove serve, la pagina ti dice la frase da scrivergli e un tocco la copia. Il primo giorno, a cartella vuota, Oggi mostra quattro passi per cominciare. L'unico gesto è il bottone di stop su una corsa. "Richiedi supporto umano" ti porta a https://redacy.com e non fa partire niente.
 
-Il nome in alto, il pannello che vedi per primo, l'ordine, il tema (chiaro, scuro o come il computer) e il colore si scelgono per ogni studio in `interfaccia/su-misura.json`. Li scrive l'agente; basta chiedergli «metti prima i processi» o «usa il colore dello studio».
+Il nome in alto, la finestra grande sulla scrivania, l'ordine, lo sfondo (galassia, carta o tinta unita), il tema (chiaro, scuro o come il computer) e il colore si scelgono per ogni studio in `interfaccia/su-misura.json`. Li scrive l'agente; basta chiedergli «metti prima i processi» o «usa il colore dello studio».
 
 Per accenderlo chiedi all'agente: "apri il pannello". Oppure usa il comando che `inizia` ti dà.
 
@@ -128,10 +128,10 @@ claude plugin validate .
 
 `prove/tutte.sh` lancia le prove senza modello: una riga per prova, in fondo `ESITO: PASSA` o `ESITO: FALLISCE`. Dura meno di un minuto. Servono Python 3, bash e curl. La prova della pagina vera nel browser (`prove/pannello/prova-pagina.sh`) usa anche Node 22 e un Chromium; se mancano, quella parte salta e lo dice.
 
-La pagina del pannello si fa in pezzi in `skills/pannello/sorgenti/` (il guscio con la barra e la navigazione, i contenuti dei cinque pannelli, la fonte dei dati) e si monta in `skills/pannello/scripts/pagina.html` con `python3 skills/pannello/sorgenti/costruisci.py`. Cosa deve reggere sta in `skills/pannello/sorgenti/CONTRATTO.md`.
+La pagina del pannello si fa in pezzi in `skills/pannello/sorgenti/` (il guscio con la scrivania, le finestre e il dock, i contenuti dei cinque pannelli, la fonte dei dati) e si monta in `skills/pannello/scripts/pagina.html` con `python3 skills/pannello/sorgenti/costruisci.py`. Cosa deve reggere sta in `skills/pannello/sorgenti/CONTRATTO.md`.
 
 Le prove con un modello chiamano Claude Code o Codex con il tuo account: `prove/catena-claude.sh` e `prove/catena-codex.sh` seguono la catena inizia, crea-workspace, crea-grafo, corsa, pannello, stop; le prove di un solo pezzo stanno in `prove/inizia/prova-onboarding-*.sh` e `prove/grafi/prova-crea-*.sh`.
 
 ## Licenza
 
-MIT, vedi `LICENSE`. Versione 0.4.0.
+MIT, vedi `LICENSE`. Versione 0.4.1.

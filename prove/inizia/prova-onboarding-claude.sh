@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-onboarding-claude.sh · redacy 0.4.0
+# prova-onboarding-claude.sh · redacy 0.4.1
 # L'onboarding di `inizia` su Claude Code, da terminale, in una cartella vuota, coi dati finti
 # di uno studio di commercialista inventato (dati-finti.sh). Un solo `claude -p`: le risposte
 # dell'utente e i suoi sì stanno tutti nel primo messaggio (una prova automatica non risponde).

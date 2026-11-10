@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.0 - prove/grafi/prova-corsa.sh
+# redacy 0.4.1 - prove/grafi/prova-corsa.sh
 # Prova corsa.py su una cartella di studio finta. Una riga per controllo,
 # in fondo una sola riga: PASSA oppure FALLISCE <perche'>.
 # Uso: bash prove/grafi/prova-corsa.sh [--tieni]   (--tieni lascia la cartella di prova)

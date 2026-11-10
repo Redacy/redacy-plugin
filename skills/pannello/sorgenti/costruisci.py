@@ -5,7 +5,7 @@ Uso: python3 costruisci.py            scrive ../scripts/pagina.html
      python3 costruisci.py --controlla esce con 1 se pagina.html non è quella che uscirebbe dai pezzi
 
 I pezzi:
-  guscio.html      la struttura e la navigazione (barra a sinistra, pannello a destra, foglio del supporto).
+  guscio.html      la struttura e la navigazione (la scrivania con le finestre, il dock in basso, il foglio del supporto).
                    Carica contenuti.css, dati.js e contenuti.js: nel prototipo sono file accanto.
   fonte.js         nel plugin prende il posto di dati.js: i dati arrivano dal server locale.
   contenuti/*.js   l'interno dei cinque pannelli, in ordine di nome; contenuti/contenuti.css i suoi stili.

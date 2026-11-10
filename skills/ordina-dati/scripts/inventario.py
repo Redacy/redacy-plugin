@@ -1,4 +1,4 @@
-# redacy 0.4.0 · skills/ordina-dati/scripts/inventario.py
+# redacy 0.4.1 · skills/ordina-dati/scripts/inventario.py
 """Fa l'inventario di una cartella, in sola lettura.
 
 Uso: python3 inventario.py CARTELLA [--testo] [--elenco] [--massimo N]

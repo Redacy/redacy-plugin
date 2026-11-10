@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.0 · prove/periodo/prova-schemi.sh
+# redacy 0.4.1 · prove/periodo/prova-schemi.sh
 # Il controllo accetta i file buoni e i vuoti, rifiuta un todo.json e un idee.json rotti col messaggio giusto.
 # Cartelle di prova: $PROVE (default ${TMPDIR:-/tmp}/redacy-plugin-prove/C/schemi). Nessun dato vero.
 set -u

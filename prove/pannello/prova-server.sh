@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-server.sh · redacy 0.4.0
+# prova-server.sh · redacy 0.4.1
 # Prova il server del pannello su una cartella dello studio fatta da `inizia` (crea-cartella.py),
 # con dati finti e una corsa per stato scritta da corsa.py:
 #  - il server parte, la pagina e tutte le viste rispondono 200 e dicono cose giuste;
@@ -135,16 +135,18 @@ FIRMA2="$(curl -s "$URL/api/file-firma" | python3 -c "import json,sys;print(json
 # 4c. Le scelte su misura: senza file niente, col file solo le chiavi note e valide
 [ "$(curl -s "$URL/api/su-misura")" = "{}" ] || fallisce "senza interfaccia/su-misura.json la vista su-misura non è vuota"
 cat > "$D/interfaccia/su-misura.json" <<'EOF'
-{"tema": "scuro", "sfondo": "galassia", "primo": "processi", "ordine": ["memoria", "oggi", "boh", "oggi"], "frase": false,
+{"tema": "scuro", "sfondo": "carta", "primo": "processi", "ordine": ["memoria", "oggi", "boh", "oggi"], "frase": false,
  "accento": {"chiaro": "#0a7d5a", "scuro": "rosso"}, "titolo": "  Studio Prova  ", "script": "<script>"}
 EOF
 curl -s "$URL/api/su-misura" | python3 -c "
 import json, sys
 m = json.load(sys.stdin)
-atteso = {'tema': 'scuro', 'primo': 'processi', 'ordine': ['memoria', 'oggi', 'processi', 'periodo', 'aree'], 'frase': False,
+atteso = {'tema': 'scuro', 'sfondo': 'carta', 'primo': 'processi', 'ordine': ['memoria', 'oggi', 'processi', 'periodo', 'aree'], 'frase': False,
           'accento': {'chiaro': '#0a7d5a'}, 'titolo': 'Studio Prova'}
 assert m == atteso, m
 " || fallisce "la vista su-misura non tiene solo le chiavi valide"
+echo '{"sfondo": "arcobaleno", "tema": "chiaro"}' > "$D/interfaccia/su-misura.json"
+[ "$(curl -s "$URL/api/su-misura")" = '{"tema": "chiaro"}' ] || [ "$(curl -s "$URL/api/su-misura")" = '{"tema":"chiaro"}' ] || fallisce "uno sfondo non valido non viene scartato"
 printf 'non è json' > "$D/interfaccia/su-misura.json"
 [ "$(curl -s "$URL/api/su-misura")" = "{}" ] || fallisce "un su-misura.json rotto non dà {}"
 rm -f "$D/interfaccia/su-misura.json"

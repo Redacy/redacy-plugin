@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-pagina.sh · redacy 0.4.0
+# prova-pagina.sh · redacy 0.4.1
 # La pagina del pannello in un browser vero, contro il server vero, su una cartella fatta da `inizia`
 # con dati finti e una corsa per stato:
 #  - pagina.html è quella che esce dai pezzi in skills/pannello/sorgenti (costruisci.py --controlla);

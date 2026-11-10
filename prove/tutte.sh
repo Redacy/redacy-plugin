@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tutte.sh · redacy 0.4.0
+# tutte.sh · redacy 0.4.1
 # Lancia tutte le prove che non chiamano nessun modello, una riga per prova, e in fondo
 #   ESITO: PASSA     oppure     ESITO: FALLISCE <le prove che non passano>
 # Non serve un account Claude o Codex. Serve Python 3, bash e curl. Dura meno di un minuto.

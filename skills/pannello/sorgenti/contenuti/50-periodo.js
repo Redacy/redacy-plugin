@@ -40,6 +40,7 @@ P.periodo = {
   },
   anteprima() {
     const T = todoLista(); const fatte = T.filter((t) => t.stato === 'fatto').length; const perc = T.length ? Math.round(fatte / T.length * 100) : 0;
+    if (!T.length && (!S.periodo || S.periodo.obiettivo_vuoto || !S.periodo.obiettivo)) return '<div class="pc-an pc-an-vuota"><p class="pc-an-tit">Ancora nessun obiettivo</p><p class="pc-an-sub2">Decidi con l\'agente cosa conta nelle prossime settimane: da lì nascono le cose da fare.</p></div>';
     const ob = S.periodo && S.periodo.obiettivo_vuoto ? 'Ancora nessun obiettivo' : (S.periodo.obiettivo || '');
     return '<div class="pc-an pc-an-per"><p class="pc-an-et2">Obiettivo del periodo</p><p class="pc-an-ob">' + esc(ob) + '</p><div class="pc-prog"><div class="pc-barra-p" aria-hidden="true"><span style="width:' + perc + '%"></span></div><p class="pc-an-pie">' + T.length + ' cose, ' + fatte + (fatte === 1 ? ' fatta' : ' fatte') + '</p></div></div>';
   },
@@ -109,7 +110,7 @@ P.aree = {
   },
   anteprima() {
     const ws = arr(S.workspace); const r = radice();
-    return '<div class="pc-an pc-an-aree"><p class="pc-an-orch">' + ico('spark', 14) + '<span>' + esc(r.titolo) + '</span></p><div class="pc-an-tessere">' + ws.map((w) => '<span class="pc-tess"><span class="pc-tess-t">' + esc(w.titolo) + '</span><span class="pc-tess-c">' + esc(conta(w)) + '</span></span>').join('') + '</div><p class="pc-an-pie">' + plur(ws.length, 'area', 'aree') + '</p></div>';
+    return '<div class="pc-an pc-an-aree"><p class="pc-an-orch">' + ico('spark', 14) + '<span>' + esc(r.titolo) + '</span></p><div class="pc-an-tessere">' + ws.map((w) => '<span class="pc-tess"><span class="pc-tess-t">' + esc(w.titolo) + '</span><span class="pc-tess-c">' + esc(conta(w)) + '</span></span>').join('') + '</div><p class="' + (ws.length ? 'pc-an-pie">' + plur(ws.length, 'area', 'aree') : 'pc-an-sub2">Ogni lavoro che affidi diventa un\'area, con il suo agente AI.') + '</p></div>';
   },
   vai(ist, v) {
     v = String(v || ''); if (v === 'orchestratore' || v === 'AGENTS.md' || v === 'radice') { ist.pila = [{ t: 'o' }]; return true; }

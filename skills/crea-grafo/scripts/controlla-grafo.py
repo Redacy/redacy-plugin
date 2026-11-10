@@ -1,4 +1,4 @@
-# redacy 0.4.0 · skills/crea-grafo/scripts/controlla-grafo.py
+# redacy 0.4.1 · skills/crea-grafo/scripts/controlla-grafo.py
 """Controlla i grafi (grafi/<nome>.yaml) contro il formato di redacy.
 
 Si usa da riga di comando (controlla-grafo.py <file|cartella>) e si può

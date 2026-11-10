@@ -1,4 +1,4 @@
-# redacy 0.4.0 - skills/crea-grafo/scripts/corsa.py
+# redacy 0.4.1 - skills/crea-grafo/scripts/corsa.py
 """Tiene il registro delle corse di un grafo.
 
 Una corsa e' una volta in cui un grafo (grafi/<nome>.yaml) e' stato eseguito.

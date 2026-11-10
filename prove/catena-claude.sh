@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# catena-claude.sh · redacy 0.4.0
+# catena-claude.sh · redacy 0.4.1
 # La catena intera su Claude Code, da terminale, in una cartella vuota:
 #   inizia -> crea-workspace -> crea-grafo -> corsa -> pannello -> stop
 # Ogni anello è controllato sui file (albero, workspace valido, grafo che passa controlla-grafo.py,

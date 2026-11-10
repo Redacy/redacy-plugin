@@ -79,7 +79,7 @@ function riassunto(id) {
   }
   if (id === 'periodo') {
     const T = todoLista(), fatte = T.filter((t) => t.stato === 'fatto').length, aperte = T.length - fatte; const rit = T.filter((t) => t.stato !== 'fatto' && t.scadenza && giorniFra(t.scadenza, oggiYMD()) > 0).length;
-    return { numero: aperte, etichetta: aperte === 1 ? 'cosa ancora da fare' : 'cose ancora da fare', righe: [T.length + ' cose, ' + fatte + (fatte === 1 ? ' fatta' : ' fatte'), (S.periodo && S.periodo.obiettivo) || ''].filter(Boolean), stato: rit ? 'attenzione' : 'calmo' };
+    return { totale: T.length, numero: aperte, etichetta: aperte === 1 ? 'cosa ancora da fare' : 'cose ancora da fare', righe: [T.length + ' cose, ' + fatte + (fatte === 1 ? ' fatta' : ' fatte'), (S.periodo && S.periodo.obiettivo) || ''].filter(Boolean), stato: rit ? 'attenzione' : 'calmo' };
   }
   if (id === 'memoria') {
     const c = S.memoria_grafo && S.memoria_grafo.conteggi || {}; const righe = [(c.collegamenti || 0) + ' collegamenti']; if (c.mancanti) righe.push(c.mancanti + (c.mancanti === 1 ? ' da scrivere' : ' da scrivere'));

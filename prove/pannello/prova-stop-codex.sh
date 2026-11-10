@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-stop-codex.sh · redacy 0.4.0
+# prova-stop-codex.sh · redacy 0.4.1
 # Lo stop dal pannello con Codex, due conversazioni (`codex exec`) nella stessa cartella dello studio.
 #
 # STADIO 1 (default, parte da solo): lo stop senza hook. Gli hook di Codex partono solo dopo che

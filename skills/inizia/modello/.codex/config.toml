@@ -1,4 +1,4 @@
-# redacy 0.4.0 · l'adattatore Codex di questa cartella · origine nel plugin: skills/inizia/modello/.codex/config.toml
+# redacy 0.4.1 · l'adattatore Codex di questa cartella · origine nel plugin: skills/inizia/modello/.codex/config.toml
 #
 # Codex legge questo file, e .codex/hooks.json, solo se la cartella è segnata come fidata
 # nel file ~/.codex/config.toml dell'utente:

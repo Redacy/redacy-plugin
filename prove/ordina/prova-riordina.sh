@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.0 · prove/ordina/prova-riordina.sh
+# redacy 0.4.1 · prove/ordina/prova-riordina.sh
 # Prova riordina.py (controlla, applica, annulla) su cartelle finte: piano buono applicato e
 # annullato con l'albero identico (per impronta), collisioni, uscite dalla cartella, file cambiato
 # dopo il piano, interruzione a metà, nomi con spazi, accenti e apostrofi, fonti/ dello studio.

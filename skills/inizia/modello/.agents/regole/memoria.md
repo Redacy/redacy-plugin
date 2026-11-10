@@ -4,7 +4,7 @@ paths:
   - "workspace/*/memoria/**"
 summary: una pagina breve per cosa, collegata con [[nome-pagina]] e scritta in INDICE.md; il registro LOG.md si scrive solo in fondo, una riga per fatto
 ---
-<!-- redacy 0.4.0 · origine nel plugin: skills/inizia/modello/.agents/regole/memoria.md -->
+<!-- redacy 0.4.1 · origine nel plugin: skills/inizia/modello/.agents/regole/memoria.md -->
 
 # Come si scrive in memoria
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.0 · prove/ordina/prova-inventario.sh
+# redacy 0.4.1 · prove/ordina/prova-inventario.sh
 # Prova inventario.py su una cartella finta: conti, tipi, date, nomi, doppioni, cartelle vuote,
 # file grandi, nomi che Windows rifiuta, tetto di file, niente scritto, niente traceback.
 # Una riga per controllo, in fondo PASSA oppure FALLISCE <perché>.

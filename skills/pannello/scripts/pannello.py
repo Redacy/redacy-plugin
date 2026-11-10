@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.4.0 · skills/pannello/scripts/pannello.py
+# redacy 0.4.1 · skills/pannello/scripts/pannello.py
 """Il pannello: una pagina sola, in locale, che mostra lo studio e ferma una corsa.
 
 Un server su 127.0.0.1, solo libreria standard, uno per cartella dello studio.
@@ -580,6 +580,7 @@ def vista_file(cartella):
 
 PANNELLI = ("oggi", "processi", "periodo", "memoria", "aree")
 TEMI = ("auto", "chiaro", "scuro")
+SFONDI = ("galassia", "carta", "tinta")
 COLORE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
@@ -600,6 +601,8 @@ def vista_su_misura(cartella):
     if not isinstance(dato, dict):
         return {}
     out = {}
+    if dato.get("sfondo") in SFONDI:
+        out["sfondo"] = dato["sfondo"]
     if dato.get("tema") in TEMI:
         out["tema"] = dato["tema"]
     if dato.get("primo") in PANNELLI:

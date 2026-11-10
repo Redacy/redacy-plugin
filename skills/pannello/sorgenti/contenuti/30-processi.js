@@ -183,7 +183,7 @@ P.processi = {
   },
   anteprima(ist) {
     const g = gAnteprima(); const gs = grafi(); const acc = gs.filter((x) => x.acceso).length;
-    if (!g) return '<div class="pc-an"><p class="pc-an-et">Nessun processo</p></div>';
+    if (!g) return '<div class="pc-an pc-an-vuota"><p class="pc-an-tit">Ancora nessun processo</p><p class="pc-an-sub2">Un lavoro che si ripete sempre uguale può diventare un processo: lo fanno gli agenti, tu controlli.</p></div>';
     const c = ultimaCorsa(g); const pc = c && eff(c) === 'in-corso' ? passoCorrente(c, g) : null;
     return '<div class="pc-an pc-an-proc"><p class="pc-an-tit">' + esc(nomeProc(g.grafo)) + '</p><p class="pc-an-sub">' + (pc ? 'Sta lavorando · ' + esc(pc.nome) : c ? esc(cap(esitoParole(c))) : 'Non è ancora partito') + '</p><div class="pc-mini">' + miniWF(g, ist) + '</div><p class="pc-an-pie">' + plur(gs.length, 'processo', 'processi') + ', ' + acc + (acc === 1 ? ' acceso' : ' accesi') + '</p></div>';
   },
