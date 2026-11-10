@@ -4,6 +4,11 @@
 Uso:
     python3 crea-cartella.py <cartella>              crea ciò che manca, non tocca ciò che c'è
     python3 crea-cartella.py <cartella> --controlla  dice cosa manca o non va, senza scrivere
+    python3 crea-cartella.py <cartella> --innesta    dopo il sì dell'utente: aggiunge `@AGENTS.md` al CLAUDE.md
+                                                     che c'è già e i controlli di redacy ai file degli hook che
+                                                     c'erano già (prima salva una copia .prima-di-redacy)
+    python3 crea-cartella.py <cartella> --aggiorna   rinfresca le copie che sono del plugin (script, controlli,
+                                                     schemi, pagina del pannello); non tocca nient'altro
 
 Cosa fa, nell'ordine:
 1. copia l'albero di skills/inizia/modello/ nella cartella (i file .tienimi tengono solo la cartella);
@@ -14,7 +19,9 @@ Cosa fa, nell'ordine:
 5. se ha creato qualcosa, scrive una riga in memoria/LOG.md.
 
 Non sovrascrive mai un file che c'è già: lo salta e lo dice. Un file sorgente che manca nel
-plugin è un avviso, non un errore. Solo libreria standard.
+plugin è un avviso, non un errore. Se il CLAUDE.md o un file degli hook c'erano già e non portano
+`@AGENTS.md` o i controlli di redacy, lo dice con un `avviso:` (con --controlla è un `non va:`).
+Solo libreria standard.
 
 Uscite: 0 fatto (o, con --controlla, niente manca); 1 con --controlla qualcosa manca o non va;
 2 uso sbagliato; 3 fatto in parte: alcune cartelle non si possono scrivere da questa sessione
@@ -23,6 +30,7 @@ una volta nel terminale per finire.
 """
 
 import argparse
+import copy
 import datetime
 import json
 import os
@@ -200,7 +208,7 @@ def elementi_modello(modello):
 def con_testa(sorgente, origine, versione):
     """Il testo del file copiato, con versione e origine nelle prime righe."""
     testo = sorgente.read_text(encoding="utf-8")
-    nota = f"redacy {versione} · copiato da {origine} nel plugin · non modificarlo qui: si aggiorna col plugin"
+    nota = f"redacy {versione} · copiato da {origine} nel plugin · non modificarlo qui: si rinfresca con crea-cartella.py --aggiorna"
     if sorgente.suffix == ".json":
         dati = json.loads(testo)
         if isinstance(dati, dict):
@@ -222,10 +230,187 @@ def con_testa(sorgente, origine, versione):
     return f"# {nota}\n{testo}"
 
 
+RE_VERSIONE_COPIA = re.compile(r"redacy (\S+) · copiato da")
+RE_IMPORT_AGENTS = re.compile(r"(?m)^[ \t]*@AGENTS\.md\b")
+RE_SCRIPT = re.compile(r"([A-Za-z0-9_-]+\.py)")
+SUFFISSO_COPIA = ".prima-di-redacy"
+
+
+def voci_plugin(radice, esito=None):
+    """Le voci degli hook del plugin (come finiscono nella cartella su questa macchina), dal modello."""
+    testo = (radice / "skills/inizia/modello/.agents/hooks.json").read_text(encoding="utf-8")
+    if su_windows():
+        testo = adatta_hook_windows(testo, python_windows(esito))
+    return json.loads(testo).get("hooks", {})
+
+
+def chiavi_gruppo(gruppo):
+    """I nomi degli script (ferma.py, controlla-periodo.py) che un gruppo di hook lancia."""
+    chiavi = set()
+    for h in gruppo.get("hooks", []) if isinstance(gruppo, dict) else []:
+        c = h.get("command") if isinstance(h, dict) else None
+        if isinstance(c, str):
+            chiavi.update(RE_SCRIPT.findall(c))
+    return chiavi
+
+
+def gruppi_mancanti(hooks, voci):
+    """I gruppi del plugin che `hooks` (il campo hooks di un file) non ha ancora, come (evento, gruppo)."""
+    mancanti = []
+    for evento, gruppi in voci.items():
+        presenti = hooks.get(evento, []) if isinstance(hooks, dict) else []
+        for g in gruppi:
+            k = chiavi_gruppo(g)
+            if not any(isinstance(x, dict) and k <= chiavi_gruppo(x) for x in presenti if isinstance(presenti, list)):
+                mancanti.append((evento, g))
+    return mancanti
+
+
+def solo_del_plugin(hooks, voci):
+    """Dal campo hooks di un file, solo i gruppi che lanciano gli script del plugin (per confrontare i tre file)."""
+    chiavi = set().union(*[chiavi_gruppo(g) for gs in voci.values() for g in gs]) if voci else set()
+    out = {}
+    for evento, gruppi in (hooks or {}).items():
+        if isinstance(gruppi, list):
+            mio = [g for g in gruppi if chiavi_gruppo(g) and chiavi_gruppo(g) <= chiavi]
+            if mio:
+                out[evento] = mio
+    return out
+
+
+def problemi_innesto(cartella, radice, esito=None):
+    """Ciò che c'era già nella cartella e non è collegato a redacy: [(file, cosa manca, spiegazione)].
+
+    Il CLAUDE.md che non importa AGENTS.md, e i file degli hook che non hanno i controlli del plugin."""
+    trovati = []
+    claude = cartella / "CLAUDE.md"
+    if claude.is_file():
+        try:
+            testo = claude.read_text(encoding="utf-8-sig")
+        except (OSError, UnicodeDecodeError):
+            testo = None
+        agents = cartella / "AGENTS.md"
+        stesso = claude.is_symlink() and agents.exists() and claude.resolve() == agents.resolve()
+        if testo is not None and not stesso and not RE_IMPORT_AGENTS.search(testo):
+            trovati.append(("CLAUDE.md", "import",
+                            "non importa AGENTS.md: Claude Code non legge le regole dello studio"))
+    voci = voci_plugin(radice, esito)
+    for rel in ADATTATORI_HOOK:
+        p = cartella / rel
+        if not p.is_file():
+            continue
+        try:
+            dati = json.loads(p.read_text(encoding="utf-8-sig"))
+        except (OSError, ValueError):
+            continue
+        hooks = dati.get("hooks", {}) if isinstance(dati, dict) else None
+        if not isinstance(hooks, dict):
+            continue
+        mancanti = gruppi_mancanti(hooks, voci)
+        if mancanti:
+            nomi = sorted(set().union(*[chiavi_gruppo(g) for _, g in mancanti]))
+            trovati.append((rel, "hook", "non ha i controlli di redacy (" + ", ".join(nomi) + "): "
+                            "lo stop dal pannello e il controllo delle cose da fare non partono"))
+    return trovati
+
+
+def copia_di_sicurezza(p):
+    """Salva una copia accanto al file (.prima-di-redacy, poi -2, -3...), senza mai sovrascriverne una."""
+    n, dest = 1, Path(str(p) + SUFFISSO_COPIA)
+    while os.path.lexists(dest):
+        n += 1
+        dest = Path(f"{p}{SUFFISSO_COPIA}-{n}")
+    shutil.copy2(p, dest)
+    return dest
+
+
+def innesta(cartella, radice, esito):
+    """Sistema ciò che problemi_innesto() trova, senza togliere né riordinare niente di ciò che c'è."""
+    fatti = 0
+    voci = voci_plugin(radice, esito)
+    for rel, tipo, _ in problemi_innesto(cartella, radice, esito):
+        p = cartella / rel
+        def azione(p=p, tipo=tipo):
+            copia = copia_di_sicurezza(p)
+            if tipo == "import":
+                grezzo = p.read_bytes()
+                eol = b"\r\n" if b"\r\n" in grezzo else b"\n"
+                prefisso = b"" if not grezzo or grezzo.endswith(b"\n") else eol
+                with p.open("ab") as f:
+                    f.write(prefisso + eol + b"@AGENTS.md" + eol)
+            else:
+                dati = json.loads(p.read_text(encoding="utf-8-sig"))
+                hooks = dati.setdefault("hooks", {})
+                for evento, g in gruppi_mancanti(hooks, voci):
+                    if not isinstance(hooks.get(evento), list):
+                        hooks[evento] = []
+                    hooks[evento].append(copy.deepcopy(g))
+                p.write_text(json.dumps(dati, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            return copia
+        try:
+            copia = azione()
+        except OSError as e:
+            esito.non_scritti.append(f"{rel} ({e.strerror or e})")
+            continue
+        esito.creati.append(f"{rel} (copia di prima: {copia.name})")
+        fatti += 1
+    return fatti
+
+
+def versione_della_copia(p):
+    """La versione scritta nelle prime righe di una copia del plugin, o None."""
+    try:
+        testo = p.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    m = RE_VERSIONE_COPIA.search(testo[:2000])
+    return m.group(1) if m else None
+
+
+def copie_vecchie(cartella, radice, versione):
+    """Le copie del plugin nella cartella con una versione diversa da quella del plugin: [(rel, versione)]."""
+    vecchie = []
+    for origine, rel in COPIE:
+        p = cartella / rel
+        if p.is_file() and (radice / origine).is_file():
+            v = versione_della_copia(p)
+            if v is not None and v != versione:
+                vecchie.append((rel, v))
+    return vecchie
+
+
+def aggiorna(cartella, radice, versione, esito):
+    """Rinfresca solo le copie del plugin (tabella COPIE) che differiscono da ciò che il plugin darebbe oggi."""
+    uguali = 0
+    for origine, rel in COPIE:
+        sorgente = radice / origine
+        dest = cartella / rel
+        if not sorgente.is_file():
+            esito.avvisi.append(f"{rel}: manca la sorgente {origine} nel plugin, non toccato")
+            continue
+        atteso = con_testa(sorgente, origine, versione)
+        esiste = os.path.lexists(dest)
+        if esiste:
+            try:
+                if dest.read_text(encoding="utf-8") == atteso:
+                    uguali += 1
+                    continue
+            except (OSError, UnicodeDecodeError):
+                pass
+        def scrivi_copia(d=dest, s=sorgente):
+            d.parent.mkdir(parents=True, exist_ok=True)
+            d.write_text(atteso, encoding="utf-8")
+            shutil.copymode(s, d)
+        if scrivi(esito, rel, scrivi_copia):
+            (esito.aggiornati if esiste else esito.creati).append(rel)
+    return uguali
+
+
 class Esito:
     def __init__(self):
         self.creati, self.saltati, self.avvisi, self.mancano, self.non_va = [], [], [], [], []
         self.non_scritti = []
+        self.aggiornati = []
         self.python = None
 
 
@@ -299,6 +484,9 @@ def crea(cartella, radice, versione, esito):
                 shutil.copymode(s, d)
         if scrivi(esito, rel, copia):
             esito.creati.append(rel)
+    for rel, _, spiega in problemi_innesto(cartella, radice, esito):
+        esito.avvisi.append(f"{rel} c'era già e {spiega}. Dillo all'utente e, dopo il suo sì, "
+                            "lancia lo stesso script con --innesta")
     log = cartella / "memoria/LOG.md"
     if esito.creati and log.is_file():
         quando = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -342,16 +530,24 @@ def controlla(cartella, radice, esito):
                 json.loads(p.read_text(encoding="utf-8"))
             except ValueError as e:
                 esito.non_va.append(f"{rel}: JSON non valido ({e})")
-    voci = {}
+    for rel, _, spiega in problemi_innesto(cartella, radice, esito):
+        esito.non_va.append(f"{rel} {spiega}: con il sì dell'utente, --innesta lo sistema")
+    nostre, voci_p = {}, voci_plugin(radice, esito)
     for rel in ADATTATORI_HOOK:
         p = cartella / rel
         if p.is_file():
             try:
-                voci[rel] = json.loads(p.read_text(encoding="utf-8")).get("hooks")
-            except ValueError:
-                pass
-    if len(set(json.dumps(v, sort_keys=True) for v in voci.values())) > 1:
-        esito.non_va.append("le voci degli hook non sono uguali in " + ", ".join(sorted(voci)))
+                hooks = json.loads(p.read_text(encoding="utf-8-sig")).get("hooks")
+            except (ValueError, AttributeError):
+                continue
+            if isinstance(hooks, dict) and not gruppi_mancanti(hooks, voci_p):
+                nostre[rel] = solo_del_plugin(hooks, voci_p)
+    if len(set(json.dumps(v, sort_keys=True) for v in nostre.values())) > 1:
+        esito.non_va.append("le voci degli hook non sono uguali in " + ", ".join(sorted(nostre)))
+    vecchie = copie_vecchie(cartella, radice, versione_plugin(radice))
+    if vecchie:
+        esito.avvisi.append(f"{len(vecchie)} copie del plugin in .agents/ sono di redacy {vecchie[0][1]} e il plugin è "
+                            f"{versione_plugin(radice)}: lancia lo stesso script con --aggiorna")
     policy = cartella / POLICY
     if policy.is_dir():
         for p in sorted(policy.glob("*.md")):
@@ -361,7 +557,8 @@ def controlla(cartella, radice, esito):
                     break
 
 
-def stampa(esito, cartella, solo_controllo):
+def stampa(esito, cartella, solo_controllo, solo_innesto=False, uguali=None):
+    opzione = " --innesta" if solo_innesto else (" --aggiorna" if uguali is not None else "")
     print(f"cartella: {cartella}")
     if solo_controllo:
         for r in esito.mancano:
@@ -376,28 +573,44 @@ def stampa(esito, cartella, solo_controllo):
             print("esito: non manca niente")
         return
     for r in esito.creati:
-        print(f"creato: {r}")
+        print(f"{'innestato' if solo_innesto else 'creato'}: {r}")
+    for r in esito.aggiornati:
+        print(f"aggiornato: {r}")
     for r in esito.saltati:
         print(f"saltato (c'è già): {r}")
     for r in esito.avvisi:
         print(f"avviso: {r}")
     for r in esito.non_scritti:
         print(f"non scritto: {r}")
-    print(f"esito: {len(esito.creati)} creati, {len(esito.saltati)} saltati, {len(esito.avvisi)} avvisi"
-          + (f", {len(esito.non_scritti)} non scritti" if esito.non_scritti else ""))
+    if solo_innesto:
+        resto = f", {len(esito.non_scritti)} non scritti" if esito.non_scritti else ""
+        print(f"esito: {len(esito.creati)} innestati{resto}")
+    elif uguali is not None:
+        resto = f", {len(esito.non_scritti)} non scritti" if esito.non_scritti else ""
+        print(f"esito: {len(esito.aggiornati)} aggiornati, {len(esito.creati)} ricreati, {uguali} già uguali, "
+              f"{len(esito.avvisi)} avvisi{resto}")
+    else:
+        print(f"esito: {len(esito.creati)} creati, {len(esito.saltati)} saltati, {len(esito.avvisi)} avvisi"
+              + (f", {len(esito.non_scritti)} non scritti" if esito.non_scritti else ""))
     if esito.non_scritti:
         print("da finire: questa sessione non può scrivere alcune cartelle (in Codex .agents/ e .codex/ "
               "sono protette). Lancia una volta questa riga nel terminale, fuori da Codex:")
         if su_windows():  # PowerShell e cmd: virgolette doppie, niente shlex, niente &&
-            print(f'comando: {python_windows(esito)} "{Path(__file__).resolve()}" "{cartella}"')
+            print(f'comando: {python_windows(esito)} "{Path(__file__).resolve()}" "{cartella}"{opzione}')
         else:
-            print(f"comando: python3 {shlex.quote(str(Path(__file__).resolve()))} {shlex.quote(str(cartella))}")
+            print(f"comando: python3 {shlex.quote(str(Path(__file__).resolve()))} {shlex.quote(str(cartella))}{opzione}")
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Crea la cartella dello studio dal modello del plugin redacy.")
     ap.add_argument("cartella", help="la cartella dello studio (si crea se non c'è)")
-    ap.add_argument("--controlla", action="store_true", help="dice cosa manca o non va, senza scrivere")
+    gr = ap.add_mutually_exclusive_group()
+    gr.add_argument("--controlla", action="store_true", help="dice cosa manca o non va, senza scrivere")
+    gr.add_argument("--innesta", action="store_true",
+                    help="dopo il sì dell'utente: @AGENTS.md nel CLAUDE.md che c'è già e i controlli di redacy nei "
+                         "file degli hook che c'erano già (prima salva una copia .prima-di-redacy)")
+    gr.add_argument("--aggiorna", action="store_true",
+                    help="rinfresca le copie del plugin (script, controlli, schemi, pagina) se sono diverse da quelle del plugin")
     ap.add_argument("--plugin", help="la radice del plugin (di solito si trova da sola)")
     a = ap.parse_args(argv)
 
@@ -417,6 +630,17 @@ def main(argv=None):
         controlla(cartella, radice, esito)
         stampa(esito, cartella, True)
         return 1 if (esito.mancano or esito.non_va) else 0
+    if (a.innesta or a.aggiorna) and not cartella.is_dir():
+        print(f"errore: {cartella} non c'è: prima si prepara la cartella, senza opzioni", file=sys.stderr)
+        return 2
+    if a.innesta:
+        innesta(cartella, radice, esito)
+        stampa(esito, cartella, False, solo_innesto=True)
+        return 3 if esito.non_scritti else 0
+    if a.aggiorna:
+        uguali = aggiorna(cartella, radice, versione_plugin(radice), esito)
+        stampa(esito, cartella, False, uguali=uguali)
+        return 3 if esito.non_scritti else 0
     try:
         cartella.mkdir(parents=True, exist_ok=True)
     except OSError as e:

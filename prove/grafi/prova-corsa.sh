@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.1 - prove/grafi/prova-corsa.sh
+# redacy 0.4.2 - prove/grafi/prova-corsa.sh
 # Prova corsa.py su una cartella di studio finta. Una riga per controllo,
 # in fondo una sola riga: PASSA oppure FALLISCE <perche'>.
 # Uso: bash prove/grafi/prova-corsa.sh [--tieni]   (--tieni lascia la cartella di prova)
@@ -341,6 +341,29 @@ Z=$(env -u CLAUDE_CODE_SESSION_ID CODEX_THREAD_ID=thr-codex-1 bash -c 'cd "$1" &
 uguale "(j) sessione da CODEX_THREAD_ID" "thr-codex-1" "$(J "$(F "$Z")" 'c["sessione"]')"
 Z=$(CLAUDE_CODE_SESSION_ID=sess-claude-1 C apri giro-prova --sessione esplicita)
 uguale "(j) --sessione vince sull'ambiente" "esplicita" "$(J "$(F "$Z")" 'c["sessione"]')"
+
+# ---------------------------------------------------------------- (k) un disco senza collegamenti fissi (FAT, rete)
+K=$(C apri giro-prova)
+RIS=$(cd "$D" && python3 -I - "$CORSA" "$K" <<'PY' 2>&1
+import errno, importlib.util, json, os, sys
+from unittest import mock
+spec = importlib.util.spec_from_file_location("corsa_k", sys.argv[1])
+m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+id_ = sys.argv[2]
+def senza_link(*a, **k):
+    raise OSError(errno.EPERM, "Operation not permitted")
+with mock.patch.object(os, "link", senza_link):
+    rc = m.main(["ferma", id_, "--da", "pannello", "--perche", "primo"])
+    stop = os.path.join("grafi", "corse", id_ + ".stop")
+    primo = json.loads(open(stop, encoding="utf-8").read())
+    m.scrivi_atomico_riga(stop, {"chi": "secondo", "quando": "2026-01-01T00:00:00Z", "perche": "no"})
+    dopo = json.loads(open(stop, encoding="utf-8").read())
+resti = [n for n in os.listdir(os.path.join("grafi", "corse")) if n.endswith(".tmp")]
+print("rc=%s chi=%s perche=%s resta_il_primo=%s tmp=%d" % (rc, primo["chi"], primo["perche"], dopo == primo, len(resti)))
+PY
+)
+uguale "(k) con os.link che fallisce, ferma esce 0, scrive il .stop e il primo resta" "rc=0 chi=pannello perche=primo resta_il_primo=True tmp=0" "$RIS"
+uguale "(k) e la corsa risulta fermata" "fermata" "$(J "$(F "$K")" 'c["stato"]')"
 
 # ---------------------------------------------------------------- (g) niente file in giro
 RESTI=$(find "$D/grafi/corse" -type f ! -name '*.json' ! -name '*.stop' ! -name '.*.lock' | wc -l | tr -d ' ')

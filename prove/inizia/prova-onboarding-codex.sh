@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-onboarding-codex.sh · redacy 0.4.1
+# prova-onboarding-codex.sh · redacy 0.4.2
 # L'onboarding di `inizia` su Codex, da terminale, in una cartella vuota, coi dati finti di uno
 # studio di commercialista inventato (dati-finti.sh). Installa il plugin da questa copia del
 # repo, lancia un solo `codex exec` (le risposte e i sì dell'utente nel primo messaggio), poi

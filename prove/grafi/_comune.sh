@@ -1,4 +1,4 @@
-# redacy 0.4.1 · prove/grafi/_comune.sh
+# redacy 0.4.2 · prove/grafi/_comune.sh
 #
 # Codice comune di prova-crea-claude.sh e prova-crea-codex.sh: non si lancia,
 # si carica con "source". Chi lo carica definisce la funzione

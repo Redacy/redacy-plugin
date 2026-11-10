@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# prova-cartella.sh · redacy 0.4.1
+# prova-cartella.sh · redacy 0.4.2
 # Crea una cartella vuota, lancia crea-cartella.py, controlla l'albero, rilancia e controlla
 # che non sovrascriva nulla. Prova anche la copia degli script delle altre skill (con la
 # versione e l'origine in testa) su un plugin finto, così il risultato non dipende da cosa
-# c'è già nel plugin. Finisce con PASSA o FALLISCE <perché>.
+# c'è già nel plugin. Con _innesta.py prova anche --innesta e --aggiorna. Finisce con PASSA o FALLISCE <perché>.
 #
 # Uso: bash prove/inizia/prova-cartella.sh
 # Le cartelle di prova vanno in $REDACY_PROVE (se c'è), se no in una cartella temporanea.
@@ -157,6 +157,14 @@ CMD=$(sed -n 's/^comando: //p' "$BASE/uscita-protetta-$ORA.txt")
 [ -n "$CMD" ] || fallisce "con .agents/ protetta non stampa la riga comando:"
 bash -c "$CMD" > "$BASE/uscita-ripresa-$ORA.txt" 2>&1 || fallisce "la riga stampata non finisce la cartella"
 python3 "$SCRIPT" "$P" --controlla > /dev/null 2>&1 || fallisce "dopo la riga stampata --controlla non è pulito"
+
+# 11. Ciò che c'era già (--innesta) e le copie vecchie (--aggiorna): una riga ok/NO per controllo
+python3 -I "$RADICE/prove/inizia/_innesta.py" "$RADICE" "$BASE/innesta-$ORA" > "$BASE/uscita-innesta-$ORA.txt" 2>&1 \
+  || { grep -v '^ok' "$BASE/uscita-innesta-$ORA.txt" | head -5; fallisce "_innesta.py: vedi sopra"; }
+
+# 12. crea-workspace.py: i percorsi dei dati scritti dal punto di vista del workspace
+python3 -I "$RADICE/prove/inizia/_workspace.py" "$RADICE" "$BASE/workspace-$ORA" > "$BASE/uscita-workspace-$ORA.txt" 2>&1 \
+  || { grep -v '^ok' "$BASE/uscita-workspace-$ORA.txt" | head -5; fallisce "_workspace.py: vedi sopra"; }
 
 echo "cartella di prova: $D"
 echo "PASSA"

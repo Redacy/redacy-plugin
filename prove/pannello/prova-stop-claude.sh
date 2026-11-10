@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-stop-claude.sh · redacy 0.4.1
+# prova-stop-claude.sh · redacy 0.4.2
 # Lo stop dal pannello con Claude Code, in due scenari, ognuno con due conversazioni (`claude -p`)
 # nella stessa cartella dello studio:
 #   1. senza l'hook: lo stop passa dal livello 1, corsa.py esce con 3 al comando dopo lo stop;

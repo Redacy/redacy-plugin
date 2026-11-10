@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-server.sh · redacy 0.4.1
+# prova-server.sh · redacy 0.4.2
 # Prova il server del pannello su una cartella dello studio fatta da `inizia` (crea-cartella.py),
 # con dati finti e una corsa per stato scritta da corsa.py:
 #  - il server parte, la pagina e tutte le viste rispondono 200 e dicono cose giuste;
@@ -27,6 +27,14 @@ fallisce() { echo "FALLISCE $*"; python3 "$PANNELLO" --cartella "$D" --spegni >/
 command -v python3 >/dev/null || { echo "FALLISCE manca python3"; exit 1; }
 command -v curl >/dev/null || { echo "FALLISCE manca curl"; exit 1; }
 [ -f "$PANNELLO" ] || { echo "FALLISCE manca $PANNELLO"; exit 1; }
+
+# 0. Una cartella che non è uno studio: rifiuta con una riga, esce non-zero, non crea niente
+NON_STUDIO="$BASE/server-$ORA/non-uno-studio"; mkdir -p "$NON_STUDIO"
+RIFIUTO="$(python3 "$PANNELLO" --cartella "$NON_STUDIO" 2>&1)" && fallisce "--cartella su una cartella che non è uno studio esce 0: $RIFIUTO"
+[ "$(echo "$RIFIUTO" | wc -l | tr -d ' ')" = 1 ] && echo "$RIFIUTO" | grep -q "non è la cartella di uno studio" || fallisce "il rifiuto non è una riga chiara: $RIFIUTO"
+[ -z "$(ls -A "$NON_STUDIO")" ] || fallisce "il rifiuto ha creato qualcosa in una cartella che non è uno studio: $(ls -A "$NON_STUDIO")"
+python3 "$PANNELLO" --cartella "$NON_STUDIO" --spegni >/dev/null 2>&1 && fallisce "--spegni su una cartella che non è uno studio esce 0"
+[ -z "$(ls -A "$NON_STUDIO")" ] || fallisce "--spegni ha creato qualcosa in una cartella che non è uno studio"
 
 # 1. La cartella finta, con una corsa per stato
 python3 "$PREPARA" "$D" --corse > "$BASE/server-$ORA/ids.txt" 2> "$BASE/server-$ORA/prepara.err" \
@@ -58,7 +66,7 @@ URL="http://127.0.0.1:$PORTA"
 # 3. La pagina e tutte le viste rispondono 200
 codice() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$@"; }
 [ "$(codice "$URL/")" = "200" ] || fallisce "la pagina / non risponde 200"
-curl -s "$URL/" | grep -q "$GETTONE" || fallisce "la pagina non porta il gettone"
+curl -s "$URL/" | grep -q -- "$GETTONE" || fallisce "la pagina non porta il gettone"
 for v in ciao stato periodo recenti grafi corse file-chiave memoria supporto file file-firma su-misura; do
   [ "$(codice "$URL/api/$v")" = "200" ] || fallisce "/api/$v non risponde 200"
   curl -s "$URL/api/$v" | python3 -c "import json,sys;json.load(sys.stdin)" 2>/dev/null || fallisce "/api/$v non è JSON"

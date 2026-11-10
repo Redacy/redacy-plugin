@@ -1,4 +1,4 @@
-<!-- redacy 0.4.1 · origine nel plugin: skills/inizia/modello/.agents/policy/cosa-faccio-da-solo.md -->
+<!-- redacy 0.4.2 · origine nel plugin: skills/inizia/modello/.agents/policy/cosa-faccio-da-solo.md -->
 # Cosa faccio da solo e cosa chiedo
 
 Una voce per riga, che comincia con `- `. Mai tabelle: una voce nuova si aggiunge in fondo alla sua lista, con parole semplici. Questo file lo cambia l'utente, o l'agente col suo sì (skill `impara`).

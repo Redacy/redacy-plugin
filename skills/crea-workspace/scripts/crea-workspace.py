@@ -1,4 +1,4 @@
-# redacy 0.4.1 · skills/crea-workspace/scripts/crea-workspace.py
+# redacy 0.4.2 · skills/crea-workspace/scripts/crea-workspace.py
 """Crea un workspace (un agente intero) dentro la cartella dello studio.
 
 Uso: python3 crea-workspace.py NOME --descrizione "..." [--cartella DIR] [--dati PERCORSO ...]
@@ -31,7 +31,10 @@ Argomenti:
                           risalendo dalla cartella corrente fino a una che ha
                           AGENTS.md e grafi/ (o dalla variabile REDACY_CARTELLA)
   --dati PERCORSO         dove stanno i dati del lavoro. Si può ripetere.
-                          Il dato resta dov'è: si scrive solo il percorso
+                          Il dato resta dov'è: si scrive solo il percorso.
+                          Un percorso dello studio (fonti/listini) si scrive
+                          dalla cartella del workspace (../../fonti/listini);
+                          uno intero resta com'è
   -h, --help              mostra questo aiuto
 
 Un workspace che esiste già non si tocca: lo script esce con 2 e non scrive
@@ -154,7 +157,10 @@ def testo_dati(dati, studio, avvisi):
         d = d.strip()
         if not d:
             continue
-        righe.append("- `%s`" % d)
+        # Il workspace lavora dalla sua cartella (workspace/<nome>/): un percorso dello studio si scrive da lì.
+        intero = os.path.isabs(d) or d.startswith(("~", "\\\\")) or re.match(r"^[A-Za-z]:[\\/]", d)
+        dall_agente = d if intero else "../../" + d.replace("\\", "/")
+        righe.append("- `%s`" % dall_agente)
         assoluto = d if os.path.isabs(d) else os.path.join(studio, d)
         if not os.path.exists(os.path.expanduser(assoluto)):
             avvisi.append("il percorso dei dati \"%s\" non esiste ancora." % d)

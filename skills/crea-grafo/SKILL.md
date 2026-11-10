@@ -98,10 +98,10 @@ Questo è il default. Non cambiarlo mai di tua iniziativa. Per salire a `L1` o `
 
 ## Passo 4. Controllare, correggere, poi dire fatto
 
-Lancia il controllo e **non dire fatto prima che esca con 0**. Lo script `scripts/controlla-grafo.py` sta nella cartella di questa skill (`${CLAUDE_SKILL_DIR}` su Claude Code; su Codex usa il percorso assoluto della cartella di questa skill, che Codex ti ha dato quando l'ha caricata). Lancialo con quel percorso assoluto, dalla cartella dello studio:
+Lancia il controllo e **non dire fatto prima che esca con 0**. Lo script `scripts/controlla-grafo.py` sta nella cartella di questa skill (`${CLAUDE_SKILL_DIR}` su Claude Code; su Codex usa il percorso assoluto della cartella di questa skill, che Codex ti ha dato quando l'ha caricata). Lancialo con quel percorso assoluto, fra virgolette (può avere spazi), dalla cartella dello studio:
 
 ```
-python3 ${CLAUDE_SKILL_DIR}/scripts/controlla-grafo.py grafi/<nome>.yaml
+python3 "${CLAUDE_SKILL_DIR}/scripts/controlla-grafo.py" grafi/<nome>.yaml
 ```
 
 Se non riesci a risolvere il percorso, la cartella dello studio ne ha una copia in `.agents/script/controlla-grafo.py`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.4.1 · skills/pannello/scripts/ferma.py
+# redacy 0.4.2 · skills/pannello/scripts/ferma.py
 """Hook PreToolUse: nega i passi di una corsa che l'utente ha fermato dal pannello.
 
 Sta in .agents/hooks/ della cartella dello studio (lo copia `inizia`) e gira prima di ogni strumento,

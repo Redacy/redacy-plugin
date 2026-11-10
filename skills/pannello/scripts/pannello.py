@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.4.1 · skills/pannello/scripts/pannello.py
+# redacy 0.4.2 · skills/pannello/scripts/pannello.py
 """Il pannello: una pagina sola, in locale, che mostra lo studio e ferma una corsa.
 
 Un server su 127.0.0.1, solo libreria standard, uno per cartella dello studio.
@@ -107,6 +107,9 @@ def trova_cartella(esplicita=None):
         c = os.path.realpath(esplicita)
         if not os.path.isdir(c):
             raise SystemExit("Non trovo la cartella %s." % esplicita)
+        if not e_studio(c):
+            raise SystemExit("La cartella %s non è la cartella di uno studio (manca AGENTS.md): non accendo il pannello. "
+                             "Prepara la cartella con inizia, oppure indica quella giusta con --cartella." % esplicita)
         return c
     amb = os.environ.get("REDACY_CARTELLA")
     if amb:
@@ -925,7 +928,8 @@ def apri_socket_libera(cartella, preferita=None):
         try:
             return porta, crea_server(porta)
         except OSError as e:
-            if e.errno in (errno.EPERM, errno.EACCES):
+            # Su Windows un EACCES al bind è una porta riservata dal sistema (Hyper-V, WSL): si prova la prossima.
+            if e.errno in (errno.EPERM, errno.EACCES) and not su_windows():
                 raise SystemExit(
                     "Il sistema non mi lascia aprire una porta su 127.0.0.1 (%s). Succede in Codex dentro la sandbox: "
                     "lancia lo stesso comando fuori dalla sandbox (chiedi il permesso) o da un terminale tuo." % e.strerror)

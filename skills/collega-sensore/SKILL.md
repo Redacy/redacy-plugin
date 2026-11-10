@@ -82,7 +82,7 @@ Se non sei certo di un passo o di un comando, dillo in una frase invece di darlo
 
 Dopo la lettura di prova riuscita, e solo dopo:
 
-1. Aggiungi una riga in fondo a `memoria/fonti-dati.md`, nel formato: `- <fonte> · <categoria> · <nome del connettore> · <Claude Code o Codex> · sola lettura sì o no · AAAA-MM-GG`. "Sola lettura sì" vuol dire che hai chiesto solo permessi di lettura al prodotto. Se il prodotto non li offre, scrivi "no" e dillo all'utente: il collegamento può anche scrivere, e a trattenerti resta la regola "Non faccio mai".
+1. In `memoria/fonti-dati.md`, sotto «## Fonti», scrivi la riga nella forma di quel file: `- **<fonte>** · tipo: <posta | calendario | gestionale | foglio | altro> · dove: ~~<categoria>, collegata con <nome del collegamento> in <Claude Code o Codex>, sola lettura <sì o no>, AAAA-MM-GG · contiene: <cosa legge: la casella, il calendario, la cartella scelta> · strada: resta dov'è`. Se la fonte c'è già con la strada «da collegare», correggi quella riga invece di scriverne una seconda. «Sola lettura sì» vuol dire che hai chiesto solo permessi di lettura al prodotto. Se il prodotto non li offre, scrivi «no» e dillo all'utente: il collegamento può anche scrivere, e a trattenerti resta la regola «Non faccio mai».
 2. Aggiungi una riga in fondo a `memoria/LOG.md`, mai riscrivendo le altre: `- AAAA-MM-GG HH:MM · fonte · collegata <fonte> (<categoria>) in <harness>, sola lettura <sì o no>`.
 3. Se dell'utente hai saputo qualcosa che serve ricordare (il calendario di lavoro è il secondo della lista, la cartella dei clienti si chiama `Clienti 2026`), scrivila in una pagina di memoria con il collegamento `[[fonti-dati]]`: per questo usa `impara`.
 

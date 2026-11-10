@@ -4,6 +4,8 @@ Plugin gratuito per Claude Code e per Codex che trasforma la cartella del tuo st
 
 *In English: a free plugin for Claude Code and Codex that turns a small professional firm's folder into a local orchestrator. It maps and tidies your files, creates AI agents and repeatable processes, keeps the work period, and shows everything in a dashboard on your own computer. The plugin and its skills are written in Italian.*
 
+![Il pannello di Redacy: la scrivania dello studio con le finestre Oggi, Processi, Periodo, Memoria e Aree](assets/schermate/scrivania.png)
+
 ## Per chi è
 
 Commercialisti, studi tecnici e piccole aziende con lavori che si ripetono e dati sparsi in cartelle, mail e fogli. Non serve saper programmare.
@@ -24,7 +26,7 @@ codex plugin marketplace add Redacy/redacy-plugin
 codex plugin add redacy@redacy
 ```
 
-Il repo è privato: per ora installa solo chi ha accesso. Per provare da una cartella locale:
+Per provare da una cartella locale, senza installare:
 
 ```
 claude --plugin-dir /percorso/del/plugin
@@ -130,8 +132,8 @@ claude plugin validate .
 
 La pagina del pannello si fa in pezzi in `skills/pannello/sorgenti/` (il guscio con la scrivania, le finestre e il dock, i contenuti dei cinque pannelli, la fonte dei dati) e si monta in `skills/pannello/scripts/pagina.html` con `python3 skills/pannello/sorgenti/costruisci.py`. Cosa deve reggere sta in `skills/pannello/sorgenti/CONTRATTO.md`.
 
-Le prove con un modello chiamano Claude Code o Codex con il tuo account: `prove/catena-claude.sh` e `prove/catena-codex.sh` seguono la catena inizia, crea-workspace, crea-grafo, corsa, pannello, stop; le prove di un solo pezzo stanno in `prove/inizia/prova-onboarding-*.sh` e `prove/grafi/prova-crea-*.sh`.
+Le prove con un modello chiamano Claude Code o Codex con il tuo account: `prove/catena-claude.sh` e `prove/catena-codex.sh` seguono la catena inizia, crea-workspace, crea-grafo, corsa, pannello, stop; le prove di un solo pezzo stanno in `prove/inizia/prova-onboarding-*.sh`, `prove/grafi/prova-crea-*.sh` e `prove/ordina/prova-riordina-claude.sh`.
 
 ## Licenza
 
-MIT, vedi `LICENSE`. Versione 0.4.1.
+MIT, vedi `LICENSE`. Versione 0.4.2.

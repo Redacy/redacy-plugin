@@ -58,7 +58,7 @@ Poi chiedi il sì esplicito: «Sposto questi file come nel piano?». Un «vediam
 
 Dopo il sì, `riordina.py applica <piano>`. Sposta e rinomina senza cancellare e senza sovrascrivere, e scrive ogni mossa nel registro (`registro.jsonl` accanto al piano).
 
-- **Esce 0**: fatto. Le righe `saltato:` sono file cambiati dopo il piano: li ha lasciati dove sono. Dillo e chiedi se rifare il piano per quelli.
+- **Esce 0**: fatto. Le righe `saltato:` sono file cambiati dopo il piano: li ha lasciati dove sono. Dillo e chiedi se rifare il piano per quelli. Di' anche come si torna indietro, con le sue parole: basta che ti scriva «rimetti tutto com'era», anche fra giorni. Non dargli il comando né il percorso dello script.
 - **Esce 3**: si è fermato a un errore, di solito un file aperto in Word o Excel. Di' in una riga cosa è già spostato e cosa no. Quando l'utente ha chiuso il file, rilancia `applica` sullo stesso piano: riprende da dove si era fermato.
 - **Esce 1**: il piano non va più (un file sparito, un nome occupato). Non ha spostato niente: correggi e ripassa dal passo 4.
 

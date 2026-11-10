@@ -2,7 +2,7 @@
   "name": "redacy",
   "displayName": "Redacy",
   "description": "Un orchestratore in locale per il tuo studio: ordina i dati e i file, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello. A local orchestrator for a small professional firm: maps and tidies your files, creates AI agents and repeatable processes, keeps the work period and shows it all in a local dashboard. In Italian.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": {
     "name": "Redacy",
     "url": "https://redacy.com"

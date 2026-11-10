@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# catena-codex.sh · redacy 0.4.1
+# catena-codex.sh · redacy 0.4.2
 # La catena intera su Codex, da terminale, in una cartella vuota:
 #   inizia -> crea-workspace -> crea-grafo -> corsa -> pannello -> stop
 # Come catena-claude.sh, con le differenze che Codex impone (misurate, vedi README):

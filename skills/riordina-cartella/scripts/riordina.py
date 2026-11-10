@@ -1,4 +1,4 @@
-# redacy 0.4.1 · skills/riordina-cartella/scripts/riordina.py
+# redacy 0.4.2 · skills/riordina-cartella/scripts/riordina.py
 """Riordina una cartella seguendo un piano scritto, e sa tornare indietro.
 
 Uso:

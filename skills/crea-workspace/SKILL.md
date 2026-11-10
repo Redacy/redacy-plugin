@@ -31,13 +31,13 @@ Prima di creare, guarda `workspace/` (e l'indice di memoria dello studio): se un
 
 ## Passo 2. Creare la struttura
 
-Lo script `scripts/crea-workspace.py` sta nella cartella di questa skill (`${CLAUDE_SKILL_DIR}` su Claude Code): lancialo con quel percorso assoluto, dalla cartella dello studio.
+Lo script `scripts/crea-workspace.py` sta nella cartella di questa skill (`${CLAUDE_SKILL_DIR}` su Claude Code): lancialo con quel percorso assoluto, fra virgolette (può avere spazi), dalla cartella dello studio.
 
 ```
-python3 ${CLAUDE_SKILL_DIR}/scripts/crea-workspace.py <nome> --descrizione "<una frase>" --dati "<percorso>"
+python3 "${CLAUDE_SKILL_DIR}/scripts/crea-workspace.py" <nome> --descrizione "<una frase>" --dati "<percorso>"
 ```
 
-- `--dati` si può ripetere, uno per ogni percorso. Se non ne hai, omettilo.
+- `--dati` si può ripetere, uno per ogni percorso. Se non ne hai, omettilo. Un percorso della cartella dello studio (`fonti/listini/`) lo script lo scrive già visto dal workspace (`../../fonti/listini/`): tu dagli quello dello studio. Un percorso intero resta com'è.
 - `--cartella <dir>` serve solo se non lanci lo script da dentro lo studio.
 - Lo script trova la cartella dello studio risalendo fino a una che ha `AGENTS.md` e `grafi/`.
 
@@ -73,7 +73,7 @@ Se lo script ha stampato un avviso perché mancava l'indice o il registro, aggiu
 Prima di dire che hai finito, lancia:
 
 ```
-python3 ${CLAUDE_SKILL_DIR}/scripts/controlla-workspace.py workspace/<nome>
+python3 "${CLAUDE_SKILL_DIR}/scripts/controlla-workspace.py" workspace/<nome>
 ```
 
 (Su Codex `${CLAUDE_SKILL_DIR}` non si espande: usa il percorso assoluto della cartella di questa skill, che Codex ti ha dato quando ha caricato la skill.) Controlla l'albero: `AGENTS.md` non vuoto, `CLAUDE.md` uguale a `@AGENTS.md`, le tre cartelle di `.agents/`, indice e scheda, nessun segnaposto `{{...}}` rimasto, nessuna tabella nei file di policy. Se esce con 1, correggi e rilancia. Non dire "fatto" finché non esce con 0.

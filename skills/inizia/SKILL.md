@@ -19,13 +19,19 @@ Parla come dice `.agents/regole/testi-per-persone.md` (lo trovi nella cartella d
 
 Senza opzioni crea ciò che manca e non sovrascrive mai niente. Con `--controlla` dice cosa manca, senza scrivere. Se esce 3 ha fatto solo in parte: alcune cartelle non si possono scrivere da questa sessione, e l'ultima riga `comando:` dice cosa deve lanciare l'utente per finire (passo 3).
 
+Altre due opzioni, solo quando servono (passo 0):
+
+- `--innesta` collega ciò che l'utente aveva già: aggiunge `@AGENTS.md` al suo `CLAUDE.md` e i controlli automatici ai suoi `.claude/settings.json` e `.codex/hooks.json`. Non toglie e non riordina niente, e prima salva una copia accanto al file (`.prima-di-redacy`). Si può rilanciare: la seconda volta non cambia niente.
+- `--aggiorna` rinfresca le copie degli strumenti del plugin che stanno nella cartella (gli script in `.agents/`, gli schemi, la pagina del pannello) quando sono più vecchie di quelle del plugin. Non tocca `AGENTS.md`, la memoria, il periodo, le regole né le scelte del pannello.
+
 ## Passo 0. Guarda dove sei
 
 La cartella dello studio è quella in cui gira la conversazione, salvo che l'utente ne indichi un'altra. Lancia `crea-cartella.py <cartella> --controlla` e guarda cosa c'è.
 
-- **C'è `memoria/studio.md`: lo studio c'è già.** Non rifare l'intervista. Conta nella cartella le aree di lavoro (`workspace/*/`), i processi a passi fissi (`grafi/*.yaml`), le pagine di `memoria/` e l'ultima riga di `memoria/LOG.md`. Dillo in due righe (frase «Il ritorno» in `references/domande.md`) e chiedi cosa c'è di nuovo. Un lavoro in più: passo 6, per quel lavoro. Dati nuovi: skill `ordina-dati`. Una correzione: skill `impara`. Se `--controlla` dice che manca qualcosa, proponi di ricrearlo.
+- **C'è `memoria/studio.md`: lo studio c'è già.** Non rifare l'intervista. Conta nella cartella le aree di lavoro (`workspace/*/`), i processi a passi fissi (`grafi/*.yaml`), le pagine di `memoria/` e l'ultima riga di `memoria/LOG.md`. Dillo in due righe (frase «Il ritorno» in `references/domande.md`) e chiedi cosa c'è di nuovo. Un lavoro in più: passo 6, per quel lavoro. Dati nuovi: skill `ordina-dati`. Una correzione: skill `impara`. Se `--controlla` dice che manca qualcosa, proponi di ricrearlo. Se dice con un `avviso:` che le copie degli strumenti sono di una versione più vecchia del plugin, lancia `crea-cartella.py <cartella> --aggiorna` (sono strumenti del plugin, non dati dell'utente) e dillo in una riga.
 - **C'è un `AGENTS.md` che non comincia con la riga `redacy`**: la cartella è di un altro agente. Fermati, dillo e chiedi se preparare lo studio in una sottocartella.
 - **Ci sono già file dell'utente**: dillo e chiedi se preparare lo studio qui (i suoi file restano dove sono, niente viene spostato o sovrascritto) o in una cartella nuova.
+- **C'è già un suo `CLAUDE.md`, o un suo `.claude/settings.json` o `.codex/hooks.json`**: lo script non li tocca, ma senza `@AGENTS.md` e senza i controlli di redacy il programma non legge le regole dello studio e lo stop dal pannello non parte. Lo dicono una riga `avviso:` (alla creazione) o un `non va:` (con `--controlla`) che nominano il file. Dillo all'utente con parole semplici («il tuo file di istruzioni per Claude non rimanda alle regole dello studio, e i controlli automatici non sono attivi») e, solo dopo il suo sì, lancia lo stesso script con `--innesta`. Prima di quel sì non toccare quei file.
 - **Altrimenti** vai al passo 1.
 
 ## Passo 1. I lavori da affidare
@@ -49,7 +55,7 @@ Di' in una riga cosa crei e dove, poi aspetta il sì. Dopo il sì lancia `crea-c
 
 **Se esce 3** (succede su Codex: la sandbox tiene `.agents/` e `.codex/` in sola lettura), non provare a scriverle per altre strade e non cambiare `AGENTS.md`. Vai avanti con l'onboarding: memoria, fonti, periodo e aree di lavoro si scrivono. Tieni la riga `comando:` che lo script ha stampato: la dai all'utente alla fine (passo 7).
 
-Se l'uscita ha righe `avviso:`, sono strumenti del plugin che mancano. Non elencarli all'utente: nella spiegazione finale basta una riga senza nomi tecnici («alcuni strumenti arriveranno con il prossimo aggiornamento del plugin»).
+Se l'uscita ha righe `avviso:` che nominano `CLAUDE.md` o un file dei controlli, vedi il passo 0. Le altre righe `avviso:` sono strumenti del plugin che mancano. Non elencarli all'utente: nella spiegazione finale basta una riga senza nomi tecnici («alcuni strumenti arriveranno con il prossimo aggiornamento del plugin»).
 
 ## Passo 4. Mappa le fonti
 

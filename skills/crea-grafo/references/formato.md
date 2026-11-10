@@ -1,4 +1,4 @@
-<!-- redacy 0.4.1 · skills/crea-grafo/references/formato.md -->
+<!-- redacy 0.4.2 · skills/crea-grafo/references/formato.md -->
 # Il formato dei grafi e delle corse
 
 Cos'è: il contratto di `grafi/<nome>.yaml` (il disegno di un lavoro che si ripete) e di `grafi/corse/<id>.json` (una volta che il lavoro è girato), più come l'agente esegue una corsa. Lo leggono `controlla-grafo.py`, `corsa.py`, il pannello e `AGENTS.md`.

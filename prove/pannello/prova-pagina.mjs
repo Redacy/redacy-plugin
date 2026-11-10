@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// prova-pagina.mjs · redacy 0.4.1
+// prova-pagina.mjs · redacy 0.4.2
 // La pagina vera del pannello in un Chromium senza finestra, contro il server vero:
 //  - parte, prende i dati dal server (stato, testo dei file, scelte su misura) e non scrive errori in console
 //    (vale anche per la Content-Security-Policy: una risorsa esterna bloccata è un errore);

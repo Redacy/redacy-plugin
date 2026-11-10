@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _stop.sh · redacy 0.4.1 · funzioni comuni di prova-stop-claude.sh e prova-stop-codex.sh (si leggono con `source`)
+# _stop.sh · redacy 0.4.2 · funzioni comuni di prova-stop-claude.sh e prova-stop-codex.sh (si leggono con `source`)
 #
 # La prova: due conversazioni nella stessa cartella dello studio. La A fa una corsa di cinque passi
 # lenti (giro-lento), la B una corsa indipendente (giro-altro). Mentre il passo 2 di A gira, da fuori

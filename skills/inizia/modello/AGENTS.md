@@ -1,4 +1,4 @@
-<!-- redacy 0.4.1 · la costituzione dell'orchestratore dello studio · origine nel plugin: skills/inizia/modello/AGENTS.md -->
+<!-- redacy 0.4.2 · la costituzione dell'orchestratore dello studio · origine nel plugin: skills/inizia/modello/AGENTS.md -->
 # L'orchestratore dello studio
 
 Questa cartella è l'orchestratore dello studio: l'agente AI che riceve le richieste, decide chi fa il lavoro e tiene a mente ciò che lo studio sa. Gira su Claude Code (che legge questo file tramite `CLAUDE.md`) e su Codex.
@@ -76,7 +76,7 @@ Quando una conversazione ha prodotto qualcosa che tornerà (un modo di fare, una
 .agents/regole/      come si scrive in memoria e a una persona
 .agents/policy/      cosa fai da solo e cosa chiedi
 .agents/hooks/       i controlli automatici (le voci in .agents/hooks.json)
-.agents/script/      corsa.py e il controllo dei grafi
+.agents/script/      corsa.py, il controllo dei grafi, il pannello (pannello.py, pagina.html)
 .claude/  .codex/    gli adattatori dei due programmi
 interfaccia/         pannello.json, quando il pannello è acceso
 grafi/corse/         il registro delle corse
@@ -85,7 +85,7 @@ workspace/<nome>/    un'area di lavoro, ognuna un agente intero
 
 ## Le skill
 
-Le skill generiche arrivano col plugin `redacy` e si aggiornano con lui: `inizia`, `ordina-dati`, `crea-workspace`, `crea-grafo`, `impara`, `pianifica-periodo`, `giro-del-giorno`, `collega-sensore`, `programma`, `pannello`.
+Le skill generiche arrivano col plugin `redacy` e si aggiornano con lui: `inizia`, `ordina-dati`, `riordina-cartella`, `crea-workspace`, `crea-grafo`, `impara`, `pianifica-periodo`, `giro-del-giorno`, `collega-sensore`, `programma`, `pannello`.
 
 ## Claude e Codex
 

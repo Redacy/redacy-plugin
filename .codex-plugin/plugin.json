@@ -1,6 +1,6 @@
 {
   "name": "redacy",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Un orchestratore in locale per il tuo studio: ordina i dati e i file, crea agenti AI e processi, tiene il periodo e mostra tutto in un pannello.",
   "author": {
     "name": "Redacy",
@@ -43,6 +43,9 @@
     "composerIcon": "./assets/icon.png",
     "logo": "./assets/icon.png",
     "logoDark": "./assets/icon.png",
-    "screenshots": []
+    "screenshots": [
+      "./assets/schermate/scrivania.png",
+      "./assets/schermate/oggi.png"
+    ]
   }
 }

@@ -103,7 +103,7 @@ Segui "Uso 1": una pagina secondo `references/pagina-di-memoria.md`, oppure una 
 ### Se la forma è un controllo automatico
 
 - Lo script va in `.agents/hooks/` della cartella (o dell'area di lavoro), sempre Python 3 con la sola libreria standard. Legge l'evento da stdin, se non ha niente da dire esce 0 in silenzio.
-- Registrane la voce negli stessi file in cui sono già registrati i controlli della cartella (`.claude/settings.json` e `.codex/hooks.json`): copia la forma di una voce che c'è già.
+- Registrane la voce in tutti e tre i file in cui sono registrati i controlli della cartella: prima `.agents/hooks.json` (la sede unica), poi `.claude/settings.json` e `.codex/hooks.json`, con le stesse voci. Copia la forma di una voce che c'è già. Se i tre file non dicono le stesse cose, `crea-cartella.py --controlla` lo segnala.
 - Provalo a mano con un file che deve passare e uno che deve fallire.
 
 ### Se la forma è un processo a passi fissi
@@ -124,7 +124,7 @@ Le parole di questa skill sono per te. All'utente dici le sue:
 ## Regole
 
 - Non toccare `periodo/obiettivo.md`. Una correzione sul modo di lavorare non cambia l'obiettivo: lo cambia solo l'utente, con `pianifica-periodo`.
-- Non scrivere in `periodo/idee.json` né in `periodo/todo.json`. Se l'utente butta lì un'idea, diglielo e rimandala a `pianifica-periodo`.
+- Non scrivere in `periodo/todo.json` e non toccare le idee già scritte in `periodo/idee.json`. Se l'utente butta lì un'idea nuova, scrivila in `periodo/idee.json` come dice `AGENTS.md`: una voce con `id` (`i` e il numero più alto più uno), `idea` con le sue parole, `da_dove` e `arrivata` (la data di oggi, `AAAA-MM-GG`), senza `esito`. Poi lancia `python3 .agents/hooks/controlla-periodo.py periodo/idee.json` (deve uscire 0), di' in una riga che l'idea aspetta e torna al lavoro. La pesa `pianifica-periodo`, più avanti: non la inseguire adesso.
 - Scrivi solo ciò che l'utente ha detto. Non inventare.
 - Niente dati di persone fisiche non necessari: chiedi prima. Per un cliente basta il ruolo o la sigla che usa l'utente.
 - Frasi corte, parole del professionista, non le tue.

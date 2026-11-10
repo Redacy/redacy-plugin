@@ -1,5 +1,5 @@
 {
-  "description": "redacy 0.4.1 · la sede unica delle voci degli hook di questa cartella (origine nel plugin: skills/inizia/modello/.agents/hooks.json). Le stesse voci stanno in .claude/settings.json per Claude Code e in .codex/hooks.json per Codex: se ne cambi una, cambiale tutte e tre. Uno script che manca non blocca niente.",
+  "description": "redacy 0.4.2 · la sede unica delle voci degli hook di questa cartella (origine nel plugin: skills/inizia/modello/.agents/hooks.json). Le stesse voci stanno in .claude/settings.json per Claude Code e in .codex/hooks.json per Codex: se ne cambi una, cambiale tutte e tre. Uno script che manca non blocca niente.",
   "hooks": {
     "PreToolUse": [
       {

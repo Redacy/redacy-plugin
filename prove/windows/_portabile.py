@@ -1,4 +1,4 @@
-# redacy 0.4.1 · prove/windows/_portabile.py (lo lancia prova-portabile.sh)
+# redacy 0.4.2 · prove/windows/_portabile.py (lo lancia prova-portabile.sh)
 import contextlib
 import importlib.util
 import json
@@ -315,7 +315,7 @@ def crea_come_windows(destinazione, prima=None):
     with mock.patch.object(cartella_py, "su_windows", lambda: True), \
          mock.patch.object(subprocess, "run", run_finto), \
          mock.patch.object(os, "symlink", symlink_rifiutato):
-        cartella_py.crea(__import__("pathlib").Path(destinazione), __import__("pathlib").Path(RADICE), "0.4.1", esito)
+        cartella_py.crea(__import__("pathlib").Path(destinazione), __import__("pathlib").Path(RADICE), "0.4.2", esito)
     return esito, chiamate
 
 
@@ -373,6 +373,47 @@ with mock.patch.object(subprocess, "run", lambda argv, **kw: risposte[argv[0]]):
 with mock.patch.object(subprocess, "run", side_effect=FileNotFoundError()):
     e = cartella_py.Esito()
     controllo("python_windows senza niente sul PATH dice «python» e mette un avviso", cartella_py.python_windows(e) == "python" and e.avvisi)
+
+# 10. porta riservata dal sistema (Windows): EACCES al bind vuol dire «prova la prossima», non «sandbox»
+import errno
+chiamate_porte = []
+
+def crea_server_finto(porta):
+    chiamate_porte.append(porta)
+    if len(chiamate_porte) == 1:
+        raise OSError(errno.EACCES, "Permission denied")
+    return "server"
+
+with mock.patch.object(pannello, "crea_server", crea_server_finto), mock.patch.object(pannello, "su_windows", lambda: True):
+    try:
+        porta_ok, srv = pannello.apri_socket_libera(BASE, 47100)
+        controllo("Windows: una porta con EACCES (riservata) si salta e si prova la successiva",
+                  srv == "server" and porta_ok == 47101 and chiamate_porte == [47100, 47101], (porta_ok, chiamate_porte))
+    except SystemExit as e:
+        controllo("Windows: una porta con EACCES (riservata) si salta e si prova la successiva", False, e)
+chiamate_porte.clear()
+with mock.patch.object(pannello, "crea_server", crea_server_finto), mock.patch.object(pannello, "su_windows", lambda: False):
+    try:
+        pannello.apri_socket_libera(BASE, 47100)
+        controllo("Linux e macOS: EACCES al bind resta il messaggio della sandbox", False, "non si è fermato")
+    except SystemExit as e:
+        controllo("Linux e macOS: EACCES al bind resta il messaggio della sandbox", "sandbox" in str(e) and chiamate_porte == [47100], (e, chiamate_porte))
+
+# 11. --innesta e --aggiorna con i comandi degli hook di Windows: riconoscono le voci per il nome dello script
+D3 = os.path.join(BASE, "cartella-win-innesta")
+esito3, _ = crea_come_windows(D3)
+radice_p = __import__("pathlib").Path(RADICE)
+with mock.patch.object(cartella_py, "su_windows", lambda: True), mock.patch.object(subprocess, "run", lambda argv, **kw: types.SimpleNamespace(returncode=0, stdout="3\n", stderr="")):
+    controllo("Windows: una cartella appena creata non ha niente da innestare",
+              cartella_py.problemi_innesto(__import__("pathlib").Path(D3), radice_p) == [])
+    open(os.path.join(D3, ".claude/settings.json"), "w", encoding="utf-8").write('{"permissions": {}}')
+    trovati = cartella_py.problemi_innesto(__import__("pathlib").Path(D3), radice_p)
+    controllo("Windows: un settings.json senza hook è segnalato", [r for r, _, _ in trovati] == [".claude/settings.json"], trovati)
+    e4 = cartella_py.Esito()
+    cartella_py.innesta(__import__("pathlib").Path(D3), radice_p, e4)
+    innestato = open(os.path.join(D3, ".claude/settings.json"), encoding="utf-8").read()
+    controllo("Windows: l'innesto scrive i comandi di Windows (niente python3, niente [ ])",
+              "ferma.py" in innestato and "python3" not in innestato and "[ ! -f" not in innestato and cartella_py.problemi_innesto(__import__("pathlib").Path(D3), radice_p) == [], innestato[:200])
 
 print()
 if FALLITE:

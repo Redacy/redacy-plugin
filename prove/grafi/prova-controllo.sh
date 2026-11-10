@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.1 · prove/grafi/prova-controllo.sh
+# redacy 0.4.2 · prove/grafi/prova-controllo.sh
 #
 # Prova tecnica di controlla-grafo.py e yaml_ridotto.py.
 # Accetta i grafi buoni, rifiuta quelli rotti e una serie di casi piccoli,

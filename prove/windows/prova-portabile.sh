@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.1 · prove/windows/prova-portabile.sh
+# redacy 0.4.2 · prove/windows/prova-portabile.sh
 # Prova, da macOS o Linux, i rami che servono su Windows: il lucchetto di file senza fcntl, la partenza
 # del pannello senza fork, il controllo del processo senza os.kill, i comandi degli hook e del launch.json,
 # i percorsi con la barra rovesciata, il collegamento di cartella. Il sistema non è Windows: si forza il

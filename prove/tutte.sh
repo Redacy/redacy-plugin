@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tutte.sh · redacy 0.4.1
+# tutte.sh · redacy 0.4.2
 # Lancia tutte le prove che non chiamano nessun modello, una riga per prova, e in fondo
 #   ESITO: PASSA     oppure     ESITO: FALLISCE <le prove che non passano>
 # Non serve un account Claude o Codex. Serve Python 3, bash e curl. Dura meno di un minuto.
@@ -9,7 +9,8 @@
 #   VERBOSO=1                 mostra anche l'uscita completa di ogni prova
 #
 # Le prove con un modello (catena e onboarding) sono a parte: prove/catena-claude.sh,
-# prove/catena-codex.sh, prove/inizia/prova-onboarding-*.sh, prove/grafi/prova-crea-*.sh.
+# prove/catena-codex.sh, prove/inizia/prova-onboarding-*.sh, prove/grafi/prova-crea-*.sh,
+# prove/ordina/prova-riordina-claude.sh.
 set -u
 RADICE="$(cd "$(dirname "$0")/.." && pwd)"
 if [ -n "${REDACY_PROVE:-}" ]; then BASE="$REDACY_PROVE"; TOGLI=""; else BASE="$(mktemp -d)"; TOGLI="$BASE"; fi

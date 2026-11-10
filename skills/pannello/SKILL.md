@@ -16,22 +16,23 @@ Dici «il pannello», «una pagina nel browser, solo sul tuo computer». Per le 
 ## Passi
 
 1. **Sii nella cartella dello studio** (quella con `AGENTS.md`). Se non lo sei, passa `--cartella <percorso>`.
-2. **Accendi o riusa il pannello.** Lo script sta nella cartella di questa skill, in `scripts/pannello.py`. Su Claude il percorso è `${CLAUDE_SKILL_DIR}/scripts/pannello.py`; su Codex è `scripts/pannello.py` nella cartella della skill. Se esiste, vale anche la copia in `.agents/script/pannello.py` della cartella dello studio.
+2. **Accendi o riusa il pannello.** Prima guarda se le copie degli strumenti nella cartella sono vecchie: `python3 "${CLAUDE_PLUGIN_ROOT}/skills/inizia/scripts/crea-cartella.py" <cartella dello studio> --controlla` (su Codex `../inizia/scripts/crea-cartella.py` a partire dalla cartella di questa skill). Se dice con un `avviso:` che sono di una versione più vecchia del plugin, rilancialo con `--aggiorna` (la pagina e lo script del pannello si rinfrescano; la cartella non cambia in altro) e solo dopo accendi. Se un pannello è già acceso con la pagina vecchia, spegnilo (passo 6) e riaccendilo.
+   Lo script sta nella cartella di questa skill, in `scripts/pannello.py`. Su Claude il percorso è `${CLAUDE_SKILL_DIR}/scripts/pannello.py`; su Codex è `scripts/pannello.py` nella cartella della skill. Se esiste, vale anche la copia in `.agents/script/pannello.py` della cartella dello studio. Scrivi sempre il percorso fra virgolette: può avere spazi (su Windows `C:\Users\Maria Rossi\...`).
    ```
-   python3 <percorso>/pannello.py
+   python3 "<percorso>/pannello.py"
    ```
    Stampa «Il pannello è acceso: http://127.0.0.1:…/» oppure «già acceso» con lo stesso indirizzo.
 3. **Dai l'indirizzo** e dici dove si apre:
    - Nell'app di Claude Code il pannello si apre da solo nel browser interno, dal menu dei server della cartella («pannello redacy», voce di `.claude/launch.json`). Se non c'è, apri l'indirizzo nel browser.
    - In Codex e nel terminale apri l'indirizzo nel browser.
-4. **Spiega in tre frasi** (con le parole di `voce.md`), solo la prima volta:
+4. **Spiega in tre frasi**, solo la prima volta:
    «Ti ho aperto il pannello: una pagina nel browser, solo sul tuo computer. Lì vedi cosa sta girando, cosa aspetta te e cosa sa lo studio. Se un lavoro va fermato c'è il bottone Ferma; per il resto il pannello mostra e basta.»
 5. **La prima volta, le scelte su misura.** Se nella cartella non c'è `interfaccia/su-misura.json`, copialo da `modello/su-misura.json` di questa skill e adattalo all'utente: il nome dello studio, la finestra grande sulla scrivania, l'ordine, lo sfondo, il tema, il colore. Come si sceglie e cosa non si tocca: `references/su-misura.md`.
-6. **Se l'utente chiede di spegnerlo**: `python3 <percorso>/pannello.py --spegni`.
+6. **Se l'utente chiede di spegnerlo**: `python3 "<percorso>/pannello.py" --spegni`.
 
 ## Il pannello su misura
 
-Se l'utente vuole il pannello diverso (prima i processi, il colore dello studio, il tema scuro, un altro sfondo, niente frase in alto), cambi solo `interfaccia/su-misura.json` della sua cartella, come dice `references/su-misura.md`, e gli dici di ricaricare la pagina. Non tocchi mai `pagina.html`: è uguale per tutti e si aggiorna col plugin.
+Se l'utente vuole il pannello diverso (prima i processi, il colore dello studio, il tema scuro, un altro sfondo, niente frase in alto), cambi solo `interfaccia/su-misura.json` della sua cartella, come dice `references/su-misura.md`, e gli dici di ricaricare la pagina. Non tocchi mai `pagina.html`: è uguale per tutti e si rinfresca col plugin (`crea-cartella.py --aggiorna`).
 
 ## Se non parte
 

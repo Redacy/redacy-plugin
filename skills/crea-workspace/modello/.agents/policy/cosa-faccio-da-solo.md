@@ -1,4 +1,4 @@
-<!-- redacy 0.4.1 · skills/crea-workspace/modello/.agents/policy/cosa-faccio-da-solo.md -->
+<!-- redacy 0.4.2 · skills/crea-workspace/modello/.agents/policy/cosa-faccio-da-solo.md -->
 # Cosa faccio da solo, cosa chiedo, cosa non faccio mai
 
 Tre elenchi, una riga per voce. Niente tabelle.

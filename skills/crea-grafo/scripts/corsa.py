@@ -1,4 +1,4 @@
-# redacy 0.4.1 - skills/crea-grafo/scripts/corsa.py
+# redacy 0.4.2 - skills/crea-grafo/scripts/corsa.py
 """Tiene il registro delle corse di un grafo.
 
 Una corsa e' una volta in cui un grafo (grafi/<nome>.yaml) e' stato eseguito.
@@ -217,6 +217,15 @@ def scrivi_atomico_riga(percorso, dato):
             os.link(tmp, percorso)      # non sovrascrive: chi ha chiesto per primo resta
         except FileExistsError:
             pass
+        except OSError:
+            # il disco non ammette i collegamenti fissi (FAT, exFAT, cartelle di rete): si crea il file in esclusiva
+            try:
+                with open(percorso, "x", encoding="utf-8") as f:
+                    f.write(json.dumps(dato, ensure_ascii=False) + "\n")
+                    f.flush()
+                    os.fsync(f.fileno())
+            except FileExistsError:
+                pass
     finally:
         with contextlib.suppress(OSError):
             os.unlink(tmp)
