@@ -104,6 +104,8 @@ Lancia il controllo e **non dire fatto prima che esca con 0**. Lo script `script
 python3 "${CLAUDE_SKILL_DIR}/scripts/controlla-grafo.py" grafi/<nome>.yaml
 ```
 
+Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
+
 Se non riesci a risolvere il percorso, la cartella dello studio ne ha una copia in `.agents/script/controlla-grafo.py`.
 
 Ogni errore dice il file, la riga, il campo, cosa non va e cosa fare. Correggi e rilancia, finché esce con 0. Gli avvisi (un workspace che non c'è ancora, un orario senza fuso) non fermano, ma leggili: di solito hanno ragione.

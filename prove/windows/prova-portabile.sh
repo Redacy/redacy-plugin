@@ -11,6 +11,16 @@ QUI="$(cd "$(dirname "$0")" && pwd)"
 RADICE="$(cd "$QUI/../.." && pwd)"
 BASE="${REDACY_PROVE:-$(mktemp -d)}"
 mkdir -p "$BASE"
-command -v python3 >/dev/null || { echo "FALLISCE manca python3"; exit 1; }
+# PYTHON può valere anche due parole (py -3): si espande senza virgolette, e si controlla la prima.
+PYTHON="${PYTHON:-python3}"
+command -v "${PYTHON%% *}" >/dev/null 2>&1 || { echo "FALLISCE manca ${PYTHON%% *}"; exit 1; }
 export PYTHONDONTWRITEBYTECODE=1
-timeout 120 python3 -I "$QUI/_portabile.py" "$RADICE" "$BASE/windows-$$"
+# Il limite di tempo: timeout (Linux, Git Bash) o gtimeout (macOS con coreutils); se non c'è, nessun limite.
+LIMITE=""
+if command -v timeout >/dev/null 2>&1; then
+  LIMITE="timeout 120"
+elif command -v gtimeout >/dev/null 2>&1; then
+  LIMITE="gtimeout 120"
+fi
+# shellcheck disable=SC2086
+$LIMITE $PYTHON -I "$QUI/_portabile.py" "$RADICE" "$BASE/windows-$$"

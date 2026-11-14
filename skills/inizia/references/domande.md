@@ -6,6 +6,12 @@ Le frasi sono una traccia. Lo studio d'esempio è inventato: uno studio di comme
 
 > Ciao. Prepariamo insieme la cartella del tuo studio: qui un agente AI impara come lavori e ti aiuta a farlo. Ti faccio poche domande, una alla volta.
 > Prima domanda: quali lavori ti piacerebbe affidare a un agente AI? Pensa a quelli che rifai ogni settimana, sempre uguali.
+>
+> Ogni tanto il programma ti chiederà il permesso prima di eseguire un mio comando: è normale, sono i miei strumenti. Leggi e conferma.
+
+## Se manca Python
+
+> Prima di cominciare manca una cosa sul tuo computer: Python, un programma gratuito che mi serve per preparare la cartella. Lo installo io, se mi dici di sì: ci vuole un minuto. Poi chiudi e riapri questo programma e ripartiamo da dove eravamo.
 
 ## Se i lavori sono vaghi
 

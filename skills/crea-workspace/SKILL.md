@@ -37,6 +37,8 @@ Lo script `scripts/crea-workspace.py` sta nella cartella di questa skill (`${CLA
 python3 "${CLAUDE_SKILL_DIR}/scripts/crea-workspace.py" <nome> --descrizione "<una frase>" --dati "<percorso>"
 ```
 
+Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
+
 - `--dati` si può ripetere, uno per ogni percorso. Se non ne hai, omettilo. Un percorso della cartella dello studio (`fonti/listini/`) lo script lo scrive già visto dal workspace (`../../fonti/listini/`): tu dagli quello dello studio. Un percorso intero resta com'è.
 - `--cartella <dir>` serve solo se non lanci lo script da dentro lo studio.
 - Lo script trova la cartella dello studio risalendo fino a una che ha `AGENTS.md` e `grafi/`.

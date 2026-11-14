@@ -13,7 +13,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|shell|exec_command|local_shell|unified_exec",
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|PowerShell|shell|exec_command|local_shell|unified_exec",
         "hooks": [
           {
             "type": "command",

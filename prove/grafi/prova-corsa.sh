@@ -23,6 +23,7 @@ D=$(mktemp -d "$BASE/corsa-XXXX")
 unset REDACY_CARTELLA
 
 ERRORI=()
+N_ERRORI=0   # il conto a parte: in bash 3.2 (macOS) con set -u un array vuoto non si espande
 controllo() {  # controllo "descrizione" comando...
   local desc=$1
   shift
@@ -31,6 +32,7 @@ controllo() {  # controllo "descrizione" comando...
   else
     echo "NO    $desc"
     ERRORI+=("$desc")
+    N_ERRORI=$((N_ERRORI + 1))
   fi
 }
 uguale() {  # uguale "descrizione" atteso effettivo
@@ -39,6 +41,7 @@ uguale() {  # uguale "descrizione" atteso effettivo
   else
     echo "NO    $1 (atteso '$2', trovato '$3')"
     ERRORI+=("$1")
+    N_ERRORI=$((N_ERRORI + 1))
   fi
 }
 C() { (cd "$D" && python3 "$CORSA" "$@"); }       # lancia corsa.py dalla cartella dello studio
@@ -50,6 +53,10 @@ v=eval(sys.argv[2])
 print("null" if v is None else v)' "$1" "$2"
 }
 F() { echo "$D/grafi/corse/$1.json"; }
+impronta_corse() {  # impronta dei nomi in grafi/corse; mai vuota (md5sum su macOS non c'è: due vuoti sarebbero uguali)
+  python3 -c 'import hashlib,os,sys
+print(hashlib.sha256("\n".join(sorted(os.listdir(sys.argv[1]))).encode("utf-8")).hexdigest())' "$D/grafi/corse"
+}
 
 # ---------------------------------------------------------------- lo studio finto
 FUORI=$(mktemp -d "$BASE/fuori-XXXX")   # una cartella che non sta dentro lo studio
@@ -260,20 +267,22 @@ assert m.e_persa(c, u + datetime.timedelta(minutes=21))
 assert not m.e_persa(dict(c, stato="finita"), u + datetime.timedelta(days=1))
 ' "$CORSA"
 controllo "(e) trova_cartella e leggi_corsa importabili" python3 -c '
-import importlib.util, sys
+import importlib.util, os, sys
 s = importlib.util.spec_from_file_location("corsa", sys.argv[1]); m = importlib.util.module_from_spec(s); s.loader.exec_module(m)
-assert m.trova_cartella(sys.argv[2] + "/sotto/cartella/profonda") == sys.argv[2]
+# su macOS /var è un collegamento a /private/var: si confrontano i percorsi veri dei due lati
+assert os.path.realpath(m.trova_cartella(sys.argv[2] + "/sotto/cartella/profonda")) == os.path.realpath(sys.argv[2])
 assert m.leggi_corsa(sys.argv[3])["id"]
 ' "$CORSA" "$D" "$(F "$E")"
 
 # ---------------------------------------------------------------- (f) grafo rotto o inesistente
-PRIMA=$(ls -A "$D/grafi/corse" | sort | md5sum)
+PRIMA=$(impronta_corse)
+[ -n "$PRIMA" ] || PRIMA="impronta non calcolata"   # se manca anche dopo, il confronto cade: due vuoti non sono uguali
 uguale "(f) apri su grafo rotto esce 1" "1" "$(rc C apri rotto)"
 uguale "(f) apri su grafo inesistente esce 2" "2" "$(rc C apri non-esiste)"
 uguale "(f) apri con nome non valido esce 1" "1" "$(rc C apri ../x)"
 uguale "(f) apri senza grafo esce 1" "1" "$(rc C apri)"
 uguale "(f) apri su grafo rotto stampa errori" "si" "$(C apri rotto 2>&1 >/dev/null | grep -q 'rotto.yaml' && echo si || echo no)"
-uguale "(f) nessun file creato dai rifiuti" "$PRIMA" "$(ls -A "$D/grafi/corse" | sort | md5sum)"
+uguale "(f) nessun file creato dai rifiuti" "$PRIMA" "$(impronta_corse)"
 
 # ---------------------------------------------------------------- (h) la cartella dello studio
 uguale "(h) da una sottocartella risale e trova lo studio" "0" "$(cd "$D/sotto/cartella/profonda" && rc python3 "$CORSA" elenco)"
@@ -329,7 +338,7 @@ for quale in passo battito chiudi stato; do
 done
 # elenco consolida e mostra fermata
 X=$(C apri giro-prova); echo "$STOP_A_MANO" > "$D/grafi/corse/$X.stop"
-controllo "(j) elenco mostra fermata una corsa con .stop" bash -c 'C() { (cd "$1" && python3 "$2" "${@:3}"); }; C "$1" "$2" elenco | grep -P "^$3\tfermata"' _ "$D" "$CORSA" "$X"
+controllo "(j) elenco mostra fermata una corsa con .stop" bash -c 'C() { (cd "$1" && python3 "$2" "${@:3}"); }; C "$1" "$2" elenco | grep -E "^$3[[:space:]]+fermata"' _ "$D" "$CORSA" "$X"
 # ferma su una corsa gia' chiusa non lascia un .stop
 Y=$(C apri giro-prova); C chiudi "$Y" fallita
 uguale "(j) ferma su corsa chiusa esce 3" "3" "$(rc C ferma "$Y")"
@@ -372,12 +381,12 @@ uguale "(g) i soli file nascosti sono lucchetti" "0" "$(find "$D/grafi/corse" -t
 uguale "(g) nessun .tmp in tutto lo studio" "0" "$(find "$D" -name '*.tmp' | wc -l | tr -d ' ')"
 
 # ---------------------------------------------------------------- esito
-if [ "${#ERRORI[@]}" -eq 0 ]; then
+if [ "$N_ERRORI" -eq 0 ]; then
   [ "$TIENI" -eq 1 ] || rm -rf "$D" "$FUORI"
   echo "PASSA"
   exit 0
 else
   echo "(cartelle di prova lasciate: $D e $FUORI)"
-  echo "FALLISCE ${ERRORI[0]}$([ "${#ERRORI[@]}" -gt 1 ] && echo " (e altri $(( ${#ERRORI[@]} - 1 )))")"
+  echo "FALLISCE ${ERRORI[0]}$([ "$N_ERRORI" -gt 1 ] && echo " (e altri $((N_ERRORI - 1)))")"
   exit 1
 fi

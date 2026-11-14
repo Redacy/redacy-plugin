@@ -4,7 +4,8 @@
 # con dati finti e una corsa per stato:
 #  - pagina.html è quella che esce dai pezzi in skills/pannello/sorgenti (costruisci.py --controlla);
 #  - la pagina prende i dati dal server e non scrive errori in console, nemmeno di Content-Security-Policy;
-#  - niente bottoni rossi; «Ferma» da Oggi, con la conferma, ferma la corsa in corso.
+#  - niente bottoni rossi; «Ferma» da Oggi, con la conferma, ferma la corsa in corso;
+#  - un todo.json rotto compare in Oggi, «Da guardare», col nome del file e la frase «controlla <file>».
 # Senza Node 22+ o senza un Chromium la parte nel browser dice SALTA (e la prova PASSA lo stesso,
 # dicendolo). Finisce con PASSA o FALLISCE <perché>.
 #

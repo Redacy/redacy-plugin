@@ -100,6 +100,8 @@ function daGuardare() {
   corse().concat(arr(S.corse_in_corso)).forEach((c) => { if (!v[c.id] && ['fallita', 'persa'].indexOf(eff(c)) >= 0) { v[c.id] = 1; l.push(c); } });
   return l.sort((a, b) => String(b.inizio).localeCompare(String(a.inizio)));
 }
+/* i file che il server non ha saputo leggere (S.problemi, stringhe «file: motivo»): stanno in «Da guardare» insieme alle corse */
+const problemi = () => arr(S.problemi).filter((p) => typeof p === 'string' && p.trim()).map((p) => ({ problema: p, file: p.split(':')[0].trim() || p }));
 const corsePer = (gid) => corse().filter((c) => c.grafo === gid).sort((a, b) => String(b.inizio).localeCompare(String(a.inizio)));
 function ultimaCorsa(g) {
   const l = corsePer(g.grafo);

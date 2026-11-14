@@ -70,6 +70,8 @@ Comuni a tutti: `id` (obbligatorio, kebab-case, unico nel grafo), `tipo` (obblig
 | `forma` | `umano`, `uscita` | sì | per `umano`: `decisione`, `lettura`, `invio` o `fatto`; per `uscita`: testo libero (`bozza`, `promemoria`, `file`) | `forma <x>` |
 | `dove` | `umano`, `uscita` | sì | dove l'utente trova o fa la cosa: «il pannello», «la tua casella di posta, in bozze» | `dove ...` |
 
+Il `comando` di un passo `cli` si scrive col Python del computer dove il processo gira: `python3` su macOS, `python` o `py -3` su Windows.
+
 Il passo `umano` è il passo che tocca a te: la corsa lo segna fatto quando l'agente ha consegnato e dice cosa aspetta. L'attesa non tiene aperta la corsa.
 
 Regole di controllo sui passi: gli `id` sono unici; ogni voce di `dopo` è un `id` di un passo scritto prima e non il passo stesso; non ci sono cicli; il primo passo non ha `dopo`; c'è almeno un passo `agente`. Sono avvisi (non fermano): un `workspace` che non c'è ancora in `workspace/` quando il controllo gira dentro una cartella dello studio; un orario senza fuso.
@@ -178,7 +180,7 @@ Uscite: 0 ok; 1 uso sbagliato o grafo non valido; 2 corsa o grafo che non c'è; 
 
 ## 6. Come si esegue una corsa (le cinque righe per `AGENTS.md`)
 
-1. Prima di lavorare a un grafo: `python3 .agents/script/corsa.py apri <grafo> --avviato-da conversazione --sessione <id della sessione>`; stampa l'id, tienilo.
+1. Prima di lavorare a un grafo: `python3 .agents/script/corsa.py apri <grafo> --avviato-da conversazione`; stampa l'id, tienilo. La conversazione la riconosce da solo. Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
 2. **Prima di ogni passo**, nell'ordine del grafo (per i passi con lo stesso `dopo`, uno alla volta): `corsa.py passo <id> <passo> inizio` (controlla anche se qualcuno ha chiesto lo stop), fai il lavoro del passo, poi `passo <id> <passo> fatto --esito "<cosa hai prodotto>"` (o `fallito --nota "<perché>"`). Un passo `umano` si segna `fatto` quando hai consegnato, scrivendo cosa aspetta l'utente.
 3. Se un passo dura a lungo, lancia `corsa.py battito <id>` ogni pochi minuti: senza segni per 20 minuti il pannello mostra la corsa «persa».
 4. Alla fine: `corsa.py chiudi <id> finita` (o `fallita` se un passo è fallito e non si recupera), e dici all'utente cosa è successo, passo per passo.

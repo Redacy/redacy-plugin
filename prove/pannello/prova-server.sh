@@ -8,7 +8,11 @@
 #  - una richiesta con Host sbagliato, con Origin estraneo, senza gettone, con gettone sbagliato,
 #    o senza Content-Type JSON è rifiutata;
 #  - il POST di stop giusto ferma una corsa in corso, e una corsa già fermata o finita risponde 409;
-#  - --spegni lo spegne e toglie pannello.json.
+#  - --spegni lo spegne e toglie pannello.json;
+#  - --apri (prove/pannello/_apri.py): la seconda riga, il browser aperto o no secondo il sistema, un todo.json
+#    con BOM, i file di sistema fuori dalle fonti, l'output di corsa.py letto come UTF-8.
+#  - dati strani e file rotti (prove/pannello/_robusto.py): nessuna vista risponde 500, todo.json rotto in `problemi`,
+#    --porta fuori intervallo, interfaccia/ file o non scrivibile, pannello.json sparito a pannello acceso.
 # Finisce con PASSA o FALLISCE <perché>.
 #
 # Uso: bash prove/pannello/prova-server.sh
@@ -244,5 +248,13 @@ voci = [v for v in json.load(open(d + "/.claude/launch.json"))["configurations"]
 assert len(voci) == 1 and voci[0]["port"] == porta and str(porta) in voci[0]["runtimeArgs"], voci
 EOF
 python3 "$PANNELLO" --cartella "$D" --spegni > /dev/null 2>&1
+
+# 9. --apri e le letture di Windows (BOM, file di sistema, UTF-8 dell'output di corsa.py)
+APRI="$(PYTHONDONTWRITEBYTECODE=1 timeout 180 python3 -I "$RADICE/prove/pannello/_apri.py" "$RADICE" "$BASE/server-$ORA/apri" 2>&1)" \
+  || { echo "$APRI" | grep -v '^ok'; fallisce "_apri.py: $(echo "$APRI" | grep '^FALLISCE' | tail -1)"; }
+
+# 10. dati strani, file rotti, porte, cartelle che non vanno, pannello.json sparito
+ROBUSTO="$(PYTHONDONTWRITEBYTECODE=1 timeout 240 python3 -I "$RADICE/prove/pannello/_robusto.py" "$RADICE" "$BASE/server-$ORA/robusto" 2>&1)" \
+  || { echo "$ROBUSTO" | grep -v '^ok'; fallisce "_robusto.py: $(echo "$ROBUSTO" | grep '^FALLISCE' | tail -1)"; }
 
 echo "PASSA"

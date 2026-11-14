@@ -9,6 +9,8 @@ claude plugin validate --strict .
 
 `prove/tutte.sh` lancia le prove senza modello: una riga per prova, in fondo `ESITO: PASSA` o `ESITO: FALLISCE`. Dura meno di un minuto. Servono Python 3, bash e curl. La prova della pagina vera nel browser (`prove/pannello/prova-pagina.sh`) usa anche Node 22 e un Chromium; se mancano, quella parte salta e lo dice.
 
+`prove/coerenza/prova-testi.sh` legge solo i testi: controlla che ogni skill con un comando `python3` dica cosa fare su Windows, che `inizia` parli di Python per primo, che il supporto porti a redacy.com/contatti, che non si prometta nessun programma fuori elenco e che la rete la apra solo il pannello.
+
 La pagina del pannello si fa in pezzi in `skills/pannello/sorgenti/` (il guscio con la scrivania, le finestre e il dock, i contenuti dei cinque pannelli, la fonte dei dati) e si monta in `skills/pannello/scripts/pagina.html` con `python3 skills/pannello/sorgenti/costruisci.py`. Cosa deve reggere sta in `skills/pannello/sorgenti/CONTRATTO.md`.
 
 Le prove con un modello chiamano Claude Code o Codex con il tuo account: `prove/catena-claude.sh` e `prove/catena-codex.sh` seguono la catena inizia, crea-workspace, crea-grafo, corsa, pannello, stop; le prove di un solo pezzo stanno in `prove/inizia/prova-onboarding-*.sh`, `prove/grafi/prova-crea-*.sh` e `prove/ordina/prova-riordina-claude.sh`.

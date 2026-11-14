@@ -19,6 +19,7 @@ Frase «Il pannello»:
 
 > Ti ho aperto il pannello: una pagina nel browser, solo sul tuo computer. Lì vedi cosa sta girando, cosa aspetta te e cosa sa lo studio.
 > Se un lavoro va fermato c'è il bottone Ferma. Per il resto il pannello mostra e basta: le richieste le fai qui, a me.
+> Il pannello si spegne da solo dopo otto ore senza uso: se domani la pagina non risponde, scrivimi "apri il pannello".
 
 Su Claude Code, nell'app desktop, il pannello si apre anche nel pannello del browser dell'app (`.claude/launch.json`). Da terminale e su Codex, nel browser.
 
@@ -39,17 +40,17 @@ Frase «La chiusura»:
 
 Su Codex la cartella si finisce con due gesti dell'utente, una volta sola. Diglieli in fondo, prima della chiusura, con il comando pronto da copiare.
 
-1. **Una riga da lanciare nel terminale**, che finisce la cartella e accende il pannello. Su macOS e Linux si compone così, tutta su una riga: la riga `comando:` stampata da `crea-cartella.py` (solo se è uscito con 3), poi `&& cd "<cartella dello studio>" && python3 .agents/script/pannello.py`. Se la cartella era già completa, basta `cd "<cartella dello studio>" && python3 .agents/script/pannello.py`. Su Windows (PowerShell non ha `&&`) sono righe separate, da lanciare una dopo l'altra: la riga `comando:` (che dice già `python` o `py -3`, quello che c'è su quel computer), poi `cd "<cartella dello studio>"`, poi `python .agents/script/pannello.py` (o `py -3 .agents/script/pannello.py`, come dice la riga `comando:`). Il pannello stampa il suo indirizzo: l'utente lo apre nel browser.
-2. **I controlli automatici**: la prima volta che apre Codex in questa cartella, Codex chiede se si fida della cartella (sì); poi scrive `/hooks` e approva i due controlli. Va rifatto solo se un controllo cambia.
+1. **Una riga da lanciare nel terminale**, che finisce la cartella e accende il pannello. Su macOS e Linux si compone così, tutta su una riga: la riga `comando:` stampata da `crea-cartella.py` (solo se è uscito con 3), poi `&& cd "<cartella dello studio>" && python3 .agents/script/pannello.py --apri`. Se la cartella era già completa, basta `cd "<cartella dello studio>" && python3 .agents/script/pannello.py --apri`. Su Windows (PowerShell non ha `&&`) sono righe separate, da lanciare una dopo l'altra: la riga `comando:` (che dice già `python` o `py -3`, quello che c'è su quel computer), poi `cd "<cartella dello studio>"`, poi `python .agents/script/pannello.py --apri` (o `py -3 .agents/script/pannello.py --apri`, come dice la riga `comando:`). `--apri` apre la pagina nel browser; il pannello stampa comunque il suo indirizzo, che l'utente apre a mano se la pagina non si è aperta.
+2. **I controlli automatici**: la prima volta che apre Codex in questa cartella, Codex chiede se si fida della cartella (sì); poi scrive `/hooks` e approva i due controlli. Nell'app Codex si approvano dal bottone `Review hooks`, oppure da `Settings`, `Hooks` (fonte: learn.chatgpt.com/docs/hooks). Va rifatto solo se un controllo cambia.
 
 Frase «Su Codex»:
 
 > Due cose le fai tu, una volta sola.
-> Prima: apri il terminale e lancia questa riga. Finisce la cartella dello studio e accende il pannello, poi ti scrive l'indirizzo da aprire nel browser:
-> `python3 …/crea-cartella.py … && cd … && python3 .agents/script/pannello.py`
+> Prima: apri il terminale e lancia questa riga. Finisce la cartella dello studio e ti apre il pannello nel browser:
+> `python3 …/crea-cartella.py … && cd … && python3 .agents/script/pannello.py --apri`
 >
-> (Su Windows, in PowerShell, lancia queste tre righe una dopo l'altra: `python …\crea-cartella.py …`, poi `cd …`, poi `python .agents/script/pannello.py`. Se `python` non risponde, al suo posto `py -3`.)
-> Poi: apri Codex in questa cartella, digli che ti fidi della cartella e scrivi `/hooks`. Approva i due controlli automatici: servono a fermare un lavoro dal pannello e a controllare le cose da fare.
+> (Su Windows, in PowerShell, lancia queste tre righe una dopo l'altra: `python …\crea-cartella.py …`, poi `cd …`, poi `python .agents/script/pannello.py --apri`. Se `python` non risponde, al suo posto `py -3`.)
+> Poi: apri Codex in questa cartella, digli che ti fidi della cartella e scrivi `/hooks` (nell'app Codex: il bottone `Review hooks`, oppure `Settings`, `Hooks`). Approva i due controlli automatici: servono a fermare un lavoro dal pannello e a controllare le cose da fare.
 
 ## Cosa non dire
 

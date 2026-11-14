@@ -21,7 +21,8 @@ TEMPO_MAX=600
 export PYTHONDONTWRITEBYTECODE=1
 
 # Il prompt: tutte le risposte sono qui, l'agente non deve chiedere niente.
-PROMPT_PROVA="$(cat <<'EOF'
+# (read e non $(cat <<EOF): bash 3.2 di macOS legge male gli apostrofi di un heredoc dentro $(...))
+IFS= read -r -d '' PROMPT_PROVA <<'EOF' || true
 Lavori nella cartella dello studio di un'officina meccanica finta (dati inventati). Non fare domande a nessuno: ti do io tutte le risposte. Fai due lavori, in quest'ordine.
 
 1) LAVORO NUOVO. L'utente vuole un agente che prepari i preventivi di riparazione dell'officina. Usa la skill crea-workspace. Le risposte sono queste. Cosa fa: prepara il preventivo di una riparazione a partire dalla richiesta del cliente e dai listini. Dati: i listini stanno in fonti/listini/ e restano lì. Regole del mestiere: un preventivo è sempre una bozza e non si invia mai al cliente; ricambi e manodopera vanno su righe separate; l'IVA è al 22%; sopra 2.000 euro il preventivo lo approva l'utente. Nome: preventivi-officina. Alla fine lancia controlla-workspace.py e correggi finché esce 0.
@@ -30,7 +31,7 @@ Lavori nella cartella dello studio di un'officina meccanica finta (dati inventat
 
 Non inviare niente a nessuno. Per gli script usa solo python3. Quando hai finito scrivi in due righe cosa hai creato.
 EOF
-)"
+A_CAPO=$'\n'; PROMPT_PROVA="${PROMPT_PROVA%"$A_CAPO"}"   # come faceva $(...): senza l'a-capo finale
 
 aiuto_prova() {
   # $1 = claude|codex, $2 = nome dello script

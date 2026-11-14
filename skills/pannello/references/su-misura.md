@@ -34,6 +34,8 @@ Il server legge il file a ogni apertura della pagina e tiene solo le chiavi qui 
 python3 "<percorso>/pannello.py" --vista su-misura
 ```
 
+Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
+
 Stampa le scelte che la pagina userà davvero. Se una chiave che hai scritto non c'è, il suo valore non era valido. Poi di' all'utente di ricaricare la pagina del pannello: le scelte si leggono quando la pagina si apre.
 
 ## Cosa non fai

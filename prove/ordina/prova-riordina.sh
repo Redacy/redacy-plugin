@@ -13,20 +13,22 @@ BASE="${REDACY_PROVE:-${TMPDIR:-/tmp}/redacy-plugin-prove}/ordina-riordina-$$"
 rm -rf "$BASE"; mkdir -p "$BASE"
 S="$BASE/studio"
 ERRORI=()
+N_ERRORI=0   # il conto a parte: in bash 3.2 (macOS) con set -u un array vuoto non si espande
 controllo() { # controllo "descrizione" comando...
   local desc="$1"; shift
-  if "$@" >/dev/null 2>&1; then echo "ok    $desc"; else echo "NO    $desc"; ERRORI+=("$desc"); fi
+  if "$@" >/dev/null 2>&1; then echo "ok    $desc"; else echo "NO    $desc"; ERRORI+=("$desc"); N_ERRORI=$((N_ERRORI + 1)); fi
 }
-uguale() { if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "NO    $1 (atteso '$2', trovato '$3')"; ERRORI+=("$1"); fi; }
+uguale() { if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "NO    $1 (atteso '$2', trovato '$3')"; ERRORI+=("$1"); N_ERRORI=$((N_ERRORI + 1)); fi; }
 impronte() { # ogni voce (cartelle comprese) con l'impronta del contenuto
-  python3 -c 'import hashlib,os,sys
+  python3 -c 'import hashlib,os,sys,unicodedata
 r=sys.argv[1]
+righe=[]
 for b,ds,fs in os.walk(r):
-    ds.sort()
-    for n in sorted(ds+fs):
+    for n in ds+fs:
         p=os.path.join(b,n)
         h=hashlib.sha256(open(p,"rb").read()).hexdigest() if os.path.isfile(p) else "cartella"
-        print(os.path.relpath(p,r), h)' "$1"
+        righe.append(unicodedata.normalize("NFC",os.path.relpath(p,r))+" "+h)
+print("\n".join(sorted(righe)))' "$1"
 }
 rr() { # lancia riordina.py, stampa il codice d'uscita; l'uscita resta in $BASE/ultima.txt
   python3 "$R" "$@" > "$BASE/ultima.txt" 2>&1; local c=$?
@@ -57,7 +59,8 @@ PY
 }
 piano() { # piano <file> <cartella> <righe come JSON> [campi in più come JSON]
   mkdir -p "$(dirname "$1")"
-  python3 -c 'import json,sys; p={"versione":1,"cartella":sys.argv[2],"regola":"Clienti/<cliente>/<file>","righe":json.loads(sys.argv[3])}; p.update(json.loads(sys.argv[4])); json.dump(p,open(sys.argv[1],"w",encoding="utf-8"),ensure_ascii=False,indent=1)' "$1" "$2" "$3" "${4:-{\}}"
+  local extra="${4:-}"; [ -n "$extra" ] || extra='{}'   # niente "${4:-{}}": bash 3.2 lascia una graffa di troppo
+  python3 -c 'import json,sys; p={"versione":1,"cartella":sys.argv[2],"regola":"Clienti/<cliente>/<file>","righe":json.loads(sys.argv[3])}; p.update(json.loads(sys.argv[4])); json.dump(p,open(sys.argv[1],"w",encoding="utf-8"),ensure_ascii=False,indent=1)' "$1" "$2" "$3" "$extra"
 }
 BUONE='[
  {"da":"disordine/DVR Rossi 2024.pdf","a":"Clienti/Rossi/2024/DVR Rossi 2024.pdf","perche":"DVR del cliente Rossi"},
@@ -105,7 +108,7 @@ PRIMA="$(impronte "$D")"
 k=0
 rifiuta() { # rifiuta "descrizione" <righe JSON> <frase attesa> [campi in più]
   k=$((k + 1)); local p="$S/periodo/riordini/rotto-$k/piano.json"
-  piano "$p" "$D" "$2" "${4:-{\}}"
+  piano "$p" "$D" "$2" "${4:-}"
   uguale "(2) $1: controlla esce 1" 1 "$(rr controlla "$p")"
   controllo "(2) $1: lo dice («$3»)" dice "$3"
   uguale "(2) $1: anche applica esce 1" 1 "$(rr applica "$p")"
@@ -220,11 +223,11 @@ controllo "(6) gli altri sono tornati" test -f "$D/disordine/DVR Rossi 2024.pdf"
 controllo "nessun traceback in nessuna uscita" bash -c '! grep -l Traceback "$1"/uscite-tutte.txt' _ "$BASE"
 controllo "nessun file temporaneo lasciato" bash -c '[ -z "$(find "$1" -name "*.tmp-*")" ]' _ "$BASE"
 
-if [ "${#ERRORI[@]}" -eq 0 ]; then
+if [ "$N_ERRORI" -eq 0 ]; then
   rm -rf "$BASE"
   echo "PASSA"
   exit 0
 fi
 echo "(cartella di prova lasciata: $BASE)"
-echo "FALLISCE ${ERRORI[0]}$([ "${#ERRORI[@]}" -gt 1 ] && echo " (e altri $(( ${#ERRORI[@]} - 1 )))")"
+echo "FALLISCE ${ERRORI[0]}$([ "$N_ERRORI" -gt 1 ] && echo " (e altri $((N_ERRORI - 1)))")"
 exit 1

@@ -13,19 +13,21 @@ rm -rf "$BASE"; mkdir -p "$BASE"
 D="$BASE/Pratiche"
 FUORI="$BASE/fuori"
 ERRORI=()
+N_ERRORI=0   # il conto a parte: in bash 3.2 (macOS) con set -u un array vuoto non si espande
 controllo() { # controllo "descrizione" comando...
   local desc="$1"; shift
-  if "$@" >/dev/null 2>&1; then echo "ok    $desc"; else echo "NO    $desc"; ERRORI+=("$desc"); fi
+  if "$@" >/dev/null 2>&1; then echo "ok    $desc"; else echo "NO    $desc"; ERRORI+=("$desc"); N_ERRORI=$((N_ERRORI + 1)); fi
 }
 impronte() { # ogni voce con tipo, dimensione, data e impronta del contenuto
-  python3 -c 'import hashlib,os,sys
+  python3 -c 'import hashlib,os,sys,unicodedata
 r=sys.argv[1]
+righe=[]
 for b,ds,fs in os.walk(r):
-    ds.sort()
-    for n in sorted(ds+fs):
+    for n in ds+fs:
         p=os.path.join(b,n); s=os.lstat(p)
         h=hashlib.sha256(open(p,"rb").read()).hexdigest() if os.path.isfile(p) and not os.path.islink(p) else "-"
-        print(os.path.relpath(p,r), s.st_mode, s.st_size, int(s.st_mtime), h)' "$1"
+        righe.append("%s %s %s %s %s" % (unicodedata.normalize("NFC",os.path.relpath(p,r)), s.st_mode, s.st_size, int(s.st_mtime), h))
+print("\n".join(sorted(righe)))' "$1"
 }
 
 [ -f "$INV" ] || { echo "FALLISCE manca $INV"; exit 1; }
@@ -125,11 +127,11 @@ python3 "$INV" "$D" --massimo zero > "$BASE/uso.txt" 2>&1; RC=$?
 controllo "un'opzione sbagliata: esce 1" test "$RC" = 1
 controllo "nessun traceback in nessuna uscita" bash -c '! grep -l Traceback "$1"/*.txt "$1"/*.json'  _ "$BASE"
 
-if [ "${#ERRORI[@]}" -eq 0 ]; then
+if [ "$N_ERRORI" -eq 0 ]; then
   rm -rf "$BASE"
   echo "PASSA"
   exit 0
 fi
 echo "(cartella di prova lasciata: $BASE)"
-echo "FALLISCE ${ERRORI[0]}$([ "${#ERRORI[@]}" -gt 1 ] && echo " (e altri $(( ${#ERRORI[@]} - 1 )))")"
+echo "FALLISCE ${ERRORI[0]}$([ "$N_ERRORI" -gt 1 ] && echo " (e altri $((N_ERRORI - 1)))")"
 exit 1

@@ -57,6 +57,8 @@ Sul `document` arriva `contenuti:dati` dopo `Contenuti.carica`. Il guscio aggior
 
 `Contenuti.riassunto('oggi')` porta anche `guardare` (quante cose sono da guardare), quello di `processi` porta `corre` e quello di `periodo` porta `totale` (quante cose in tutto).
 
+I `problemi` di `stato` (stringhe «file: motivo», i file che il server non ha saputo leggere) si mostrano in Oggi, nella sezione «Da guardare», una voce ciascuna, e contano nel numero di `guardare`.
+
 **Colori.** Il guscio passa i token `--pc-*` ai contenuti:
 - testo: `--pc-testo`, `-2`, `-3`;
 - superfici e linee: `--pc-superficie`, `-2`, `--pc-linea`;
