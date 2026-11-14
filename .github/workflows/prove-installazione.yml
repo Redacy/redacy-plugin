@@ -1,0 +1,186 @@
+# Prove di installazione e catena su Linux, macOS e Windows, senza modello e senza accessi.
+# Per Claude Code e per Codex: installazione da zero col comando ufficiale, plugin installato in una
+# cartella di stato vuota (dalla cartella del checkout e dal ramo su GitHub), poi la catena del plugin
+# (prove/ci/catena.py): cartella, grafo, corsa, pannello, stop, hook. Nessun segreto, nessuna chiave.
+name: prove-installazione
+
+on:
+  push:
+    branches: ["notte-**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  claude:
+    name: Claude Code · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      PYTHONUTF8: "1"
+      DISABLE_AUTOUPDATER: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installa Claude Code (macOS e Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Installa Claude Code (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          irm https://claude.ai/install.ps1 | iex
+          "$env:USERPROFILE\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Che cosa è stato installato
+        shell: bash
+        run: |
+          command -v claude
+          claude --version
+          if [ "$RUNNER_OS" = "Windows" ]; then echo "PY=python" >> "$GITHUB_ENV"; else echo "PY=python3" >> "$GITHUB_ENV"; fi
+
+      - name: Cartelle di stato vuote
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/claude-stato" "$RUNNER_TEMP/claude-stato-ramo" "$RUNNER_TEMP/catena"
+          echo "CLAUDE_CONFIG_DIR=$RUNNER_TEMP/claude-stato" >> "$GITHUB_ENV"
+
+      - name: claude plugin validate --strict
+        shell: bash
+        run: claude plugin validate --strict .
+
+      - name: Marketplace dal checkout e plugin installato
+        shell: bash
+        run: |
+          claude plugin marketplace add "$GITHUB_WORKSPACE"
+          claude plugin install redacy@redacy
+          claude plugin list | tee elenco.txt
+          grep -q "redacy@redacy" elenco.txt
+          grep -q "enabled" elenco.txt
+
+      - name: Marketplace dal ramo su GitHub e plugin installato (stato a parte)
+        shell: bash
+        env:
+          CLAUDE_CONFIG_DIR: ${{ runner.temp }}/claude-stato-ramo
+        run: |
+          claude plugin marketplace add "${GITHUB_REPOSITORY}#${GITHUB_REF_NAME}"
+          claude plugin install redacy@redacy
+          claude plugin list | tee elenco-ramo.txt
+          grep -q "redacy@redacy" elenco-ramo.txt
+
+      - name: La catena del plugin installato (senza modello)
+        shell: bash
+        run: |
+          INSTALLATO="$($PY prove/ci/percorso.py claude "$CLAUDE_CONFIG_DIR")"
+          echo "plugin installato in: $INSTALLATO"
+          $PY -I prove/ci/catena.py --plugin "$INSTALLATO" --base "$RUNNER_TEMP/catena" --nome claude
+
+      - name: Registri
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registri-claude-${{ matrix.os }}
+          path: ${{ runner.temp }}/catena/*.json
+          if-no-files-found: warn
+
+  codex:
+    name: Codex · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installa Codex (macOS e Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Installa Codex (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:CODEX_NON_INTERACTIVE = "1"
+          irm https://chatgpt.com/codex/install.ps1 | iex
+          "$env:LOCALAPPDATA\Programs\OpenAI\Codex\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Che cosa è stato installato
+        shell: bash
+        run: |
+          command -v codex
+          codex --version
+          if [ "$RUNNER_OS" = "Windows" ]; then echo "PY=python" >> "$GITHUB_ENV"; else echo "PY=python3" >> "$GITHUB_ENV"; fi
+
+      - name: Cartelle di stato vuote
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/codex-stato" "$RUNNER_TEMP/codex-stato-ramo" "$RUNNER_TEMP/catena"
+          echo "CODEX_HOME=$RUNNER_TEMP/codex-stato" >> "$GITHUB_ENV"
+
+      - name: Marketplace dal checkout e plugin installato
+        shell: bash
+        run: |
+          codex plugin marketplace add "$GITHUB_WORKSPACE"
+          codex plugin add redacy@redacy --json | tee aggiunto.json
+          codex plugin list --json | tee elenco.json
+          grep -q '"pluginId": "redacy@redacy"' elenco.json
+
+      - name: Marketplace dal ramo su GitHub e plugin installato (stato a parte)
+        shell: bash
+        env:
+          CODEX_HOME: ${{ runner.temp }}/codex-stato-ramo
+        run: |
+          codex plugin marketplace add "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+          codex plugin add redacy@redacy --json
+          codex plugin list --json | tee elenco-ramo.json
+          grep -q '"pluginId": "redacy@redacy"' elenco-ramo.json
+
+      - name: La catena del plugin installato (senza modello)
+        shell: bash
+        run: |
+          INSTALLATO="$($PY prove/ci/percorso.py codex aggiunto.json)"
+          echo "plugin installato in: $INSTALLATO"
+          $PY -I prove/ci/catena.py --plugin "$INSTALLATO" --base "$RUNNER_TEMP/catena" --nome codex
+
+      - name: Registri
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registri-codex-${{ matrix.os }}
+          path: ${{ runner.temp }}/catena/*.json
+          if-no-files-found: warn
+
+  tutte:
+    name: prove/tutte.sh · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: bash prove/tutte.sh
+        shell: bash
+        run: bash prove/ci/lancia-tutte.sh
