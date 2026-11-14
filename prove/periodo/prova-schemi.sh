@@ -86,4 +86,9 @@ out="$(ev "$P/rotti/id-doppio" "periodo/todo.json" | python3 "$C" 2>/dev/null)";
 out="$(echo 'non json' | python3 "$C" 2>&1)"; rc=$?
 [ "$rc" = 0 ] && [ -z "$out" ] || fallisce "hook su stdin non JSON: rc=$rc"
 
+# file non UTF-8, vuoti, troncati, con i tipi sbagliati; eventi strani dell'hook (K3): logica tutta in _robusto.py
+ROBUSTO="$("${PYTHON:-python3}" "$QUI/_robusto.py" "$PLUGIN" "$P/robusto" 2>&1)" \
+  || { echo "$ROBUSTO" | grep -v '^ok'; fallisce "_robusto.py: $(echo "$ROBUSTO" | grep '^FALLISCE' | tail -1)"; }
+echo "$ROBUSTO" | grep -v '^PASSA$' | grep -v '^$'
+
 echo PASSA

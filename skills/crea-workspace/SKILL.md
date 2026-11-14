@@ -68,7 +68,7 @@ Lo script lo fa da sé quando lo studio ha `memoria/INDICE.md` e `memoria/`. Gua
 - Nell'indice dello studio ci deve essere, sotto `## Workspace`, la riga `- [[<nome>]] · <descrizione>`. Il collegamento punta alla scheda del workspace.
 - In `memoria/LOG.md` ci deve essere una riga nel formato `- AAAA-MM-GG HH:MM · workspace · <frase>`, in fondo, senza riscrivere le altre.
 
-Se lo script ha stampato un avviso perché mancava l'indice o il registro, aggiungi tu la riga, nello stesso formato.
+Se lo script ha stampato un avviso perché mancava l'indice o il registro, aggiungi tu la riga, nello stesso formato. Se l'avviso dice che l'indice o il registro non si potevano scrivere (il file è aperto in un altro programma, o non è in UTF-8), sistema il file e rilancia lo stesso comando: aggiunge solo le righe che mancano.
 
 ## Passo 5. Controllare, poi dire fatto
 

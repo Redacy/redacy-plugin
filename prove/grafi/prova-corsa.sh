@@ -380,6 +380,13 @@ uguale "(g) nessun file temporaneo o estraneo in grafi/corse" "0" "$RESTI"
 uguale "(g) i soli file nascosti sono lucchetti" "0" "$(find "$D/grafi/corse" -type f -name '.*' ! -name '.*.lock' | wc -l | tr -d ' ')"
 uguale "(g) nessun .tmp in tutto lo studio" "0" "$(find "$D" -name '*.tmp' | wc -l | tr -d ' ')"
 
+# ---------------------------------------------------------------- (h) registro rovinato, nomi riservati, messaggi d'uso (K3)
+ROBUSTO="$("${PYTHON:-python3}" "$QUI/_robusto.py" "$(cd "$QUI/../.." && pwd)" "$BASE/robusto-corsa-$$" corsa 2>&1)"
+RC_ROBUSTO=$?
+echo "$ROBUSTO" | grep -v '^PASSA$' | grep -v '^$'
+uguale "(h) _robusto.py corsa: registri rovinati, stop non UTF-8, nomi riservati, messaggi d'uso" "0" "$RC_ROBUSTO"
+rm -rf "$BASE/robusto-corsa-$$"
+
 # ---------------------------------------------------------------- esito
 if [ "$N_ERRORI" -eq 0 ]; then
   [ "$TIENI" -eq 1 ] || rm -rf "$D" "$FUORI"

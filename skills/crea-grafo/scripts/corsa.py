@@ -42,6 +42,8 @@ FORMATO = 1
 PERSA_DOPO_DEFAULT = 20
 AVVIATO_DA = ("conversazione", "attivita-claude", "automazione-codex", "utente")
 NOME_OK = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# Nomi che Windows non lascia usare per un file (grafi\con.yaml non si crea).
+RISERVATI = {"con", "prn", "aux", "nul"} | {"com%d" % n for n in range(1, 10)} | {"lpt%d" % n for n in range(1, 10)}
 FORMATO_ORA = "%Y-%m-%dT%H:%M:%SZ"
 
 
@@ -52,6 +54,10 @@ class ErroreCorsa(Exception):
         super().__init__(messaggio)
         self.codice = codice
         self.messaggio = messaggio
+
+
+class CorsaRovinata(ErroreCorsa):
+    """Il file della corsa c'e' ma non si legge (troncato, non UTF-8, forma strana)."""
 
 
 # ---------------------------------------------------------------- tempo
@@ -231,15 +237,41 @@ def scrivi_atomico_riga(percorso, dato):
             os.unlink(tmp)
 
 
+def _perche_rovinata(dato):
+    """None se la corsa ha la forma che scrive corsa.py, altrimenti il motivo in poche parole."""
+    if not isinstance(dato, dict) or not isinstance(dato.get("stato"), str):
+        return "non ha lo stato di una corsa"
+    passi = dato.get("passi")
+    if not isinstance(passi, list):
+        return "i passi non sono un elenco"
+    for i, p in enumerate(passi, 1):
+        if not isinstance(p, dict) or not isinstance(p.get("id"), str) or not isinstance(p.get("stato"), str):
+            return "il passo %d non ha id e stato" % i
+    return None
+
+
+def _rovinata(percorso, perche):
+    return CorsaRovinata(
+        1,
+        "Il registro di questa corsa (%s) e' rovinato: %s. Non si puo' piu' usare: dillo all'utente e apri una corsa "
+        "nuova con corsa.py apri." % (percorso, perche),
+    )
+
+
 def leggi_corsa(percorso):
-    """Legge il file di una corsa. Solleva OSError se non c'e', ErroreCorsa se e' illeggibile."""
-    with open(percorso, encoding="utf-8") as f:
-        try:
+    """Legge il file di una corsa. Solleva OSError se non c'e', ErroreCorsa se e' illeggibile o rovinato."""
+    try:
+        with open(percorso, encoding="utf-8-sig") as f:
             dato = json.load(f)
-        except ValueError as e:
-            raise ErroreCorsa(1, "Il file %s non e' un JSON valido (%s)." % (percorso, e))
-    if not isinstance(dato, dict) or "stato" not in dato:
-        raise ErroreCorsa(1, "Il file %s non e' una corsa." % percorso)
+    except UnicodeDecodeError:
+        raise _rovinata(percorso, "non e' scritto in UTF-8")
+    except RecursionError:
+        raise _rovinata(percorso, "ha troppi livelli uno dentro l'altro")
+    except ValueError as e:
+        raise _rovinata(percorso, "non e' un JSON valido, forse e' stato troncato")
+    perche = _perche_rovinata(dato)
+    if perche:
+        raise _rovinata(percorso, perche)
     return dato
 
 
@@ -255,7 +287,9 @@ def e_persa(corsa, adesso=None):
         ultimo = leggi_ora(corsa["ultimo_segno"])
     except (KeyError, TypeError, ValueError):
         return True
-    limite = corsa.get("persa_dopo_minuti") or PERSA_DOPO_DEFAULT
+    limite = corsa.get("persa_dopo_minuti")
+    if isinstance(limite, bool) or not isinstance(limite, (int, float)) or limite <= 0:
+        limite = PERSA_DOPO_DEFAULT
     return adesso - ultimo > datetime.timedelta(minutes=limite)
 
 
@@ -272,6 +306,8 @@ def leggi_stop(cartella, id_corsa):
             testo = f.read().strip()
     except OSError:
         return None
+    except UnicodeDecodeError:
+        testo = ""   # uno stop illeggibile vale come uno stop senza motivo
     try:
         dato = json.loads(testo.splitlines()[0]) if testo else {}
     except (ValueError, IndexError):
@@ -379,6 +415,9 @@ def cmd_apri(args):
     cartella = trova_cartella(esplicita=args.cartella)
     if not NOME_OK.match(args.grafo):
         raise ErroreCorsa(1, "Il nome del grafo '%s' non e' valido: usa lettere minuscole, numeri e trattini." % args.grafo)
+    if args.grafo in RISERVATI:
+        raise ErroreCorsa(1, "Il nome del grafo '%s' e' riservato da Windows (come con, aux, nul, prn, com1-com9, "
+                             "lpt1-lpt9): un file con quel nome non si crea. Scegline un altro." % args.grafo)
     file_grafo = os.path.join(cartella, "grafi", args.grafo + ".yaml")
     if not os.path.isfile(file_grafo):
         raise ErroreCorsa(2, "Il grafo %s non c'e': manca il file %s." % (args.grafo, file_grafo))
@@ -522,23 +561,30 @@ def cmd_stato(args):
 def cmd_elenco(args):
     cartella = trova_cartella(esplicita=args.cartella)
     corse = []
+    rovinate = []
     cartella_c = cartella_corse(cartella)
     nomi = sorted(os.listdir(cartella_c)) if os.path.isdir(cartella_c) else []
     for nome in nomi:
         if nome.startswith(".") or not nome.endswith(".json"):
             continue
         try:
-            corse.append(consolida_stop(cartella, nome[:-5]))
+            corsa = consolida_stop(cartella, nome[:-5])
+            corsa.setdefault("id", nome[:-5])
+            corse.append(corsa)
+        except CorsaRovinata:
+            rovinate.append(nome[:-5])
         except (OSError, ErroreCorsa) as e:
             print("avviso: salto %s: %s" % (nome, getattr(e, "messaggio", e)), file=sys.stderr)
-    if not corse:
+    if not corse and not rovinate:
         print("Nessuna corsa.")
         return 0
-    corse.sort(key=lambda c: (c.get("inizio", ""), c.get("id", "")), reverse=True)
+    corse.sort(key=lambda c: (str(c.get("inizio") or ""), str(c.get("id"))), reverse=True)
     adesso = adesso_utc()
     for c in corse:
         fatti = sum(1 for p in c["passi"] if p["stato"] == "fatto")
-        print("%s\t%s\t%s\tpassi %d/%d" % (c["id"], etichetta_stato(c, adesso), c.get("inizio", ""), fatti, len(c["passi"])))
+        print("%s\t%s\t%s\tpassi %d/%d" % (c["id"], etichetta_stato(c, adesso), c.get("inizio") or "", fatti, len(c["passi"])))
+    for id_corsa in rovinate:
+        print("%s\trovinata\t\tregistro rovinato: dillo all'utente e apri una corsa nuova" % id_corsa)
     return 0
 
 
@@ -546,17 +592,41 @@ def cmd_elenco(args):
 
 class Formattatore(argparse.RawDescriptionHelpFormatter):
     def add_usage(self, usage, actions, groups, prefix=None):
-        super().add_usage(usage, actions, groups, prefix or "Uso: ")
+        # argparse chiama anche con prefix="" (il nome di un sotto-comando): resta vuoto, se no «Uso: Uso:»
+        super().add_usage(usage, actions, groups, "Uso: " if prefix is None or prefix == "usage: " else prefix)
 
     def start_section(self, heading):
         titoli = {"options": "opzioni", "positional arguments": "argomenti"}
         super().start_section(titoli.get(heading, heading))
 
 
+def _in_italiano(messaggio):
+    """I messaggi di argparse che capitano piu' spesso, in italiano (il resto resta com'e')."""
+    m = re.match(r"^the following arguments are required: (.*)$", messaggio)
+    if m:
+        return "mancano questi argomenti: %s" % m.group(1)
+    m = re.match(r"^argument (?:comando|command): invalid choice: (.*?) \(choose from (.*)\)$", messaggio)
+    if m:
+        return "il comando %s non esiste (i comandi sono: %s)" % (m.group(1), m.group(2).replace("'", ""))
+    m = re.match(r"^argument (.*?): invalid choice: (.*?) \(choose from (.*)\)$", messaggio)
+    if m:
+        return "per %s il valore %s non e' ammesso (ammessi: %s)" % (m.group(1), m.group(2), m.group(3).replace("'", ""))
+    m = re.match(r"^argument (.*?): expected one argument$", messaggio)
+    if m:
+        return "dopo %s serve un valore" % m.group(1)
+    m = re.match(r"^unrecognized arguments: (.*)$", messaggio)
+    if m:
+        return "argomenti che non conosco: %s" % m.group(1)
+    m = re.match(r"^argument (.*?): (serve .*)$", messaggio)   # i messaggi nostri (_intero_positivo)
+    if m:
+        return "%s: %s" % (m.group(1), m.group(2))
+    return messaggio
+
+
 class Parser(argparse.ArgumentParser):
     def error(self, message):
         self.print_usage(sys.stderr)
-        print("Uso sbagliato: %s" % message, file=sys.stderr)
+        print("Uso sbagliato: %s" % _in_italiano(message), file=sys.stderr)
         raise SystemExit(1)
 
 

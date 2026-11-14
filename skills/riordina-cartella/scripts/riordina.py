@@ -45,6 +45,7 @@ NOME_REGISTRO = "registro.jsonl"
 FORMATO_ORA = "%Y-%m-%dT%H:%M:%SZ"
 TOLLERANZA_S = 2.0      # i dischi FAT e alcune sincronizzazioni tengono la data a 2 secondi
 MAX_RIGHE_STAMPA = 10
+AVANZAMENTO_OGNI = 500  # oltre le prime righe stampate, una riga di avanzamento ogni tanti file (ogni mossa costa un fsync)
 MAX_PROBLEMI = 30
 
 
@@ -73,7 +74,14 @@ def ora_utc(ts=None):
     if ts is None:
         dt = datetime.datetime.now(datetime.timezone.utc)
     else:
-        dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc)
+        try:
+            dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc)
+        except (OverflowError, OSError, ValueError):
+            # Windows non accetta una data prima del 1970: si parte dal 1970 e si somma
+            try:
+                dt = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=ts)
+            except (OverflowError, ValueError):
+                dt = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
     return dt.strftime(FORMATO_ORA)
 
 
@@ -138,30 +146,8 @@ def chiave(rel):
 # ---------------------------------------------------------------- cartelle di sistema
 
 def di_sistema(cartella):
-    """Il motivo per cui una cartella non si riordina mai, o None."""
-    reale = os.path.realpath(cartella)
-    if os.path.dirname(reale) == reale:
-        return "è la radice del disco"
-    casa = os.path.realpath(os.path.expanduser("~"))
-    if os.path.normcase(reale) == os.path.normcase(casa):
-        return "è la cartella dell'utente intera: scegli una sua sottocartella"
-    vietate = []
-    if os.name == "nt":
-        for v in ("SystemRoot", "windir", "ProgramFiles", "ProgramFiles(x86)", "ProgramW6432",
-                  "ProgramData", "APPDATA", "LOCALAPPDATA"):
-            if os.environ.get(v):
-                vietate.append(os.environ[v])
-        vietate.append(os.path.join(casa, "AppData"))
-    else:
-        vietate += ["/bin", "/boot", "/dev", "/etc", "/lib", "/lib32", "/lib64", "/proc", "/run", "/sbin",
-                    "/snap", "/sys", "/usr", "/System", "/Library", "/Applications", "/private/etc",
-                    "/var/lib", "/var/log", "/var/cache", "/var/db", "/var/spool", "/cores",
-                    os.path.join(casa, "Library")]
-    for v in vietate:
-        rv = os.path.realpath(v)
-        if dentro(reale, rv):
-            return "è una cartella di sistema (%s)" % v
-    return None
+    """Il motivo per cui una cartella non si riordina mai, o None (lo stesso controllo dell'inventario)."""
+    return (INV or carica_inventario()).di_sistema(cartella)
 
 
 def trova_studio(da):
@@ -249,7 +235,11 @@ def leggi_registro(percorso):
         except ValueError:
             if i == len(linee) - 1:
                 continue    # l'ultima riga scritta a metà da un'interruzione
-            raise Errore(1, "Il registro %s ha una riga rotta (la %d). Non lo tocco." % (percorso, i + 1))
+            raise Errore(1, "Il registro %s ha una riga rotta (la %d). Non lo tocco. I file spostati sono nelle cartelle "
+                            "di destinazione del piano (il campo «a» di ogni riga). Per riportarli: apri il registro "
+                            "con un editor di testo, cancella la riga %d e rilancia annulla; il file di quella riga "
+                            "riportalo tu dalla destinazione al posto d'origine (il campo «da» del piano)."
+                         % (percorso, i + 1, i + 1))
         tipo = ev.get("evento")
         n = ev.get("riga")
         if tipo == "inizio":
@@ -652,6 +642,8 @@ def cmd_applica(piano_arg):
             spostati += 1
             if spostati <= MAX_RIGHE_STAMPA:
                 print("spostato: %s → %s" % (da_rel, a_rel))
+            elif spostati % AVANZAMENTO_OGNI == 0:
+                print("avanzamento: %d file spostati finora" % spostati, flush=True)
         if spostati > MAX_RIGHE_STAMPA:
             print("spostato: e altri %d (tutti nel registro)" % (spostati - MAX_RIGHE_STAMPA))
         for n, da_rel in saltati:
@@ -715,7 +707,8 @@ def cmd_annulla(arg):
                 saltati.append((n, info["a"]))
                 continue
             if os.path.lexists(da_abs) and not os.path.samefile(da_abs, a_abs):
-                return fermo_annulla("riga %d: al posto di `%s` c'è già un altro file, non sovrascrivo" % (n, info["da"]),
+                return fermo_annulla("riga %d: al posto di `%s` c'è già un altro file, non sovrascrivo. "
+                                     "Spostalo o rinominalo (il tuo file non lo tocco) e rilancia annulla" % (n, info["da"]),
                                      riportati, arg)
             try:
                 os.makedirs(os.path.dirname(da_abs), exist_ok=True)
@@ -727,6 +720,8 @@ def cmd_annulla(arg):
             riportati += 1
             if riportati <= MAX_RIGHE_STAMPA:
                 print("riportato: %s → %s" % (info["a"], info["da"]))
+            elif riportati % AVANZAMENTO_OGNI == 0:
+                print("avanzamento: %d file riportati finora" % riportati, flush=True)
         if riportati > MAX_RIGHE_STAMPA:
             print("riportato: e altri %d (tutti nel registro)" % (riportati - MAX_RIGHE_STAMPA))
         tolte, rimaste = 0, []

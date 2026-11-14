@@ -53,6 +53,12 @@ def controlla(cartella):
     cartella = os.path.abspath(cartella)
     if not os.path.isdir(cartella):
         return ["la cartella %s non esiste." % cartella], avvisi
+    if not os.path.isfile(os.path.join(cartella, "AGENTS.md")):
+        # Una cartella qualunque (la radice del disco, la home, un'altra cartella): non la scandisco.
+        return [
+            "%s non è un workspace: manca AGENTS.md. Un workspace sta in workspace/<nome>/ dello studio: "
+            "passa quella cartella (per crearne uno nuovo serve crea-workspace.py)." % cartella
+        ], avvisi
     nome = os.path.basename(cartella.rstrip(os.sep))
     if not RE_KEBAB.match(nome):
         errori.append(
