@@ -44,7 +44,7 @@ PY
   local uscita rc
   uscita="$(python3 "$C" "$P/rotti/$nome/periodo/$nomefile" 2>&1)"; rc=$?
   [ "$rc" = 1 ] || fallisce "$nome: attesa uscita 1, trovata $rc"
-  echo "$uscita" | grep -qF "$atteso" || fallisce "$nome: manca «$atteso» nel messaggio: $uscita"
+  echo "$uscita" | grep -qF "$atteso" || fallisce "$nome: manca «${atteso}» nel messaggio: $uscita"
 }
 T="$P/buoni/periodo/todo.json"; I="$P/buoni/periodo/idee.json"
 prova_rotto stato-strano "$T" 'd["todo"][0]["stato"]="boh"' "non è fra i valori ammessi"

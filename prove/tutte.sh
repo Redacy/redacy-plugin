@@ -99,11 +99,11 @@ copie_con_versione() {
   for f in "$T"/.agents/script/*.py "$T"/.agents/hooks/*.py; do
     [ -f "$f" ] || continue
     n=$((n + 1))
-    head -5 "$f" | grep -q "redacy $v" || { echo "senza «redacy $v» in testa: ${f#$T/}"; manca=$((manca + 1)); }
+    head -5 "$f" | grep -q "redacy $v" || { echo "senza «redacy ${v}» in testa: ${f#$T/}"; manca=$((manca + 1)); }
   done
   [ "$n" -gt 0 ] || { echo "FALLISCE nessuna copia trovata in .agents/"; return 1; }
   [ "$manca" -eq 0 ] || { echo "FALLISCE $manca copie su $n senza la versione"; return 1; }
-  echo "$n copie in .agents/ con «redacy $v» in testa"
+  echo "$n copie in .agents/ con «redacy ${v}» in testa"
   echo "ok"
 }
 
