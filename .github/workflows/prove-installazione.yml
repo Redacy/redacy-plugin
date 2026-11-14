@@ -76,6 +76,11 @@ jobs:
           claude plugin install redacy@redacy
           claude plugin list | tee elenco-ramo.txt
           grep -q "redacy@redacy" elenco-ramo.txt
+          claude plugin marketplace update redacy
+          claude plugin update redacy@redacy
+          claude plugin list | tee elenco-aggiornato.txt
+          grep -q "redacy@redacy" elenco-aggiornato.txt
+          grep -q "enabled" elenco-aggiornato.txt
 
       - name: La catena del plugin installato (senza modello)
         shell: bash
@@ -117,7 +122,7 @@ jobs:
         shell: pwsh
         run: |
           $env:CODEX_NON_INTERACTIVE = "1"
-          irm https://chatgpt.com/codex/install.ps1 | iex
+          powershell -ExecutionPolicy ByPass -c "irm https://chatgpt.com/codex/install.ps1 | iex"
           "$env:LOCALAPPDATA\Programs\OpenAI\Codex\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Che cosa è stato installato
@@ -150,6 +155,9 @@ jobs:
           codex plugin add redacy@redacy --json
           codex plugin list --json | tee elenco-ramo.json
           grep -q '"pluginId": "redacy@redacy"' elenco-ramo.json
+          codex plugin marketplace upgrade redacy
+          codex plugin list --json | tee elenco-aggiornato.json
+          grep -q '"pluginId": "redacy@redacy"' elenco-aggiornato.json
 
       - name: La catena del plugin installato (senza modello)
         shell: bash

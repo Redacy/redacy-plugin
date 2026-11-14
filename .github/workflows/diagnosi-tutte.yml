@@ -1,4 +1,4 @@
-# TEMPORANEO: serve a capire perché prove/tutte.sh è rosso su macOS e Windows. Si toglie prima della fine.
+# TEMPORANEO: serve a capire perché prove/tutte.sh è rosso su macOS. Si toglie prima della fine.
 name: diagnosi-tutte
 
 on:
@@ -22,14 +22,13 @@ jobs:
       PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
-      - name: tutte con la traccia
+      - name: la funzione che muore, a mano
         shell: bash
         continue-on-error: true
         run: |
-          echo "bash: $(command -v bash) $BASH_VERSION"
-          TMPDIR=$RUNNER_TEMP/tt; mkdir -p "$TMPDIR"; export TMPDIR
-          bash -x prove/tutte.sh 2>&1 | tail -3 || true
-          echo "--- uscita-1 (l'uscita della prova che muore)"
-          cat "$TMPDIR"/tmp.*/uscita-1.txt | tail -30
-          echo "--- con bash di Homebrew"
-          ls /opt/homebrew/bin/bash && /opt/homebrew/bin/bash --version | head -1 && /opt/homebrew/bin/bash prove/tutte.sh 2>&1 | tail -16 || true
+          set +e
+          echo "bash: $BASH_VERSION"
+          sed -n '/^copie_con_versione()/,/^}/p' prove/tutte.sh > "$RUNNER_TEMP/f.sh"
+          bash -x -c 'set -u; RADICE="$PWD"; BASE="$RUNNER_TEMP/b"; mkdir -p "$BASE"; . "$RUNNER_TEMP/f.sh"; copie_con_versione; echo "rc=$?"' 2>&1 | tail -40
+          echo "--- stessa cosa con bash di Homebrew su tutta la suite"
+          ls /opt/homebrew/bin/bash && /opt/homebrew/bin/bash prove/tutte.sh 2>&1 | tail -16
