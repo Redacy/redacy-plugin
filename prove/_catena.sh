@@ -34,11 +34,11 @@ controlla_albero() {
     || fallisce "crea-cartella.py --controlla: $(tail -3 "$G/albero.txt" | tr '\n' ' ')"
   v="$(python3 -I -c "import json;print(json.load(open('$RADICE/.claude-plugin/plugin.json'))['version'])")"
   n="$(grep -l "redacy $v" "$STUDIO"/.agents/script/* "$STUDIO"/.agents/hooks/*.py 2>/dev/null | wc -l | tr -d ' ')"
-  [ "$n" -ge 6 ] || fallisce "solo $n copie in .agents/ portano «redacy $v» in testa (ne attendo almeno 6)"
+  [ "$n" -ge 6 ] || fallisce "solo $n copie in .agents/ portano «redacy ${v}» in testa (ne attendo almeno 6)"
   for f in "$STUDIO"/periodo/todo.json "$STUDIO"/periodo/idee.json; do
     python3 -I "$STUDIO/.agents/hooks/controlla-periodo.py" "$f" >/dev/null 2>&1 || fallisce "$(basename "$f") non passa controlla-periodo.py"
   done
-  fatto "albero completo, $n copie con «redacy $v» in testa, todo.json e idee.json validi"
+  fatto "albero completo, $n copie con «redacy ${v}» in testa, todo.json e idee.json validi"
 }
 
 # Anello 3. crea-workspace e crea-grafo hanno lasciato workspace e grafi validi (i controlli di prove/grafi/_comune.sh)
@@ -48,7 +48,7 @@ controlla_workspace_e_grafo() {
   [ -z "$FALLITI" ] || fallisce "$FALLITI"
   GRAFO="$(ls "$STUDIO"/grafi/*.yaml 2>/dev/null | head -1 | xargs -n1 basename 2>/dev/null | sed 's/\.yaml$//')"
   [ -n "$GRAFO" ] || fallisce "nessun grafo in grafi/"
-  fatto "$(ls -d "$STUDIO"/workspace/*/ | wc -l | tr -d ' ') workspace validi, grafo «$GRAFO» (passa controlla-grafo.py, L0, spento), righe nel registro"
+  fatto "$(ls -d "$STUDIO"/workspace/*/ | wc -l | tr -d ' ') workspace validi, grafo «${GRAFO}» (passa controlla-grafo.py, L0, spento), righe nel registro"
 }
 
 # Anello 4. una corsa scritta: tutti i passi, poi chiusa
