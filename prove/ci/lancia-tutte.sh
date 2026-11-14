@@ -20,4 +20,13 @@ if [ -z "${REDACY_CHROMIUM:-}" ]; then
 fi
 echo "Chromium per la prova della pagina: ${REDACY_CHROMIUM:-nessuno}"
 cd "$RADICE"
-bash prove/tutte.sh
+USCITA="${RUNNER_TEMP:-/tmp}/tutte-uscita.txt"
+bash prove/tutte.sh 2>&1 | tee "$USCITA"
+CODICE="${PIPESTATUS[0]}"
+# Chrome sul runner a volte non si apre entro i 20 secondi della prova: se è l'unica prova rossa, si rilancia quella sola, una volta, e si vede nel registro.
+if [ "$CODICE" -ne 0 ] && [ "$(tail -1 "$USCITA")" = "ESITO: FALLISCE pannello: la pagina vera nel browser" ]; then
+  echo "Chrome non si è aperto: rilancio una volta la sola prova della pagina"
+  bash prove/pannello/prova-pagina.sh
+  exit $?
+fi
+exit "$CODICE"
