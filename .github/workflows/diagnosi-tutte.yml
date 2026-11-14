@@ -27,6 +27,9 @@ jobs:
         continue-on-error: true
         run: |
           echo "bash: $(command -v bash) $BASH_VERSION"
-          BASH_XTRACEFD=9 bash -x prove/tutte.sh 9>"$RUNNER_TEMP/traccia.txt" 2>&1 | tail -3 || true
-          echo "--- traccia (ultime righe)"
-          grep -n "copie_con_versione" "$RUNNER_TEMP/traccia.txt" | head -3; awk '/^\+ copie_con_versione/{f=1} f' "$RUNNER_TEMP/traccia.txt" | head -40
+          TMPDIR=$RUNNER_TEMP/tt; mkdir -p "$TMPDIR"; export TMPDIR
+          bash -x prove/tutte.sh 2>&1 | tail -3 || true
+          echo "--- uscita-1 (l'uscita della prova che muore)"
+          cat "$TMPDIR"/tmp.*/uscita-1.txt | tail -30
+          echo "--- con bash di Homebrew"
+          ls /opt/homebrew/bin/bash && /opt/homebrew/bin/bash --version | head -1 && /opt/homebrew/bin/bash prove/tutte.sh 2>&1 | tail -16 || true
