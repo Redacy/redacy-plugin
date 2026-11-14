@@ -22,7 +22,7 @@ function copia(el) {
 
 /* ---------- OGGI ---------- */
 function statoOggi() {
-  const t = tocca(), lav = lavorando(), dg = daGuardare();
+  const t = tocca(), lav = lavorando(), dg = daGuardare().concat(problemi());
   const rit = t.filter((x) => x.ritardo).length;
   return { t: t, lav: lav, dg: dg, rit: rit, perTe: t.length };
 }
@@ -79,7 +79,12 @@ function cardLavoro(ist, c) {
       : '<div class="pc-lav-az">' + linkBtn(lk) + '<button type="button" class="pc-btn pc-btn-ferma" data-az="ferma" data-id="' + esc(c.id) + '">' + ico('stop', 14) + 'Ferma</button></div>') + '</article>';
 }
 const confermaHtml = (id) => '<div class="pc-conf" role="alertdialog" aria-label="Conferma"><p class="pc-conf-t">Fermo questo lavoro? Il passo in corso si interrompe e non viene spedito niente.</p><div class="pc-conf-b"><button type="button" class="pc-btn pc-btn-pericolo" data-az="ferma-si" data-id="' + esc(id) + '">Ferma</button><button type="button" class="pc-btn" data-az="ferma-no">Lascia andare</button></div></div>';
+function voceProblema(c) {
+  return '<article class="pc-voce pc-voce-err"><span class="pc-voce-ic">' + ico('alert', 20) + '</span><div class="pc-voce-t"><h3 class="pc-voce-h">Un file dello studio non si legge</h3>' +
+    '<p class="pc-meta pc-meta-forte">' + esc(c.problema) + '</p><p class="pc-meta">' + chiedi('controlla ' + c.file) + '</p></div></article>';
+}
 function cardGuardare(ist, c) {
+  if (c.problema) return voceProblema(c);
   const g = grafoPer(c.grafo); const lk = { pannello: 'processi', voce: c.grafo, et: 'Apri il processo' };
   let riga, dett;
   if (eff(c) === 'persa') {
@@ -160,7 +165,7 @@ P.oggi = {
     const riga = (cls, ic, t, s) => '<li class="pc-ao-r ' + cls + '"><span class="pc-ao-ic">' + ico(ic, 15) + '</span><span class="pc-ao-t">' + esc(t) + '</span><span class="pc-ao-s">' + esc(s) + '</span></li>';
     const righe = [];
     o.t.forEach((x) => righe.push(riga(x.ritardo ? 'pc-ao-att' : 'pc-ao-te', 'flag', x.tipo === 'passo' ? (x.def.nome || umano(x.passo.id)) : (x.t.cosa || x.id), x.ritardo ? 'In ritardo' : 'Aspetta te')));
-    o.dg.forEach((c) => righe.push(riga('pc-ao-err', eff(c) === 'persa' ? 'alert' : 'x', nomeProc(c.grafo), eff(c) === 'persa' ? 'Non dà notizie' : 'Non è riuscito')));
+    o.dg.forEach((c) => righe.push(c.problema ? riga('pc-ao-err', 'alert', c.file, 'Non si legge') : riga('pc-ao-err', eff(c) === 'persa' ? 'alert' : 'x', nomeProc(c.grafo), eff(c) === 'persa' ? 'Non dà notizie' : 'Non è riuscito')));
     o.lav.forEach((c) => { const pc = passoCorrente(c, grafoPer(c.grafo)); righe.push(riga('pc-ao-corre', 'dots', nomeProc(c.grafo), pc ? 'Passo ' + pc.n + ' di ' + pc.tot : 'Sta lavorando')); });
     const data = '<p class="pc-an-data">' + esc(cap(fWGM.format(adesso()))) + '</p>';
     if (!righe.length) {

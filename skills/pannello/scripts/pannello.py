@@ -10,6 +10,7 @@ Non lancia claude né codex. Gli unici gesti sono due:
 
 Uso:
   python3 pannello.py [--cartella DIR]          accende il pannello (o riusa quello acceso) e stampa l'indirizzo
+  python3 pannello.py --apri                    accende il pannello e apre la pagina nel browser
   python3 pannello.py --primo-piano             resta in primo piano (lo usa .claude/launch.json)
   python3 pannello.py --stato                   dice se il pannello della cartella è acceso
   python3 pannello.py --spegni                  spegne il pannello della cartella
@@ -41,6 +42,7 @@ import json
 import os
 import re
 import secrets
+import shutil
 import signal
 import socket
 import subprocess
@@ -57,6 +59,9 @@ NOME_VOCE_LAUNCH = "pannello redacy"
 NOME_OK = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 FORMATO_ORA = "%Y-%m-%dT%H:%M:%SZ"
 PERSA_DOPO_DEFAULT = 20
+# File che Windows e macOS mettono da soli nelle cartelle (non hanno il punto): non sono fonti.
+FILE_DI_SISTEMA = ("desktop.ini", "thumbs.db", ".ds_store")
+
 MAX_PAGINE_MEMORIA = 3000
 MAX_BYTE_PAGINA = 256 * 1024
 MAX_BYTE_FILE = 16 * 1024 * 1024
@@ -169,7 +174,7 @@ def leggi_testo(percorso, massimo=MAX_BYTE_PAGINA):
             return None
         with open(percorso, "rb") as f:
             dati = f.read(massimo)
-        return dati.decode("utf-8", errors="replace")
+        return dati.decode("utf-8-sig", errors="replace")  # -sig: toglie il BOM del Blocco note e di PowerShell 5.1
     except OSError:
         return None
 
@@ -284,11 +289,18 @@ def vista_periodo(cartella):
     ob_testo = leggi_testo(os.path.join(cartella, "periodo", "obiettivo.md")) or ""
     obiettivo = prima_riga_di_testo(ob_testo)
     vuoto = (not obiettivo) or obiettivo.lower().startswith("nessun obiettivo")
-    todo = leggi_json(os.path.join(cartella, "periodo", "todo.json"))
+    problemi = []
+    p_todo = os.path.join(cartella, "periodo", "todo.json")
+    todo = leggi_json(p_todo)
     if not isinstance(todo, dict) or not isinstance(todo.get("todo"), list):
+        if os.path.lexists(p_todo):  # c'è ma non si legge: lo si dice, non si finge che sia vuoto
+            problemi.append("periodo/todo.json: non si legge, chiedi di ripararlo")
         todo = {"versione": "0.3.0", "periodo": "", "todo": []}
-    idee = leggi_json(os.path.join(cartella, "periodo", "idee.json"))
+    p_idee = os.path.join(cartella, "periodo", "idee.json")
+    idee = leggi_json(p_idee)
     if not isinstance(idee, dict) or not isinstance(idee.get("idee"), list):
+        if os.path.lexists(p_idee):
+            problemi.append("periodo/idee.json: non si legge, chiedi di ripararlo")
         idee = {"versione": "0.3.0", "periodo": "", "idee": []}
     voci = [t for t in todo["todo"] if isinstance(t, dict)]
     todo["todo"] = voci
@@ -296,10 +308,12 @@ def vista_periodo(cartella):
     aspettano = []
     for t in voci:
         if t.get("stato") != "fatto" and t.get("chi") == "tu":
-            scad = t.get("scadenza") or ""
+            scad = t.get("scadenza")
+            if not isinstance(scad, str):  # una scadenza che non è una data scritta (un numero, una lista) non si confronta
+                scad = ""
             aspettano.append({"id": t.get("id"), "in_ritardo": bool(scad) and scad < oggi})
     return {"obiettivo": "" if vuoto else obiettivo, "obiettivo_vuoto": vuoto,
-            "todo": todo, "idee": idee, "aspettano_te": aspettano}
+            "todo": todo, "idee": idee, "aspettano_te": aspettano, "problemi": problemi}
 
 
 RIGA_LOG = re.compile(r"^- (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) · ([^·]+?) · (.*)$")
@@ -333,7 +347,10 @@ def leggi_corse_grezze(cartella):
         if not isinstance(dato, dict) or "stato" not in dato:
             problemi.append("grafi/corse/%s: non è una corsa leggibile" % n)
             continue
-        dato.setdefault("id", n[:-5])
+        if not isinstance(dato.get("id"), str):
+            dato["id"] = n[:-5]
+        if not isinstance(dato.get("grafo"), str):
+            dato["grafo"] = ""
         if not isinstance(dato.get("passi"), list):
             dato["passi"] = []
         corse.append(dato)
@@ -370,7 +387,9 @@ def arricchisci_corsa(cartella, c, adesso=None):
             minuti = int((adesso - leggi_ora(c["ultimo_segno"])).total_seconds() // 60)
         except (KeyError, TypeError, ValueError):
             minuti = None
-        limite = c.get("persa_dopo_minuti") or PERSA_DOPO_DEFAULT
+        limite = c.get("persa_dopo_minuti")
+        if isinstance(limite, bool) or not isinstance(limite, (int, float)) or not limite:
+            limite = PERSA_DOPO_DEFAULT
         persa = minuti is None or minuti > limite
     stop = None
     effettivo = stato
@@ -426,9 +445,13 @@ def vista_grafi(cartella, corse=None):
         if not isinstance(dato, dict):
             problemi.append("%s: non è un grafo" % rel)
             continue
+        if "passi" in dato and not isinstance(dato["passi"], list):
+            problemi.append("%s: «passi» non è un elenco di passi" % rel)
+            continue
         g = json.loads(json.dumps(dato))
         g["file"] = rel
-        g.setdefault("grafo", n[:-5])
+        if not isinstance(g.get("grafo"), str):
+            g["grafo"] = n[:-5]
         try:
             g["archi"] = [list(a) for a in yr.archi_del_grafo(dato)]
         except Exception:
@@ -452,7 +475,7 @@ def vista_workspace(cartella, grafi, todo):
         pagine = len(elenco(cartella, base + "/memoria", ".md"))
         processi = []
         for g in grafi:
-            for p in g.get("passi") or []:
+            for p in g.get("passi") if isinstance(g.get("passi"), list) else []:
                 if isinstance(p, dict) and p.get("workspace") == nome:
                     processi.append(g.get("grafo"))
                     break
@@ -633,7 +656,7 @@ def vista_fonti(cartella):
     d = os.path.join(cartella, "fonti")
     try:
         for n in sorted(os.listdir(d)):
-            if n.startswith(".") or n == "LEGGIMI.md":
+            if n.startswith(".") or n == "LEGGIMI.md" or n.lower() in FILE_DI_SISTEMA:
                 continue
             p = os.path.join(d, n)
             nomi.append({"nome": n, "percorso": "fonti/" + n, "cartella": os.path.isdir(p) and not os.path.islink(p)})
@@ -692,6 +715,7 @@ def vista_supporto(cartella, stato):
             righe.append("Ultimo problema: %s non dà notizie" % ultimo.get("grafo"))
     else:
         righe.append("Ultimo problema: nessuno")
+    righe.append("File che non si leggono: %s" % (", ".join(stato["problemi"]) if stato["problemi"] else "nessuno"))
     righe.append("Cose che toccano a te: %d" % stato["conta"]["per_te"])
     mem = stato["memoria_grafo"]["conteggi"]
     righe.append("Memoria: %d pagine, %d collegamenti, %d da scrivere" % (mem["pagine"], mem["collegamenti"], mem["mancanti"]))
@@ -728,7 +752,7 @@ def vista_stato(cartella):
                         "fonti": vista_fonti(cartella)},
         "memoria": mem["memoria"], "memoria_grafo": mem["grafo"],
         "conta": conta,
-        "problemi": corse["problemi"] + grafi["problemi"],
+        "problemi": periodo["problemi"] + corse["problemi"] + grafi["problemi"],
     }
     stato["supporto"] = vista_supporto(cartella, stato)
     return stato
@@ -766,7 +790,8 @@ def ferma_corsa(cartella, id_corsa, perche=""):
         if perche:
             cmd += ["--perche", perche]
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=15, cwd=cartella,
+            r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                               timeout=15, cwd=cartella,
                                **({"creationflags": CREATE_NO_WINDOW} if su_windows() else {}))
         except (OSError, subprocess.TimeoutExpired):
             return 500, {"ok": False, "errore": "Non sono riuscito a fermare la corsa."}
@@ -921,15 +946,44 @@ def porta_stabile(cartella):
     return 47000 + zlib.crc32(os.path.realpath(cartella).encode("utf-8")) % 1000
 
 
+def porte_da_provare(cartella, preferita=None):
+    """Le porte che l'accensione prova, in ordine: la preferita (o la stabile della cartella) e le successive."""
+    base = preferita or porta_stabile(cartella)
+    return [base] + [47000 + (base - 47000 + i) % 1000 for i in range(1, 60)]
+
+
+def trova_orfano(cartella, preferita=None):
+    """Un pannello di QUESTA cartella che gira senza che pannello.json lo dica (il file è sparito): le sue informazioni, o None.
+
+    Guarda solo le prime due porte che l'accensione proverebbe (su Windows una porta chiusa consuma tutto il
+    timeout: più porte allungano ogni accensione). Il gettone non c'è: lo sa solo quel server."""
+    for porta in porte_da_provare(cartella, preferita)[:2]:
+        try:
+            conn = http.client.HTTPConnection("127.0.0.1", porta, timeout=0.4)
+            conn.request("GET", "/api/ciao", headers={"Host": "127.0.0.1:%d" % porta})
+            r = conn.getresponse()
+            corpo = r.read(4096)
+            conn.close()
+            d = json.loads(corpo.decode("utf-8")) if r.status == 200 else None
+        except (OSError, ValueError, http.client.HTTPException):
+            continue
+        if (isinstance(d, dict) and d.get("pannello") == NOME_PANNELLO and isinstance(d.get("pid"), int)
+                and os.path.realpath(str(d.get("cartella"))) == os.path.realpath(cartella) and pid_vivo(d["pid"])):
+            return {"formato": VERSIONE_FORMATO, "porta": porta, "pid": d["pid"], "ora": scrivi_ora(adesso_utc()),
+                    "cartella": cartella}
+    return None
+
+
 def apri_socket_libera(cartella, preferita=None):
     """Sceglie una porta libera su 127.0.0.1: la preferita, la stabile della cartella, le successive."""
-    base = preferita or porta_stabile(cartella)
-    for porta in [base] + [47000 + (base - 47000 + i) % 1000 for i in range(1, 60)]:
+    for porta in porte_da_provare(cartella, preferita):
         try:
             return porta, crea_server(porta)
         except OSError as e:
             # Su Windows un EACCES al bind è una porta riservata dal sistema (Hyper-V, WSL): si prova la prossima.
             if e.errno in (errno.EPERM, errno.EACCES) and not su_windows():
+                if porta < 1024:
+                    raise SystemExit("Le porte sotto 1024 sono riservate al sistema: usa una porta da 1024 a 65535.")
                 raise SystemExit(
                     "Il sistema non mi lascia aprire una porta su 127.0.0.1 (%s). Succede in Codex dentro la sandbox: "
                     "lancia lo stesso comando fuori dalla sandbox (chiedi il permesso) o da un terminale tuo." % e.strerror)
@@ -1046,7 +1100,7 @@ class Gestore(http.server.BaseHTTPRequestHandler):
             return self._rispondi(204, b"", "image/x-icon")
         if percorso == "/api/ciao":
             return self._rispondi(200, {"pannello": NOME_PANNELLO, "formato": VERSIONE_FORMATO, "cartella": Stato.cartella,
-                                        "ora": scrivi_ora(adesso_utc())})
+                                        "pid": os.getpid(), "ora": scrivi_ora(adesso_utc())})
         if percorso.startswith("/api/"):
             nome = percorso[len("/api/"):]
             f = VISTE.get(nome)
@@ -1202,14 +1256,37 @@ def avvia_staccato_windows(cartella, porta, ore_inattivo):
     raise SystemExit("Il pannello non è partito: guarda interfaccia/pannello.log.")
 
 
+def controlla_interfaccia(cartella):
+    """La cartella interfaccia/ deve esserci ed essere scrivibile: se no, una riga con la causa, subito."""
+    d = os.path.join(cartella, "interfaccia")
+    if os.path.lexists(d) and not os.path.isdir(d):
+        raise SystemExit("«interfaccia» nella cartella dello studio è un file, non una cartella: spostalo o rinominalo e rilancia.")
+    try:
+        os.makedirs(d, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(prefix=".prova-", dir=d)
+        os.close(fd)
+        os.unlink(tmp)
+    except OSError as e:
+        raise SystemExit("Non posso scrivere nella cartella interfaccia dello studio (%s): dai a questo utente il permesso "
+                         "di scrittura sulla cartella e rilancia." % (e.strerror or e.__class__.__name__))
+
+
 def accendi(cartella, porta_scelta, primo_piano, ore_inattivo):
     """Riusa il pannello acceso o ne accende uno. Restituisce (info, nuovo)."""
-    os.makedirs(os.path.join(cartella, "interfaccia"), exist_ok=True)
+    controlla_interfaccia(cartella)
     lucchetto = os.open(os.path.join(cartella, "interfaccia", ".pannello.lock"), os.O_RDWR | os.O_CREAT, 0o600)
     blocca_file(lucchetto)
     try:
         info = acceso(cartella)
         if info:
+            try:
+                aggiorna_launch(cartella, info["porta"])
+            except OSError:
+                pass
+            return info, False
+        info = trova_orfano(cartella, porta_scelta)
+        if info:  # il pannello gira ma pannello.json è sparito: lo si riprende e si riscrive il file, senza aprirne un altro
+            scrivi_info(cartella, info)
             try:
                 aggiorna_launch(cartella, info["porta"])
             except OSError:
@@ -1286,6 +1363,31 @@ def spegni(cartella):
     return 0
 
 
+def apri_browser(url):
+    """Apre l'indirizzo nel browser dell'utente. Vero se l'ha chiesto al sistema, falso se non può.
+
+    Mai un'eccezione, mai più di 3 secondi. Non usa il modulo webbrowser: su un server può lanciare un
+    browser testuale che si prende il terminale."""
+    try:
+        if su_windows():
+            os.startfile(url)
+            return True
+        if sys.platform == "darwin":
+            cmd = ["open", url]
+        elif (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")) and shutil.which("xdg-open"):
+            cmd = ["xdg-open", url]
+        else:
+            return False
+        figlio = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.DEVNULL, start_new_session=True)
+        try:
+            return figlio.wait(timeout=3) == 0
+        except subprocess.TimeoutExpired:
+            return True  # xdg-open resta in attesa finché il browser vive: l'ha preso in carico
+    except Exception:
+        return False
+
+
 def main(argv=None):
     for flusso in (sys.stdout, sys.stderr):
         try:
@@ -1296,11 +1398,15 @@ def main(argv=None):
     ap.add_argument("--cartella", help="la cartella dello studio (se manca: REDACY_CARTELLA, poi risalendo da cwd)")
     ap.add_argument("--porta", type=int, help="la porta (se manca: una porta stabile per cartella)")
     ap.add_argument("--primo-piano", action="store_true", help="resta in primo piano (per .claude/launch.json)")
+    ap.add_argument("--apri", action="store_true", help="dopo averlo acceso apre la pagina nel browser")
     ap.add_argument("--stato", action="store_true", help="dice se il pannello della cartella è acceso")
     ap.add_argument("--spegni", action="store_true", help="spegne il pannello della cartella")
     ap.add_argument("--vista", choices=sorted(VISTE), help="stampa una vista in JSON, senza server")
     ap.add_argument("--inattivo-ore", type=float, default=8.0, help="si spegne dopo N ore senza richieste (0 = mai)")
     args = ap.parse_args(argv)
+    if args.porta is not None and not 1024 <= args.porta <= 65535:
+        sys.stderr.write("Porta non valida: usa un numero da 1024 a 65535.\n")
+        return 2
     cartella = trova_cartella(args.cartella)
     if args.vista:
         print(json.dumps(VISTE[args.vista](cartella), ensure_ascii=False, indent=2))
@@ -1317,7 +1423,12 @@ def main(argv=None):
     info, nuovo = accendi(cartella, args.porta, args.primo_piano, args.inattivo_ore)
     if info is None:  # primo piano: è finito
         return 0
-    print("Il pannello è %s: http://127.0.0.1:%d/" % ("acceso" if nuovo else "già acceso", info["porta"]))
+    indirizzo = "http://127.0.0.1:%d/" % info["porta"]
+    print("Il pannello è %s: %s" % ("acceso" if nuovo else "già acceso", indirizzo))
+    if args.apri:  # dal processo che risponde all'utente, a server già in piedi: mai dal figlio staccato
+        sys.stdout.flush()
+        print("Pagina aperta nel browser." if apri_browser(indirizzo) else
+              "Non ho potuto aprire il browser: apri tu l'indirizzo.")
     return 0
 
 
