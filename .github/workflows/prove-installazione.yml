@@ -192,3 +192,15 @@ jobs:
       - name: bash prove/tutte.sh
         shell: bash
         run: bash prove/ci/lancia-tutte.sh
+
+  portabile-windows:
+    name: prova dei rami Windows · windows-latest
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: prove/windows/prova-portabile.sh
+        shell: bash
+        run: PYTHON=python bash prove/windows/prova-portabile.sh
