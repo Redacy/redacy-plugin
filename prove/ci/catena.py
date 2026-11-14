@@ -260,9 +260,10 @@ def shell_hook():
     if b:
         shells.append(("bash", [b, "-c"]))
     if os.name == "nt":
-        p = shutil.which("pwsh") or shutil.which("powershell")
-        if p:
-            shells.append(("powershell", [p, "-NoProfile", "-NonInteractive", "-Command"]))
+        # PowerShell 5.1 (powershell.exe, quella di serie) e PowerShell 7 (pwsh.exe) sono due programmi diversi: si provano tutte e due
+        for nome, eseguibile in (("powershell-5.1", shutil.which("powershell")), ("pwsh", shutil.which("pwsh"))):
+            if eseguibile:
+                shells.append((nome, [eseguibile, "-NoProfile", "-NonInteractive", "-Command"]))
     deve(shells, "nessuna shell per lanciare gli hook")
     return shells
 
