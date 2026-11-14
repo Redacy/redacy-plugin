@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [macos-latest]
     env:
       PYTHONUTF8: "1"
     steps:
@@ -27,12 +27,6 @@ jobs:
         continue-on-error: true
         run: |
           echo "bash: $(command -v bash) $BASH_VERSION"
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            mkdir -p "$RUNNER_TEMP/bin-python3"
-            printf '#!/bin/sh\nexec python "$@"\n' > "$RUNNER_TEMP/bin-python3/python3"
-            chmod +x "$RUNNER_TEMP/bin-python3/python3"
-            export PATH="$RUNNER_TEMP/bin-python3:$PATH"
-            VERBOSO=1 bash prove/tutte.sh 2>&1 | head -400
-          else
-            bash -x prove/tutte.sh 2>&1 | tail -80
-          fi
+          bash -c 'exec 9>"$RUNNER_TEMP/traccia.txt"; BASH_XTRACEFD=9; set -x; . prove/tutte.sh' 2>&1 | tail -5 || true
+          echo "--- traccia (ultime righe)"
+          tail -60 "$RUNNER_TEMP/traccia.txt"
