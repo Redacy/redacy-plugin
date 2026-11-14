@@ -1,0 +1,38 @@
+# TEMPORANEO: serve a capire perché prove/tutte.sh è rosso su macOS e Windows. Si toglie prima della fine.
+name: diagnosi-tutte
+
+on:
+  push:
+    branches: ["notte-2026-11-14/prove-ci"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnosi:
+    name: diagnosi · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: tutte con la traccia
+        shell: bash
+        continue-on-error: true
+        run: |
+          echo "bash: $(command -v bash) $BASH_VERSION"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mkdir -p "$RUNNER_TEMP/bin-python3"
+            printf '#!/bin/sh\nexec python "$@"\n' > "$RUNNER_TEMP/bin-python3/python3"
+            chmod +x "$RUNNER_TEMP/bin-python3/python3"
+            export PATH="$RUNNER_TEMP/bin-python3:$PATH"
+            VERBOSO=1 bash prove/tutte.sh 2>&1 | head -400
+          else
+            bash -x prove/tutte.sh 2>&1 | tail -80
+          fi

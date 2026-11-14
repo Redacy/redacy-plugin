@@ -124,7 +124,9 @@ def ambiente():
         cfg.append("%s=%s" % (k, r.stdout.strip() or "-"))
     versione = json.load(open(os.path.join(P, ".claude-plugin", "plugin.json"), encoding="utf-8"))["version"]
     STATO["versione"] = versione
-    return "python %s su %s, plugin %s, %s, radice %s" % (sys.version.split()[0], sys.platform, versione, " ".join(cfg), P)
+    nomi = ["%s=%s" % (n, "sì" if shutil.which(n) else "no") for n in ("python", "python3", "py", "git", "bash")]
+    return "python %s su %s, plugin %s, %s, sul PATH: %s, radice %s" % (
+        sys.version.split()[0], sys.platform, versione, " ".join(cfg), " ".join(nomi), P)
 
 
 @passo("1 inizia: crea la cartella (spazi e accento) e la controlla")
