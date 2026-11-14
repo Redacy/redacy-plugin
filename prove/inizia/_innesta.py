@@ -124,7 +124,9 @@ H = os.path.join(BASE, "innesta-rotto-%d" % os.getpid())
 scrivi(H, ".claude/settings.json", "{ non json")
 lancia(H)
 rc, u = lancia(H, "--innesta")
-controllo("un settings.json che non è JSON non viene toccato", rc == 0 and leggi(H, ".claude/settings.json") == b"{ non json", u)
+controllo("un settings.json che non è JSON non viene toccato, e --innesta dice che non lo può sistemare (esce 1, non «0 innestati» muto)",
+          rc == 1 and leggi(H, ".claude/settings.json") == b"{ non json" and "non sistemato: .claude/settings.json" in u
+          and "da sistemare a mano" in u, u)
 
 # --innesta e --aggiorna non creano la cartella
 rc, u = lancia(os.path.join(BASE, "non-c-e"), "--innesta")
@@ -136,8 +138,6 @@ lancia(A)
 scrivi(A, "interfaccia/su-misura.json", '{"titolo": "Il mio studio"}\n')
 with open(os.path.join(A, "memoria", "INDICE.md"), "a", encoding="utf-8") as f:
     f.write("- [[mia]] · una riga dell'utente\n")
-with open(os.path.join(A, "AGENTS.md"), "a", encoding="utf-8") as f:
-    f.write("\nUna riga dell'utente.\n")
 scrivi(A, ".claude/launch.json", '{"version": "0.0.1", "configurations": []}\n')
 p = os.path.join(A, ".agents/script/corsa.py")
 testo = open(p, encoding="utf-8").read()
@@ -170,6 +170,103 @@ rc, u = lancia(A, "--controlla")
 controllo("dopo --aggiorna --controlla è pulito, senza avvisi", rc == 0 and "avviso" not in u, u)
 rc, u = lancia(os.path.join(BASE, "non-c-e"), "--aggiorna")
 controllo("--aggiorna su una cartella che non c'è esce 2 e non crea niente", rc == 2 and not os.path.exists(os.path.join(BASE, "non-c-e")), u)
+
+# ---------------------------------------------------------------- difetti piccoli (prove di rottura #1, #3, #4, #5, #16, #17)
+def lancia_in(cwd, *argomenti):
+    r = subprocess.run([sys.executable, "-I", SCRIPT, *argomenti, "--plugin", RADICE], cwd=cwd,
+                       capture_output=True, text=True, encoding="utf-8")
+    return r.returncode, r.stdout + r.stderr
+
+
+# #5: una cartella vuota non vuol dire «qui»
+V5 = os.path.join(BASE, "vuota5-%d" % os.getpid())
+os.makedirs(V5)
+for arg in ("", "   "):
+    rc, u = lancia_in(V5, arg)
+    controllo("l'argomento cartella %r esce 2 con una riga «errore:» e non scrive niente" % arg,
+              rc == 2 and u.startswith("errore:") and len(u.strip().splitlines()) == 1 and os.listdir(V5) == [], u)
+
+# #16: un BOM in un file JSON non è «JSON non valido»
+B = os.path.join(BASE, "bom-%d" % os.getpid())
+scrivi(B, ".claude/settings.json", b'\xef\xbb\xbf{"permissions": {"allow": ["x"]}}')
+scrivi(B, "periodo/todo.json", b'\xef\xbb\xbf{"versione": "0.3.0", "periodo": "", "todo": []}')
+lancia(B)
+rc, u = lancia(B, "--controlla")
+controllo("--controlla non dice «JSON non valido» per un file con BOM", "JSON non valido" not in u and "BOM" not in u, u)
+
+# #4: un CLAUDE.md che non è UTF-8 si legge sui byte
+L = os.path.join(BASE, "latin1-%d" % os.getpid())
+scrivi(L, "CLAUDE.md", b"# Perch\xe9 s\xec\n")
+rc, u = lancia(L)
+controllo("un CLAUDE.md latin-1 senza @AGENTS.md ha il suo avviso", rc == 0 and any(r.startswith("avviso: CLAUDE.md") for r in u.splitlines()), u)
+rc, u = lancia(L, "--innesta")
+controllo("--innesta lo innesta lasciando intatti i byte di prima",
+          rc == 0 and "esito: 1 innestati" in u and leggi(L, "CLAUDE.md") == b"# Perch\xe9 s\xec\n\n@AGENTS.md\n"
+          and leggi(L, "CLAUDE.md.prima-di-redacy") == b"# Perch\xe9 s\xec\n", u)
+rc, u = lancia(L, "--controlla")
+controllo("poi --controlla è pulito", rc == 0 and "non va" not in u, u)
+L2 = os.path.join(BASE, "latin1-gia-%d" % os.getpid())
+scrivi(L2, "CLAUDE.md", b"# Perch\xe9\n@AGENTS.md\n")
+rc, u = lancia(L2)
+controllo("un CLAUDE.md latin-1 che importa già AGENTS.md non dà avvisi", rc == 0 and "avviso" not in u, u)
+
+# #3: un file degli hook dell'utente che non si può leggere o non ha la forma giusta non passa in silenzio
+for nome, contenuto in (("json-rotto", b'{"permissions": {"allow": ['), ("lista", b"[1, 2]"), ("null", b"null"),
+                         ("hooks-lista", b'{"hooks": []}'), ("vuoto", b"")):
+    for rel in (".claude/settings.json", ".codex/hooks.json"):
+        X = os.path.join(BASE, "hookrotto-%s-%s-%d" % (nome, rel.split("/")[0].strip("."), os.getpid()))
+        scrivi(X, rel, contenuto)
+        rc, u = lancia(X)
+        controllo("%s con «%s»: la creazione dà un avviso che nomina il file" % (rel, nome),
+                  rc == 0 and any(r.startswith("avviso: " + rel) for r in u.splitlines()), u)
+        rc, u = lancia(X, "--controlla")
+        nonva = [r for r in u.splitlines() if r.startswith("non va: " + rel)]
+        controllo("%s con «%s»: --controlla dice «non va:» col file e che cosa fare" % (rel, nome),
+                  rc == 1 and len(nonva) == 1 and "cancellalo" in nonva[0] and "--innesta" in nonva[0], u)
+        prima = leggi(X, rel)
+        rc, u = lancia(X, "--innesta")
+        controllo("%s con «%s»: --innesta non finge: dice che non lo può sistemare, esce 1, non lo tocca" % (rel, nome),
+                  rc == 1 and ("non sistemato: " + rel) in u and leggi(X, rel) == prima
+                  and not os.path.exists(os.path.join(X, rel + ".prima-di-redacy")), u)
+
+# #1: una copia del plugin rovinata (stessa versione, contenuto diverso) o un JSON rotto si vede, e si sa che cosa fare
+R = os.path.join(BASE, "rovinata-%d" % os.getpid())
+lancia(R)
+corsa = os.path.join(R, ".agents/script/corsa.py")
+integro = leggi(R, ".agents/script/corsa.py")
+open(corsa, "wb").write(integro[:300])                      # troncato, ma la testa con la versione c'è
+open(os.path.join(R, ".agents/script/pagina.html"), "wb").write(b"<")   # troncato fino a perdere la testa
+scrivi(R, ".agents/hooks.json", b'{"hooks')
+scrivi(R, ".claude/launch.json", b'{"version"')
+scrivi(R, "periodo/todo.json", b'{"todo": [')
+rc, u = lancia(R, "--controlla")
+righe = u.splitlines()
+controllo("--controlla: una copia troncata (corsa.py) è un «avviso:» che dice «lancia lo stesso script con --aggiorna»",
+          any(r.startswith("avviso: .agents/script/corsa.py è diverso dall'originale") and "--aggiorna" in r for r in righe), u)
+controllo("--controlla: una copia troncata fino a perdere la testa (pagina.html) è segnalata uguale",
+          any(r.startswith("avviso: .agents/script/pagina.html è diverso") for r in righe), u)
+controllo("--controlla: i file del plugin con JSON rotto dicono «cancellalo e rilancia lo script senza opzioni»",
+          all(any(r.startswith("non va: " + f + ": JSON non valido") and "cancellalo e rilancia lo script senza opzioni" in r for r in righe)
+              for f in (".agents/hooks.json", ".claude/launch.json")), u)
+controllo("--controlla: un JSON dell'utente rotto dice «apri il file e correggilo»",
+          any(r.startswith("non va: periodo/todo.json: JSON non valido") and "apri il file e correggilo" in r for r in righe), u)
+rc, u = lancia(R, "--aggiorna")
+controllo("--aggiorna riscrive le due copie rovinate", leggi(R, ".agents/script/corsa.py") == integro
+          and leggi(R, ".agents/script/pagina.html").startswith(b"<!doctype html>") and "esito: 2 aggiornati" in u, u)
+
+# #17: una cartella che non si scrive e non è di Codex non dà la colpa a Codex né propone la riga che rifallirebbe
+if hasattr(os, "geteuid") and os.geteuid() != 0:
+    Q = os.path.join(BASE, "sola-lettura-%d" % os.getpid())
+    os.makedirs(os.path.join(Q, "memoria"))
+    os.chmod(os.path.join(Q, "memoria"), 0o555)
+    rc, u = lancia(Q)
+    os.chmod(os.path.join(Q, "memoria"), 0o755)
+    controllo("memoria/ in sola lettura: esce 3, dice quale cartella e i permessi, senza Codex né riga «comando:»",
+              rc == 3 and "da finire: non riesco a scrivere in memoria/" in u and "permessi" in u
+              and "Codex" not in u and "comando:" not in u, u)
+else:
+    print("salto  cartella in sola lettura (si è root)")
+
 
 print()
 if FALLITE:

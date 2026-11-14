@@ -3,7 +3,8 @@
 # Crea una cartella vuota, lancia crea-cartella.py, controlla l'albero, rilancia e controlla
 # che non sovrascriva nulla. Prova anche la copia degli script delle altre skill (con la
 # versione e l'origine in testa) su un plugin finto, così il risultato non dipende da cosa
-# c'è già nel plugin. Con _innesta.py prova anche --innesta e --aggiorna. Finisce con PASSA o FALLISCE <perché>.
+# c'è già nel plugin. Con _innesta.py prova anche --innesta e --aggiorna, con _altro_computer.py i controlli
+# scritti per un altro computer, con _costituzione.py l'AGENTS.md nuovo. Finisce con PASSA o FALLISCE <perché>.
 #
 # Uso: bash prove/inizia/prova-cartella.sh
 # Le cartelle di prova vanno in $REDACY_PROVE (se c'è), se no in una cartella temporanea.
@@ -165,6 +166,14 @@ python3 -I "$RADICE/prove/inizia/_innesta.py" "$RADICE" "$BASE/innesta-$ORA" > "
 # 12. crea-workspace.py: i percorsi dei dati scritti dal punto di vista del workspace
 python3 -I "$RADICE/prove/inizia/_workspace.py" "$RADICE" "$BASE/workspace-$ORA" > "$BASE/uscita-workspace-$ORA.txt" 2>&1 \
   || { grep -v '^ok' "$BASE/uscita-workspace-$ORA.txt" | head -5; fallisce "_workspace.py: vedi sopra"; }
+
+# 13. I controlli automatici scritti per un altro computer, a capo \n e UTF-8 nelle scritture (ramo Windows forzato con mock)
+python3 -I "$RADICE/prove/inizia/_altro_computer.py" "$RADICE" "$BASE/altro-computer-$ORA" > "$BASE/uscita-altro-computer-$ORA.txt" 2>&1 \
+  || { grep -v '^ok' "$BASE/uscita-altro-computer-$ORA.txt" | head -5; fallisce "_altro_computer.py: vedi sopra"; }
+
+# 14. La costituzione nuova: --aggiorna porta AGENTS.md (con la copia di prima), --controlla lo dice (C3)
+python3 -I "$RADICE/prove/inizia/_costituzione.py" "$RADICE" "$BASE/costituzione-$ORA" > "$BASE/uscita-costituzione-$ORA.txt" 2>&1 \
+  || { grep -v '^ok' "$BASE/uscita-costituzione-$ORA.txt" | head -5; fallisce "_costituzione.py: vedi sopra"; }
 
 echo "cartella di prova: $D"
 echo "PASSA"
