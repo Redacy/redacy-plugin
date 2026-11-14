@@ -27,6 +27,6 @@ jobs:
         continue-on-error: true
         run: |
           echo "bash: $(command -v bash) $BASH_VERSION"
-          bash -c 'exec 9>"$RUNNER_TEMP/traccia.txt"; BASH_XTRACEFD=9; set -x; . prove/tutte.sh' 2>&1 | tail -5 || true
+          BASH_XTRACEFD=9 bash -x prove/tutte.sh 9>"$RUNNER_TEMP/traccia.txt" 2>&1 | tail -3 || true
           echo "--- traccia (ultime righe)"
-          tail -60 "$RUNNER_TEMP/traccia.txt"
+          grep -n "copie_con_versione" "$RUNNER_TEMP/traccia.txt" | head -3; awk '/^\+ copie_con_versione/{f=1} f' "$RUNNER_TEMP/traccia.txt" | head -40
