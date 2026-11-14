@@ -38,8 +38,8 @@ prova_rotto() { # nome file_base sostituzione_python messaggio_atteso
   mkdir -p "$P/rotti/$nome/periodo"
   python3 - "$base" "$P/rotti/$nome/periodo/$nomefile" "$py" <<'PY'
 import json, sys
-d = json.load(open(sys.argv[1])); exec(sys.argv[3])
-open(sys.argv[2], "w").write(json.dumps(d, ensure_ascii=False) if not d == "RAW" else "{ non json")
+d = json.load(open(sys.argv[1], encoding="utf-8")); exec(sys.argv[3])
+open(sys.argv[2], "w", encoding="utf-8").write(json.dumps(d, ensure_ascii=False) if not d == "RAW" else "{ non json")
 PY
   local uscita rc
   uscita="$(python3 "$C" "$P/rotti/$nome/periodo/$nomefile" 2>&1)"; rc=$?
@@ -64,8 +64,8 @@ prova_rotto id-idea-storto "$I" 'd["idee"][0]["id"]="x1"' "non ha la forma giust
 mkdir -p "$P/rotti/todo-inesistente/periodo"; cp "$T" "$P/rotti/todo-inesistente/periodo/todo.json"
 python3 - "$I" "$P/rotti/todo-inesistente/periodo/idee.json" <<'PY'
 import json, sys
-d = json.load(open(sys.argv[1])); d["idee"][1]["esito"]["todo"] = "t9"
-open(sys.argv[2], "w").write(json.dumps(d, ensure_ascii=False))
+d = json.load(open(sys.argv[1], encoding="utf-8")); d["idee"][1]["esito"]["todo"] = "t9"
+open(sys.argv[2], "w", encoding="utf-8").write(json.dumps(d, ensure_ascii=False))
 PY
 out="$(python3 "$C" "$P/rotti/todo-inesistente/periodo/idee.json" 2>&1)"; rc=$?
 [ "$rc" = 1 ] && echo "$out" | grep -qF "non c'è in todo.json" || fallisce "todo-inesistente: rc=$rc $out"

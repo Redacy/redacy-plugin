@@ -185,7 +185,8 @@ sed 's/^innesco: {tipo: parola}/innesco: {tipo: orario}/; s/^tetti: .*/tetti: {c
 deve_fallire "innesco orario senza quando" "$T/orario-senza-quando.yaml" "quando" "orario"
 
 # 7. campo sconosciuto
-sed 's/^versione: 1/versione: 1\ncolore: blu/; s/^grafo: prova-base/grafo: campo-sconosciuto/' "$BASE" > "$T/campo-sconosciuto.yaml"
+# (awk e non sed 's/…\n…/': il sed di macOS non legge \n nel testo che sostituisce)
+awk '{ print } /^versione: 1$/ { print "colore: blu" }' "$BASE" | sed 's/^grafo: prova-base/grafo: campo-sconosciuto/' > "$T/campo-sconosciuto.yaml"
 deve_fallire "campo sconosciuto" "$T/campo-sconosciuto.yaml" "colore" "sconosciuto" "campo-sconosciuto.yaml:3:"
 
 # 8. tabulazione nel rientro
