@@ -124,7 +124,7 @@ Le parole di questa skill sono per te. All'utente dici le sue:
 ## Regole
 
 - Non toccare `periodo/obiettivo.md`. Una correzione sul modo di lavorare non cambia l'obiettivo: lo cambia solo l'utente, con `pianifica-periodo`.
-- Non scrivere in `periodo/todo.json` e non toccare le idee già scritte in `periodo/idee.json`. Se l'utente butta lì un'idea nuova, scrivila in `periodo/idee.json` come dice `AGENTS.md`: una voce con `id` (`i` e il numero più alto più uno), `idea` con le sue parole, `da_dove` e `arrivata` (la data di oggi, `AAAA-MM-GG`), senza `esito`. Poi lancia `python3 .agents/hooks/controlla-periodo.py periodo/idee.json` (deve uscire 0), di' in una riga che l'idea aspetta e torna al lavoro. La pesa `pianifica-periodo`, più avanti: non la inseguire adesso.
+- Non scrivere in `periodo/todo.json` e non toccare le idee già scritte in `periodo/idee.json`. Se l'utente butta lì un'idea nuova, scrivila in `periodo/idee.json` come dice `AGENTS.md`: una voce con `id` (`i` e il numero più alto più uno), `idea` con le sue parole, `da_dove` e `arrivata` (la data di oggi, `AAAA-MM-GG`), senza `esito`. Poi lancia `python3 .agents/hooks/controlla-periodo.py periodo/idee.json` (deve uscire 0). Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`. Di' in una riga che l'idea aspetta e torna al lavoro. La pesa `pianifica-periodo`, più avanti: non la inseguire adesso.
 - Scrivi solo ciò che l'utente ha detto. Non inventare.
 - Niente dati di persone fisiche non necessari: chiedi prima. Per un cliente basta il ruolo o la sigla che usa l'utente.
 - Frasi corte, parole del professionista, non le tue.

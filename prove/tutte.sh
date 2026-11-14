@@ -113,6 +113,7 @@ validate() {
 }
 
 prova "coerenza dei manifesti e delle skill" coerenza
+prova "coerenza: i testi e le promesse" bash "$RADICE/prove/coerenza/prova-testi.sh"
 prova "le copie nella cartella portano la versione" copie_con_versione
 prova "claude plugin validate" validate
 prova "grafi: il controllo" bash "$RADICE/prove/grafi/prova-controllo.sh"

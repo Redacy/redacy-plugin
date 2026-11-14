@@ -2,7 +2,7 @@
 
 **Trasforma Claude o ChatGPT in un agente sempre attivo per il tuo studio.** Sa dove stanno i tuoi dati, li tiene in ordine, porta avanti i lavori che si ripetono e ti mostra tutto in un pannello sul tuo computer.
 
-Gratuito, per Claude Code e per Codex. Ti serve solo l'abbonamento a Claude o a ChatGPT che usi già.
+Gratuito, per l'app di Claude e per Codex. Ti serve l'abbonamento che usi già: Claude con un piano a pagamento (Pro, Max o Team) oppure ChatGPT.
 
 *In English: a free plugin that turns Claude or ChatGPT into an always-on agent for a small professional firm. It knows where your data lives, keeps it tidy, runs the jobs that repeat, and shows everything in a dashboard on your own computer. The plugin speaks Italian.*
 
@@ -22,27 +22,43 @@ Commercialisti, studi tecnici, consulenti e piccole aziende con lavori che si ri
 
 ## Come si installa
 
-Claude Code:
+**Nell'app di Claude** (schede Cowork e Code): apri `Customize`, poi `Plugins`, `Add`, `Add marketplace`, `Add from a repository`, e scrivi `Redacy/redacy-plugin`. Poi in `Discover` scegli Redacy e premi `Add`.
+
+I comandi si scrivono nel terminale (su Windows: PowerShell).
+
+**Claude Code da terminale:**
 
 ```
 claude plugin marketplace add Redacy/redacy-plugin
 claude plugin install redacy@redacy
 ```
 
-Codex (0.164 o successivo):
+**Codex** (app e terminale, 0.164 o successivo). Lancia una volta nel terminale:
 
 ```
 codex plugin marketplace add Redacy/redacy-plugin
 codex plugin add redacy@redacy
 ```
 
-Serve Python 3 sul computer, nient'altro da installare. Funziona su macOS, Windows e Linux.
+Poi lo trovi in `Plugins`, anche nell'app Codex.
+
+Serve Python 3 sul computer. Se manca (su Windows succede spesso), `inizia` te lo dice e ti guida a installarlo: è gratuito e ci vuole un minuto. Nient'altro da installare.
+
+Funziona su macOS e Windows; da terminale anche su Linux.
 
 ## Come si parte
 
-Apri Claude Code o Codex nella cartella del tuo studio, o in una cartella vuota, e scrivi `/redacy:inizia`. Su Codex scrivi: «usa la skill redacy:inizia».
+Apri Claude o Codex nella cartella del tuo studio, o in una cartella vuota, e scrivi `/redacy:inizia`. Su Codex scrivi: «usa la skill redacy:inizia».
 
 In una decina di minuti `inizia` prepara la cartella, ti chiede quali lavori vuoi affidare a un agente e dove stanno dati e procedure, crea i primi agenti e apre il pannello. I tuoi file restano dove sono.
+
+## Come si aggiorna e come si toglie
+
+Per aggiornare, con Claude: `claude plugin marketplace update redacy` e poi `claude plugin update redacy@redacy`, oppure in Claude Code `/plugin`, `Installed`, Redacy, `Update now`. Con Codex: `codex plugin marketplace upgrade redacy`, poi di nuovo `codex plugin add redacy@redacy`.
+
+Alla prima apertura dopo un aggiornamento l'agente rinfresca da solo i suoi strumenti e le sue regole di base nella cartella dello studio. Memoria, periodo e file non li tocca.
+
+Per toglierlo: `claude plugin uninstall redacy@redacy` oppure `codex plugin remove redacy@redacy`. La cartella dello studio resta lì: è tua.
 
 ## I comandi
 
@@ -83,11 +99,11 @@ Nome, colori, sfondo e ordine delle finestre si adattano al tuo studio: basta ch
 
 - **Lavori programmati.** Per far partire un processo da solo, `programma` usa le attività programmate di Claude o le automazioni di Codex.
 - **Su Codex.** `inizia` ti dà una riga da lanciare una volta nel terminale: finisce la cartella e accende il pannello. I controlli automatici partono dopo che li approvi con `/hooks`, una volta per cartella.
-- **Su Windows.** Controlla che Python ci sia davvero: `python --version` deve rispondere `3.x`. Il supporto a Windows è recente: se qualcosa non va, scrivici.
+- **Su Windows.** Il plugin usa `python` (o `py -3`), non `python3`: `inizia` controlla da solo quale c'è. Se dopo aver installato Claude Code il comando `claude` non si trova, aggiungi al PATH la cartella `%USERPROFILE%\.local\bin`, come dice l'installazione, e riapri il terminale. Se qualcosa non va, scrivici.
 
 ## Serve una mano?
 
-Il bottone «Supporto umano» del pannello ti porta su [redacy.com/contatti](https://redacy.com/contatti), dove prenoti mezz'ora con noi. Se vuoi che lo impostiamo insieme sul tuo studio, o un agente gestito da noi, partiamo da lì. Per un difetto del plugin apri una [segnalazione](https://github.com/Redacy/redacy-plugin/issues).
+Il bottone «Supporto umano» del pannello apre un foglio con il riepilogo del tuo studio; da lì «Richiedi supporto umano» ti porta su [redacy.com/contatti](https://redacy.com/contatti), dove prenoti mezz'ora con noi. Se vuoi che lo impostiamo insieme sul tuo studio, o un agente gestito da noi, partiamo da lì. Per un difetto del plugin apri una [segnalazione](https://github.com/Redacy/redacy-plugin/issues).
 
 ## Licenza
 

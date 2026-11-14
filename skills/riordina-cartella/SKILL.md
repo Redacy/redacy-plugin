@@ -12,8 +12,8 @@ Parla come dice `.agents/regole/testi-per-persone.md`. Con l'utente: «il piano�
 ## Gli script
 
 - `riordina.py`: su Claude `python3 "${CLAUDE_PLUGIN_ROOT}/skills/riordina-cartella/scripts/riordina.py" <comando> <file>`; su Codex il file `scripts/riordina.py` accanto a questo `SKILL.md`, con lo stesso comando.
-- `inventario.py` (della skill `ordina-dati`): su Claude `python3 "${CLAUDE_PLUGIN_ROOT}/skills/ordina-dati/scripts/inventario.py" <cartella>`; su Codex `../ordina-dati/scripts/inventario.py` a partire dalla cartella di questa skill.
-- Su Windows, se `python3` non risponde, usa `py` o `python` con gli stessi argomenti.
+- `inventario.py` (della skill `ordina-dati`): su Claude `python3 "${CLAUDE_PLUGIN_ROOT}/skills/ordina-dati/scripts/inventario.py" "<cartella>"`; su Codex `../ordina-dati/scripts/inventario.py` a partire dalla cartella di questa skill.
+- Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
 
 Il formato del piano, i controlli e le uscite stanno in `references/piano.md`. Leggilo prima di scrivere il piano.
 
@@ -25,7 +25,7 @@ Non si riordina mai: una cartella di sistema, la cartella dell'utente intera, le
 
 ## Passo 2. L'inventario
 
-Lancia `inventario.py <cartella> --testo` e, per scrivere il piano, `inventario.py <cartella> --elenco`. I numeri che dici vengono da lì. Mostra in chat al più cinque righe: quanti file e cartelle, come sono nominati, i doppioni, i nomi da sistemare, le cartelle vuote.
+Lancia `inventario.py "<cartella>" --testo` e, per scrivere il piano, `inventario.py "<cartella>" --elenco`. I numeri che dici vengono da lì. Mostra in chat al più cinque righe: quanti file e cartelle, come sono nominati, i doppioni, i nomi da sistemare, le cartelle vuote.
 
 Se l'inventario dice che ha guardato solo i primi file, dillo e proponi di riordinare una sottocartella alla volta.
 

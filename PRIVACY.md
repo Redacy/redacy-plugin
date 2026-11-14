@@ -14,12 +14,13 @@ Niente. Il plugin non ha telemetria, non ha un account e non parla con nessun se
 
 ## Cosa passa da altri
 
-- I testi che l'agente legge per lavorare passano dal servizio AI che usi (Claude Code di Anthropic o Codex di OpenAI), alle condizioni e con le impostazioni di quel servizio. Redacy non li vede.
+- I testi che l'agente legge per lavorare passano dal servizio AI che usi (Claude di Anthropic o Codex di OpenAI), alle condizioni e con le impostazioni di quel servizio. Redacy non li vede.
 - I collegamenti a posta, calendario, archivi o gestionali li attivi tu, con gli strumenti di Claude Code o di Codex, e valgono le loro condizioni. Il plugin li usa in sola lettura.
+- Se sul computer manca Python, l'agente propone di installarlo dal Microsoft Store o dal sito ufficiale di Python. Lo scarichi da loro, alle loro condizioni, e il plugin non manda niente.
 
 ## Il supporto umano
 
-Il bottone «Richiedi supporto umano» del pannello apre `https://redacy.com/contatti`, dove si prenota un appuntamento, e prepara un riepilogo dello studio (il nome dello studio, l'obiettivo, i nomi di aree e processi, i numeri, l'ultimo problema). Il riepilogo lo incolli tu nella richiesta, se vuoi. Da solo il plugin non manda niente.
+Il bottone «Supporto umano» del pannello apre un foglio con un riepilogo dello studio (il nome dello studio, l'obiettivo, i nomi di aree e processi, i numeri, l'ultimo problema). Il bottone «Richiedi supporto umano», dentro il foglio, apre `https://redacy.com/contatti`, dove si prenota un appuntamento. Il riepilogo lo incolli tu nella richiesta, se vuoi. Da solo il plugin non manda niente.
 
 ## Contatti
 

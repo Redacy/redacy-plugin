@@ -5,7 +5,7 @@ description: Accende il pannello dello studio (una pagina nel browser, solo sul 
 
 # Pannello
 
-Il pannello è la pagina dello studio: vedi cosa sta girando, cosa aspetta te e cosa sa lo studio. È una scrivania con finestre: cinque finestre (Oggi, Processi, Periodo, Memoria, Aree) in miniatura, vive, con in basso un dock per aprirle; su schermi larghi se ne possono tenere due affiancate, sul telefono si vede una finestra alla volta. Si apre sulla scrivania, con una frase che dice cosa tocca all'utente. Dentro Oggi: cosa tocca all'utente, cosa c'è da guardare, cosa sta lavorando, a che punto è il periodo e le frasi che può dire all'agente. Ogni cosa si apre fino al file da cui viene. Mostra e basta. Ha un solo gesto sulle esecuzioni, «Ferma», e un bottone «Richiedi supporto umano» che prepara un riepilogo e apre `https://redacy.com`: da lì non parte niente.
+Il pannello è la pagina dello studio: vedi cosa sta girando, cosa aspetta te e cosa sa lo studio. È una scrivania con finestre: cinque finestre (Oggi, Processi, Periodo, Memoria, Aree) in miniatura, vive, con in basso un dock per aprirle; su schermi larghi se ne possono tenere due affiancate, sul telefono si vede una finestra alla volta. Si apre sulla scrivania, con una frase che dice cosa tocca all'utente. Dentro Oggi: cosa tocca all'utente, cosa c'è da guardare, cosa sta lavorando, a che punto è il periodo e le frasi che può dire all'agente. Ogni cosa si apre fino al file da cui viene. Mostra e basta. Ha un solo gesto sulle esecuzioni, «Ferma», e un bottone «Supporto umano» in alto che apre un foglio con il riepilogo dello studio; nel foglio, «Richiedi supporto umano» apre `https://redacy.com/contatti`: da lì non parte niente.
 
 Gira sul computer dell'utente, su `127.0.0.1`, legge solo la cartella dello studio e non chiama né Claude né Codex. C'è un pannello solo per cartella: se è già acceso, questa skill dà l'indirizzo di quello.
 
@@ -15,16 +15,17 @@ Dici «il pannello», «una pagina nel browser, solo sul tuo computer». Per le 
 
 ## Passi
 
-1. **Sii nella cartella dello studio** (quella con `AGENTS.md`). Se non lo sei, passa `--cartella <percorso>`.
-2. **Accendi o riusa il pannello.** Prima guarda se le copie degli strumenti nella cartella sono vecchie: `python3 "${CLAUDE_PLUGIN_ROOT}/skills/inizia/scripts/crea-cartella.py" <cartella dello studio> --controlla` (su Codex `../inizia/scripts/crea-cartella.py` a partire dalla cartella di questa skill). Se dice con un `avviso:` che sono di una versione più vecchia del plugin, rilancialo con `--aggiorna` (la pagina e lo script del pannello si rinfrescano; la cartella non cambia in altro) e solo dopo accendi. Se un pannello è già acceso con la pagina vecchia, spegnilo (passo 6) e riaccendilo.
+1. **Sii nella cartella dello studio** (quella con `AGENTS.md`). Se non lo sei, passa `--cartella "<percorso>"`.
+2. **Accendi o riusa il pannello.** Prima guarda se le copie degli strumenti nella cartella sono vecchie: `python3 "${CLAUDE_PLUGIN_ROOT}/skills/inizia/scripts/crea-cartella.py" "<cartella dello studio>" --controlla` (su Codex `../inizia/scripts/crea-cartella.py` a partire dalla cartella di questa skill). Se dice con un `avviso:` che sono di una versione più vecchia del plugin, che i controlli automatici sono scritti per un altro computer o che `AGENTS.md` è di una versione vecchia, rilancialo con `--aggiorna` (la pagina e lo script del pannello si rinfrescano; memoria, periodo e regole non si toccano; se `AGENTS.md` cambia, la copia di prima resta accanto) e solo dopo accendi. Se un pannello è già acceso con la pagina vecchia, spegnilo (passo 6) e riaccendilo.
    Lo script sta nella cartella di questa skill, in `scripts/pannello.py`. Su Claude il percorso è `${CLAUDE_SKILL_DIR}/scripts/pannello.py`; su Codex è `scripts/pannello.py` nella cartella della skill. Se esiste, vale anche la copia in `.agents/script/pannello.py` della cartella dello studio. Scrivi sempre il percorso fra virgolette: può avere spazi (su Windows `C:\Users\Maria Rossi\...`).
    ```
-   python3 "<percorso>/pannello.py"
+   python3 "<percorso>/pannello.py" --apri
    ```
-   Stampa «Il pannello è acceso: http://127.0.0.1:…/» oppure «già acceso» con lo stesso indirizzo.
+   Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
+   Stampa «Il pannello è acceso: http://127.0.0.1:…/» oppure «già acceso» con lo stesso indirizzo. `--apri` apre la pagina nel browser del computer, e una seconda riga dice com'è andata: «Pagina aperta nel browser.» oppure «Non ho potuto aprire il browser: apri tu l'indirizzo.». Di' all'utente quello che è successo davvero, e l'indirizzo intero daglielo comunque.
 3. **Dai l'indirizzo** e dici dove si apre:
-   - Nell'app di Claude Code il pannello si apre da solo nel browser interno, dal menu dei server della cartella («pannello redacy», voce di `.claude/launch.json`). Se non c'è, apri l'indirizzo nel browser.
-   - In Codex e nel terminale apri l'indirizzo nel browser.
+   - Nell'app di Claude si può aprire anche dal menu dei server della cartella («pannello redacy», voce di `.claude/launch.json`).
+   - Altrove l'utente apre l'indirizzo nel browser, se `--apri` non l'ha già fatto.
 4. **Spiega in tre frasi**, solo la prima volta:
    «Ti ho aperto il pannello: una pagina nel browser, solo sul tuo computer. Lì vedi cosa sta girando, cosa aspetta te e cosa sa lo studio. Se un lavoro va fermato c'è il bottone Ferma; per il resto il pannello mostra e basta.»
 5. **La prima volta, le scelte su misura.** Se nella cartella non c'è `interfaccia/su-misura.json`, copialo da `modello/su-misura.json` di questa skill e adattalo all'utente: il nome dello studio, la finestra grande sulla scrivania, l'ordine, lo sfondo, il tema, il colore. Come si sceglie e cosa non si tocca: `references/su-misura.md`.
@@ -40,6 +41,7 @@ Se l'utente vuole il pannello diverso (prima i processi, il colore dello studio,
 - «Non trovo la cartella dello studio»: non sei nella cartella giusta. Chiedi all'utente dov'è.
 - Una pagina che non si apre o resta vuota: guarda `interfaccia/pannello.log` e dì all'utente in una riga cosa c'è scritto.
 - Il pannello si spegne da solo dopo otto ore senza che nessuno lo guardi. Riaccenderlo è lo stesso comando.
+- Se dopo due tentativi non parte, vedi «Se non se ne esce» della skill `inizia`: una riga su cosa non va e cosa hai provato, e una volta sola «Se vuoi lo sistemiamo insieme: su redacy.com/contatti prenoti mezz'ora con una persona di Redacy.»
 
 ## Cosa legge il pannello (per te, non da dire)
 

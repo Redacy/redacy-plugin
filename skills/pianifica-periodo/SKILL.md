@@ -68,6 +68,8 @@ Lancia il controllo su entrambi i file:
     python3 .agents/hooks/controlla-periodo.py periodo/todo.json
     python3 .agents/hooks/controlla-periodo.py periodo/idee.json
 
+Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
+
 Nel plugin lo stesso script sta in `skills/pianifica-periodo/scripts/`. Se esce 1, leggi il messaggio, correggi il file e rilancia. Non dire "fatto" finché non esce 0.
 
 Poi aggiungi in fondo a `memoria/LOG.md`, senza riscrivere le righe sopra, una riga come questa:

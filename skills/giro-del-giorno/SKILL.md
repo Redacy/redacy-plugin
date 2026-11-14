@@ -47,6 +47,8 @@ Se hai scritto in `periodo/todo.json`, lancia:
 
     python3 .agents/hooks/controlla-periodo.py periodo/todo.json
 
+Su Windows, al posto di `python3` usa `python`; se non risponde, `py -3`.
+
 Nel plugin lo script sta in `skills/pianifica-periodo/scripts/`. Se esce 1, correggi e rilancia. Se non hai scritto niente, il controllo non serve.
 
 Se hai segnato qualcosa, aggiungi in fondo a `memoria/LOG.md` una riga, senza riscrivere le altre:
