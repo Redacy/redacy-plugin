@@ -12,9 +12,25 @@ import tempfile
 import types
 from unittest import mock
 
+try:  # su Windows la console può essere cp1252: i messaggi in italiano non devono far morire la prova
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, ValueError):
+    pass
+
+try:  # solo Unix: su Windows non c'è
+    import fcntl
+except ImportError:
+    fcntl = None
+
 RADICE, BASE = sys.argv[1], sys.argv[2]
 os.makedirs(BASE, exist_ok=True)
 FALLITE = []
+WINDOWS_VERO = os.name == "nt"
+# Quello che serve ai controlli che lanciano un processo vero con le funzioni di Unix (lucchetto con flock,
+# waitpid, SIGKILL). Su Windows vero, o dove questi pezzi mancano, quei controlli si saltano.
+HA_UNIX = (not WINDOWS_VERO and fcntl is not None and hasattr(os, "WNOHANG") and hasattr(signal, "SIGKILL"))
+# Su Windows os.kill(pid, sig) termina il processo con qualunque sig: per i processi di prova basta SIGTERM.
+SIGKILL = getattr(signal, "SIGKILL", signal.SIGTERM)
 
 
 def carica(nome, rel):
@@ -22,6 +38,11 @@ def carica(nome, rel):
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
+
+
+def salto(descrizione, motivo="solo Unix"):
+    """Un controllo che qui non ha senso: non conta come fallimento."""
+    print("salto     %s (%s)" % (descrizione, motivo))
 
 
 def controllo(descrizione, ok, dettaglio=""):
@@ -73,12 +94,15 @@ with mock.patch.dict(sys.modules, {"msvcrt": finto}), mock.patch.object(corsa, "
 controllo("corsa.lucchetto() usa lo stesso ramo", finto.chiamate == [(1, 1), (0, 1)], finto.chiamate)
 
 # il lucchetto Unix funziona ancora (due processi non entrano insieme)
-with corsa.lucchetto(os.path.join(BASE, ".unix.lock")):
-    r = subprocess.run([sys.executable, "-I", "-c",
-                        "import fcntl,os,sys;fd=os.open(sys.argv[1],os.O_RDWR);"
-                        "fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)", os.path.join(BASE, ".unix.lock")],
-                       capture_output=True)
-controllo("macOS/Linux: il lucchetto con fcntl tiene fuori un altro processo", r.returncode != 0)
+if HA_UNIX:
+    with corsa.lucchetto(os.path.join(BASE, ".unix.lock")):
+        r = subprocess.run([sys.executable, "-I", "-c",
+                            "import fcntl,os,sys;fd=os.open(sys.argv[1],os.O_RDWR);"
+                            "fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)", os.path.join(BASE, ".unix.lock")],
+                           capture_output=True)
+    controllo("macOS/Linux: il lucchetto con fcntl tiene fuori un altro processo", r.returncode != 0)
+else:
+    salto("macOS/Linux: il lucchetto con fcntl tiene fuori un altro processo")
 
 
 # 3. pid_vivo su Windows: kernel32 finto, e os.kill non viene mai chiamato
@@ -126,78 +150,80 @@ try:
         controllo("pid_vivo: un pid non valido è morto", pannello.pid_vivo(0) is False and pannello.pid_vivo("x") is False)
 except AssertionError as e:
     controllo("pid_vivo Windows non chiama os.kill", False, e)
-controllo("pid_vivo su Linux: il proprio pid è vivo, uno inesistente no", pannello.pid_vivo(os.getpid()) and not pannello.pid_vivo(2 ** 22 + 12345))
+controllo("pid_vivo sul sistema vero: il proprio pid è vivo, uno inesistente no", pannello.pid_vivo(os.getpid()) and not pannello.pid_vivo(2 ** 22 + 12345))
 
 class MsvcrtConFlock(MsvcrtFinto):
     """msvcrt finto che blocca davvero (con flock): se il genitore non rilascia il lucchetto, il figlio resta fermo."""
 
     def locking(self, fd, modo, n):
-        import fcntl
         fcntl.flock(fd, fcntl.LOCK_EX if modo == self.LK_LOCK else fcntl.LOCK_UN)
 
 
 # 4. il pannello parte senza fork (Popen staccato), si riconosce, si spegne
-studio = os.path.join(BASE, "studio")
-os.makedirs(os.path.join(studio, "grafi"), exist_ok=True)
-open(os.path.join(studio, "AGENTS.md"), "w").write("# prova\n")
-FLAG = 0x00000008 | 0x00000200 | 0x08000000
-visti = {}
-popen_vero = subprocess.Popen
+if HA_UNIX:
+    studio = os.path.join(BASE, "studio")
+    os.makedirs(os.path.join(studio, "grafi"), exist_ok=True)
+    open(os.path.join(studio, "AGENTS.md"), "w", encoding="utf-8").write("# prova\n")
+    FLAG = 0x00000008 | 0x00000200 | 0x08000000
+    visti = {}
+    popen_vero = subprocess.Popen
 
 
-def popen_finto(cmd, **kw):
-    visti["cmd"], visti["flag"] = cmd, kw.pop("creationflags", None)
-    visti["stdin"] = kw.get("stdin")
-    return popen_vero(cmd, start_new_session=True, **kw)  # su Linux il distacco lo fa la sessione nuova
+    def popen_finto(cmd, **kw):
+        visti["cmd"], visti["flag"] = cmd, kw.pop("creationflags", None)
+        visti["stdin"] = kw.get("stdin")
+        return popen_vero(cmd, start_new_session=True, **kw)  # su Linux il distacco lo fa la sessione nuova
 
 
-def fork_vietato(*a):
-    raise AssertionError("os.fork chiamato su Windows")
+    def fork_vietato(*a):
+        raise AssertionError("os.fork chiamato su Windows")
 
 
-def _vivo_unix(pid):
-    with contextlib.suppress(ChildProcessError):
-        os.waitpid(pid, os.WNOHANG)  # il figlio finito resta zombie finché non lo si raccoglie
+    def _vivo_unix(pid):
+        with contextlib.suppress(ChildProcessError):
+            os.waitpid(pid, os.WNOHANG)  # il figlio finito resta zombie finché non lo si raccoglie
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        return True
+
+
     try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
-    return True
-
-
-try:
-    with mock.patch.dict(sys.modules, {"msvcrt": MsvcrtConFlock()}), \
-         mock.patch.object(pannello, "su_windows", lambda: True), \
-         mock.patch.object(pannello, "pid_vivo_windows", _vivo_unix), \
-         mock.patch.object(subprocess, "Popen", popen_finto), \
-         mock.patch.object(os, "fork", fork_vietato), \
-         mock.patch.object(os, "setsid", fork_vietato):
-        info, nuovo = pannello.accendi(studio, None, False, 1.0)
-        controllo("pannello Windows: parte senza os.fork e dice che è nuovo", nuovo is True and info["porta"])
-        controllo("pannello Windows: Popen con DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW",
-                  visti.get("flag") == FLAG, visti.get("flag"))
-        controllo("pannello Windows: il figlio rilancia questo file in primo piano, con la porta e le ore",
-                  visti["cmd"][1].endswith("pannello.py") and "--primo-piano" in visti["cmd"]
-                  and visti["cmd"][visti["cmd"].index("--porta") + 1] == str(info["porta"])
-                  and "--inattivo-ore" in visti["cmd"], visti["cmd"])
-        controllo("pannello Windows: il figlio non legge dal terminale", visti["stdin"] == subprocess.DEVNULL)
-        scritto = json.load(open(os.path.join(studio, "interfaccia", "pannello.json")))
-        controllo("pannello Windows: pannello.json ha porta, pid e gettone", scritto["porta"] == info["porta"]
-                  and isinstance(scritto["pid"], int) and len(scritto["gettone"]) >= 20)
-        url = "http://127.0.0.1:%d/" % info["porta"]
-        controllo("pannello Windows: rispondere due volte riusa quello acceso",
-                  pannello.accendi(studio, None, False, 1.0)[1] is False)
-        pid = scritto["pid"]
-        pannello.spegni(studio)
-        controllo("pannello Windows: spegni ferma il processo e non lascia pannello.json",
-                  not _vivo_unix(pid) and not os.path.exists(os.path.join(studio, "interfaccia", "pannello.json")))
-except AssertionError as e:
-    controllo("pannello Windows senza fork", False, e)
-finally:
-    p = os.path.join(studio, "interfaccia", "pannello.json")
-    if os.path.exists(p):
-        with contextlib.suppress(Exception):
-            os.kill(json.load(open(p))["pid"], signal.SIGKILL)
+        with mock.patch.dict(sys.modules, {"msvcrt": MsvcrtConFlock()}), \
+             mock.patch.object(pannello, "su_windows", lambda: True), \
+             mock.patch.object(pannello, "pid_vivo_windows", _vivo_unix), \
+             mock.patch.object(subprocess, "Popen", popen_finto), \
+             mock.patch.object(os, "fork", fork_vietato, create=True), \
+             mock.patch.object(os, "setsid", fork_vietato, create=True):
+            info, nuovo = pannello.accendi(studio, None, False, 1.0)
+            controllo("pannello Windows: parte senza os.fork e dice che è nuovo", nuovo is True and info["porta"])
+            controllo("pannello Windows: Popen con DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW",
+                      visti.get("flag") == FLAG, visti.get("flag"))
+            controllo("pannello Windows: il figlio rilancia questo file in primo piano, con la porta e le ore",
+                      visti["cmd"][1].endswith("pannello.py") and "--primo-piano" in visti["cmd"]
+                      and visti["cmd"][visti["cmd"].index("--porta") + 1] == str(info["porta"])
+                      and "--inattivo-ore" in visti["cmd"], visti["cmd"])
+            controllo("pannello Windows: il figlio non legge dal terminale", visti["stdin"] == subprocess.DEVNULL)
+            scritto = json.load(open(os.path.join(studio, "interfaccia", "pannello.json"), encoding="utf-8"))
+            controllo("pannello Windows: pannello.json ha porta, pid e gettone", scritto["porta"] == info["porta"]
+                      and isinstance(scritto["pid"], int) and len(scritto["gettone"]) >= 20)
+            url = "http://127.0.0.1:%d/" % info["porta"]
+            controllo("pannello Windows: rispondere due volte riusa quello acceso",
+                      pannello.accendi(studio, None, False, 1.0)[1] is False)
+            pid = scritto["pid"]
+            pannello.spegni(studio)
+            controllo("pannello Windows: spegni ferma il processo e non lascia pannello.json",
+                      not _vivo_unix(pid) and not os.path.exists(os.path.join(studio, "interfaccia", "pannello.json")))
+    except AssertionError as e:
+        controllo("pannello Windows senza fork", False, e)
+    finally:
+        p = os.path.join(studio, "interfaccia", "pannello.json")
+        if os.path.exists(p):
+            with contextlib.suppress(Exception):
+                os.kill(json.load(open(p, encoding="utf-8"))["pid"], SIGKILL)
+else:
+    salto("pannello Windows: parte senza os.fork (Popen staccato), si riconosce, si spegne (7 controlli: servono fcntl, waitpid e un processo vero)")
 
 # spegni con un server che muore di colpo (come TerminateProcess): pannello.json va tolto da spegni
 studio2 = os.path.join(BASE, "studio2")
@@ -210,7 +236,7 @@ kill_vero = os.kill
 
 def uccidi(pid, sig):
     uccisi.append(sig)
-    kill_vero(pid, signal.SIGKILL)
+    kill_vero(pid, SIGKILL)
     proc.wait()
 
 
@@ -222,21 +248,23 @@ with mock.patch.object(pannello, "su_windows", lambda: True), \
 controllo("spegni Windows: dopo la terminazione toglie pannello.json", not os.path.exists(pannello.percorso_info(studio2)) and uccisi)
 
 # 5. launch.json: python3 su Unix, il Python che gira su Windows
-controllo("launch.json: su Linux resta python3", pannello.eseguibile_python() == "python3")
+with mock.patch.object(pannello, "su_windows", lambda: False):  # vale anche su un Windows vero: conta solo su_windows()
+    controllo("launch.json: su Linux resta python3", pannello.eseguibile_python() == "python3")
 with mock.patch.object(pannello, "su_windows", lambda: True):
     controllo("launch.json: su Windows è sys.executable", pannello.eseguibile_python() == sys.executable)
     d = tempfile.mkdtemp(dir=BASE)
     os.makedirs(os.path.join(d, ".claude"))
     shutil.copy(os.path.join(RADICE, "skills/pannello/modello/launch.json"), os.path.join(d, ".claude/launch.json"))
     pannello.aggiorna_launch(d, 47123)
-    v = json.load(open(os.path.join(d, ".claude/launch.json")))["configurations"][0]
+    v = json.load(open(os.path.join(d, ".claude/launch.json"), encoding="utf-8"))["configurations"][0]
     controllo("aggiorna_launch su Windows scrive sys.executable e la porta", v["runtimeExecutable"] == sys.executable and v["port"] == 47123)
 d = tempfile.mkdtemp(dir=BASE)
 os.makedirs(os.path.join(d, ".claude"))
 shutil.copy(os.path.join(RADICE, "skills/pannello/modello/launch.json"), os.path.join(d, ".claude/launch.json"))
-pannello.aggiorna_launch(d, 47123)
+with mock.patch.object(pannello, "su_windows", lambda: False):
+    pannello.aggiorna_launch(d, 47123)
 controllo("aggiorna_launch su Linux scrive python3",
-          json.load(open(os.path.join(d, ".claude/launch.json")))["configurations"][0]["runtimeExecutable"] == "python3")
+          json.load(open(os.path.join(d, ".claude/launch.json"), encoding="utf-8"))["configurations"][0]["runtimeExecutable"] == "python3")
 
 # 6. i percorsi con la barra rovesciata negli hook
 ev_win = {"cwd": "C:\\Users\\Mario Rossi\\studio", "tool_input": {"file_path": "C:\\Users\\Mario Rossi\\studio\\periodo\\todo.json"}}
@@ -258,40 +286,76 @@ with windows_per(periodo):
     t2 = periodo.file_toccati({"cwd": "C:\\s", "tool_input": {"patch": "*** Update File: periodo/idee.json"}})
 controllo("controlla-periodo su Windows trova ancora il percorso con la barra normale (Codex)",
           t2 == ["C:\\s\\periodo\\idee.json"], t2)
-controllo("controlla-periodo su Linux: lo stesso evento Windows non cambia (nessun risultato)", periodo.file_toccati(ev_win) == [])
-controllo("controlla-periodo su Linux: un percorso Unix si trova come prima",
-          periodo.file_toccati({"cwd": "/x", "tool_input": {"file_path": "/x/periodo/todo.json"}}) == ["/x/periodo/todo.json"])
+if not WINDOWS_VERO:  # su un Windows vero os.path e su_windows() sono quelli di Windows: questi quattro non hanno senso
+    controllo("controlla-periodo su Linux: lo stesso evento Windows non cambia (nessun risultato)", periodo.file_toccati(ev_win) == [])
+    controllo("controlla-periodo su Linux: un percorso Unix si trova come prima",
+              periodo.file_toccati({"cwd": "/x", "tool_input": {"file_path": "/x/periodo/todo.json"}}) == ["/x/periodo/todo.json"])
+else:
+    salto("controlla-periodo su Linux: lo stesso evento Windows non cambia")
+    salto("controlla-periodo su Linux: un percorso Unix si trova come prima")
 ev_log = {"tool_input": {"file_path": "C:\\s\\memoria\\LOG.md"}}
 with mock.patch.object(ferma, "su_windows", lambda: True):
     controllo("ferma.py su Windows: una scrittura in memoria\\LOG.md passa", ferma.legge_log(ev_log) is True)
-controllo("ferma.py su Linux: lo stesso percorso non conta", ferma.legge_log(ev_log) is False)
-controllo("ferma.py su Linux: memoria/LOG.md conta", ferma.legge_log({"tool_input": {"file_path": "/s/memoria/LOG.md"}}) is True)
+if not WINDOWS_VERO:
+    controllo("ferma.py su Linux: lo stesso percorso non conta", ferma.legge_log(ev_log) is False)
+    controllo("ferma.py su Linux: memoria/LOG.md conta", ferma.legge_log({"tool_input": {"file_path": "/s/memoria/LOG.md"}}) is True)
+else:
+    salto("ferma.py su Linux: lo stesso percorso non conta")
+    salto("ferma.py su Linux: memoria/LOG.md conta")
 
-# 7. i comandi degli hook per Windows: provati in bash (e in PowerShell se c'è pwsh) con "python3" al posto del nome
-cmd = cartella_py.comando_hook("python3", "controlla-periodo.py")
+# 7. i comandi degli hook per Windows: provati in bash (e in PowerShell se c'è pwsh) con il Python che sta girando
+# al posto del nome. Il suo nome (python, python3.12) si trova con la sua cartella in testa al PATH: così va bene
+# in bash e in PowerShell, anche su una macchina dove «python3» non c'è.
+exe_py = os.path.splitext(os.path.basename(sys.executable))[0]
+cmd = cartella_py.comando_hook(exe_py, "controlla-periodo.py")
 controllo("comando_hook: niente && e niente [ ] di bash", "&&" not in cmd and "[ " not in cmd and "||" not in cmd, cmd)
 prog = tempfile.mkdtemp(dir=BASE)
 os.makedirs(os.path.join(prog, "periodo"))
 os.makedirs(os.path.join(prog, ".agents/hooks"))
 for f in ("controlla-periodo.py", "todo.schema.json", "idee.schema.json"):
     shutil.copy(os.path.join(RADICE, "skills/pianifica-periodo/scripts", f), os.path.join(prog, ".agents/hooks", f))
-open(os.path.join(prog, "periodo/todo.json"), "w").write(json.dumps(
+open(os.path.join(prog, "periodo/todo.json"), "w", encoding="utf-8").write(json.dumps(
     {"versione": "0.3.0", "periodo": "", "todo": [{"id": "t1", "stato": "boh"}]}))
-evento = json.dumps({"cwd": prog, "hook_event_name": "PostToolUse", "tool_input": {"file_path": prog + "/periodo/todo.json"}})
-env = dict(os.environ, CLAUDE_PROJECT_DIR=prog)
-shells = [("bash", ["bash", "-c"])]
+evento = json.dumps({"cwd": prog, "hook_event_name": "PostToolUse",
+                     "tool_input": {"file_path": os.path.join(prog, "periodo", "todo.json")}})
+# PYTHONUTF8: il messaggio dell'hook arriva in UTF-8 anche se la console di Windows è cp1252
+env_base = dict(os.environ, PYTHONUTF8="1", PATH=os.path.dirname(sys.executable) + os.pathsep + os.environ.get("PATH", ""))
+env = dict(env_base, CLAUDE_PROJECT_DIR=prog)
+
+
+def trova_bash():
+    """bash, ma non quello di WSL (C:\\Windows\\System32\\bash.exe): lì i percorsi di Windows non esistono."""
+    b = shutil.which("bash")
+    if b and WINDOWS_VERO and "system32" in b.lower():
+        return None
+    return b
+
+
+def lancia(pre, comando, **kw):
+    return subprocess.run(pre + [comando], input=kw.pop("input", evento), capture_output=True,
+                          encoding="utf-8", errors="replace", **kw)
+
+
+shells = []
+if trova_bash():
+    shells.append(("bash", [trova_bash(), "-c"]))
+else:
+    salto("l'hook di controllo in bash esce 2 e dice cosa non va", "bash non c'è su questo computer")
+    salto("l'hook con lo script che manca esce 0 in bash", "bash non c'è su questo computer")
+    salto("l'hook senza CLAUDE_PROJECT_DIR (Codex) cerca da cwd", "bash non c'è su questo computer")
 if shutil.which("pwsh"):
-    shells.append(("PowerShell (pwsh)", ["pwsh", "-NoProfile", "-Command"]))
+    shells.append(("PowerShell (pwsh)", [shutil.which("pwsh"), "-NoProfile", "-Command"]))
 for nome, pre in shells:
-    r = subprocess.run(pre + [cmd], input=evento, capture_output=True, text=True, env=env)
+    r = lancia(pre, cmd, env=env)
     controllo("l'hook di controllo in %s esce 2 e dice cosa non va" % nome, r.returncode == 2 and "non è fra i valori ammessi" in r.stderr,
               (r.returncode, r.stderr[-200:]))
     os.rename(os.path.join(prog, ".agents/hooks/controlla-periodo.py"), os.path.join(prog, "x.py"))
-    r = subprocess.run(pre + [cmd], input=evento, capture_output=True, text=True, env=env)
+    r = lancia(pre, cmd, env=env)
     os.rename(os.path.join(prog, "x.py"), os.path.join(prog, ".agents/hooks/controlla-periodo.py"))
     controllo("l'hook con lo script che manca esce 0 in %s" % nome, r.returncode == 0, (r.returncode, r.stderr[-200:]))
-r = subprocess.run(["bash", "-c", cmd], input="{}", capture_output=True, text=True, cwd=prog, env={k: v for k, v in os.environ.items() if k != "CLAUDE_PROJECT_DIR"})
-controllo("l'hook senza CLAUDE_PROJECT_DIR (Codex) cerca da cwd", r.returncode == 0, r.stderr[-200:])
+if trova_bash():
+    r = lancia([trova_bash(), "-c"], cmd, input="{}", cwd=prog, env={k: v for k, v in env_base.items() if k != "CLAUDE_PROJECT_DIR"})
+    controllo("l'hook senza CLAUDE_PROJECT_DIR (Codex) cerca da cwd", r.returncode == 0, r.stderr[-200:])
 
 # 8. crea-cartella su Windows: hook, launch.json, giunzione, comando di ripresa
 spec = os.path.join(RADICE, "skills/inizia/modello")
@@ -339,9 +403,9 @@ controllo("Windows: il LOG dice cosa è stato creato", "· inizia ·" in open(os
 # non sovrascrive: un settings.json dell'utente resta
 D2 = os.path.join(BASE, "cartella-win-esistente")
 esito2, _ = crea_come_windows(D2, prima=lambda d: (os.makedirs(os.path.join(d, ".claude")),
-                                                     open(os.path.join(d, ".claude/settings.json"), "w").write('{"mio": 1}')))
+                                                     open(os.path.join(d, ".claude/settings.json"), "w", encoding="utf-8").write('{"mio": 1}')))
 controllo("Windows: un .claude/settings.json che c'è già non si tocca",
-          open(os.path.join(D2, ".claude/settings.json")).read() == '{"mio": 1}' and ".claude/settings.json" in esito2.saltati)
+          open(os.path.join(D2, ".claude/settings.json"), encoding="utf-8").read() == '{"mio": 1}' and ".claude/settings.json" in esito2.saltati)
 # la riga di ripresa
 e3 = cartella_py.Esito()
 e3.non_scritti.append(".agents/ (Permission denied)")
@@ -354,16 +418,20 @@ riga = [r for r in buf.getvalue().splitlines() if r.startswith("comando: ")]
 controllo("Windows: la riga comando: usa py -3, virgolette doppie e niente && né apici",
           len(riga) == 1 and riga[0].startswith('comando: py -3 "') and "&&" not in riga[0] and "'" not in riga[0], riga)
 # Linux: la copia è quella di sempre, byte per byte
-DL = os.path.join(BASE, "cartella-linux")
-subprocess.run([sys.executable, "-I", os.path.join(RADICE, "skills/inizia/scripts/crea-cartella.py"), DL], capture_output=True)
-for rel in (".claude/settings.json", ".codex/hooks.json", ".agents/hooks.json"):
-    if open(os.path.join(DL, rel), "rb").read() != open(os.path.join(spec, rel), "rb").read():
-        controllo("Linux: %s è la copia esatta del modello" % rel, False)
-        break
+if not WINDOWS_VERO:  # su un Windows vero crea-cartella.py riscrive gli hook per Windows: la copia esatta non c'è
+    DL = os.path.join(BASE, "cartella-linux")
+    subprocess.run([sys.executable, "-I", os.path.join(RADICE, "skills/inizia/scripts/crea-cartella.py"), DL], capture_output=True)
+    for rel in (".claude/settings.json", ".codex/hooks.json", ".agents/hooks.json"):
+        if open(os.path.join(DL, rel), "rb").read() != open(os.path.join(spec, rel), "rb").read():
+            controllo("Linux: %s è la copia esatta del modello" % rel, False)
+            break
+    else:
+        controllo("Linux: i tre file degli hook sono la copia esatta del modello (python3 e bash)", True)
+    controllo("Linux: launch.json è la copia esatta del modello",
+              open(os.path.join(DL, ".claude/launch.json"), "rb").read() == open(os.path.join(RADICE, "skills/pannello/modello/launch.json"), "rb").read())
 else:
-    controllo("Linux: i tre file degli hook sono la copia esatta del modello (python3 e bash)", True)
-controllo("Linux: launch.json è la copia esatta del modello",
-          open(os.path.join(DL, ".claude/launch.json"), "rb").read() == open(os.path.join(RADICE, "skills/pannello/modello/launch.json"), "rb").read())
+    salto("Linux: i tre file degli hook sono la copia esatta del modello (python3 e bash)")
+    salto("Linux: launch.json è la copia esatta del modello")
 
 # 9. python_windows: scarta lo stub (codice 9009), prende il primo che risponde 3
 risposte = {"python": types.SimpleNamespace(returncode=9009, stdout="", stderr="Python was not found"),
