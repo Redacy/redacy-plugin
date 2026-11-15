@@ -89,6 +89,13 @@ jobs:
           echo "plugin installato in: $INSTALLATO"
           $PY -I prove/ci/catena.py --plugin "$INSTALLATO" --base "$RUNNER_TEMP/catena" --nome claude
 
+      - name: Rimozione del plugin (il comando della pagina)
+        shell: bash
+        run: |
+          claude plugin uninstall redacy@redacy
+          claude plugin list | tee elenco-dopo.txt
+          if grep -q "redacy@redacy" elenco-dopo.txt; then echo "il plugin è ancora in elenco"; exit 1; fi
+
       - name: Registri
         if: always()
         uses: actions/upload-artifact@v4
@@ -165,6 +172,13 @@ jobs:
           INSTALLATO="$($PY prove/ci/percorso.py codex aggiunto.json)"
           echo "plugin installato in: $INSTALLATO"
           $PY -I prove/ci/catena.py --plugin "$INSTALLATO" --base "$RUNNER_TEMP/catena" --nome codex
+
+      - name: Rimozione del plugin (il comando della pagina)
+        shell: bash
+        run: |
+          codex plugin remove redacy@redacy
+          codex plugin list --json | tee elenco-dopo.json
+          if grep -q '"pluginId": "redacy@redacy"' elenco-dopo.json; then echo "il plugin è ancora in elenco"; exit 1; fi
 
       - name: Registri
         if: always()
