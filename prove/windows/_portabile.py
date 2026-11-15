@@ -9,7 +9,9 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 import types
+import urllib.request
 from unittest import mock
 
 try:  # su Windows la console può essere cp1252: i messaggi in italiano non devono far morire la prova
@@ -172,7 +174,9 @@ if HA_UNIX:
     def popen_finto(cmd, **kw):
         visti["cmd"], visti["flag"] = cmd, kw.pop("creationflags", None)
         visti["stdin"] = kw.get("stdin")
-        return popen_vero(cmd, start_new_session=True, **kw)  # su Linux il distacco lo fa la sessione nuova
+        visti["figlio"] = popen_vero(cmd, start_new_session=True, **kw)  # su Linux il distacco lo fa la sessione nuova
+        visti["parte"] = time.time()  # serve a dire, se non parte, da quanto era in piedi il figlio
+        return visti["figlio"]
 
 
     def fork_vietato(*a):
@@ -196,6 +200,57 @@ if HA_UNIX:
                 return "".join(f.readlines()[-n:]) or "(vuoto)"
         except OSError as e:
             return "(pannello.log non c'è: %s)" % e
+
+
+    def una_riga(testo, massimo):
+        """Il testo su una riga sola (a capo come « | »), tagliato: la riga FALLISCE finale è l'unica che tutte.sh mostra."""
+        return " | ".join(str(testo).strip().splitlines())[:massimo]
+
+
+    def diagnosi(errore, cartella):
+        """Il motivo per cui il pannello non è partito, in una stringa sola: finisce nella descrizione del controllo."""
+        pezzi = [una_riga(errore, 120)]
+        figlio = visti.get("figlio")
+        if "parte" in visti:
+            pezzi.append("dopo %.1f s dalla partenza del figlio" % (time.time() - visti["parte"]))
+        if figlio is not None:
+            esito = figlio.poll()
+            pezzi.append("figlio vivo" if esito is None else "figlio uscito con codice %s" % esito)
+        try:
+            with open(os.path.join(cartella, "interfaccia", "pannello.log"), encoding="utf-8", errors="replace") as f:
+                righe = [r.rstrip() for r in f.readlines()[-6:] if r.strip()]
+            pezzi.append("log: " + (" | ".join(righe) if righe else "log vuoto"))
+        except OSError:
+            pezzi.append("log assente")
+        porta = None
+        try:
+            with open(os.path.join(cartella, "interfaccia", "pannello.json"), encoding="utf-8") as f:
+                grezzo = f.read()
+            pezzi.append("pannello.json: " + una_riga(grezzo[:200], 200))
+            with contextlib.suppress(ValueError, AttributeError):
+                porta = json.loads(grezzo).get("porta")
+        except OSError:
+            pass
+        pezzi.append("python %s %s" % (sys.version.split()[0], sys.platform))
+        if porta:
+            try:  # una richiesta diretta, lì per lì: il server risponde? lentamente? con un'altra cartella?
+                with urllib.request.urlopen("http://127.0.0.1:%s/api/ciao" % porta, timeout=5) as r:
+                    pezzi.append("GET /api/ciao: %s %s" % (r.status, una_riga(r.read(150).decode("utf-8", "replace"), 150)))
+            except Exception as e2:
+                pezzi.append("GET /api/ciao: %s %s" % (type(e2).__name__, una_riga(e2, 100)))
+        return una_riga(" ; ".join(pezzi), 700)
+
+
+    def ferma_figlio():
+        """Se il figlio è ancora in piedi lo si ferma: non deve restare orfano sulla macchina."""
+        figlio = visti.get("figlio")
+        if figlio is not None and figlio.poll() is None:
+            figlio.terminate()
+            try:
+                figlio.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                figlio.kill()
+                figlio.wait()
 
     try:
         with mock.patch.dict(sys.modules, {"msvcrt": MsvcrtConFlock()}), \
@@ -226,12 +281,14 @@ if HA_UNIX:
     except AssertionError as e:
         controllo("pannello Windows senza fork", False, e)
     except SystemExit as e:  # «Il pannello non è partito»: si mostra il log del figlio, non solo il messaggio
-        controllo("pannello Windows: il figlio staccato parte", False, e)
+        motivo = diagnosi(e, studio)  # va nella descrizione: tutte.sh mostra solo la riga FALLISCE finale
+        controllo("pannello Windows: il figlio staccato parte · " + motivo, False)
         print("--- ultime 20 righe di interfaccia/pannello.log (%s) ---" % studio)
         print(coda_log(studio))
         print("--- cartella: %r, realpath: %r, python: %s %s ---" % (studio, os.path.realpath(studio), sys.executable, sys.version.split()[0]))
         print("--- pannello.json: %s ---" % (open(os.path.join(studio, "interfaccia", "pannello.json"), encoding="utf-8").read()
               if os.path.exists(os.path.join(studio, "interfaccia", "pannello.json")) else "non c'è"))
+        ferma_figlio()
     finally:
         p = os.path.join(studio, "interfaccia", "pannello.json")
         if os.path.exists(p):
