@@ -55,6 +55,13 @@ def da_hook(percorso, evento=None):
     return r.returncode, r.stdout, r.stderr
 
 
+def dett(rc, out, err):
+    """Il dettaglio di un controllo fallito su una riga sola: uscita e inizio di stdout e stderr."""
+    def uno(t):
+        return t[:200].replace("\r", "").replace("\n", " | ")
+    return "uscita %s · stdout: %s · stderr: %s" % (rc, uno(out), uno(err))
+
+
 def pulito(*testi):
     return all("Traceback" not in t for t in testi)
 
@@ -100,16 +107,20 @@ STRANI = [
     ("todo non elenco", b'{"versione":"0.3.0","periodo":"2026-11","todo":{"a":1}}', "dovrebbe essere elenco"),
     ("voci che non sono oggetti", b'{"versione":"0.3.0","periodo":"2026-11","todo":[1,"a",null,[]]}', "dovrebbe essere oggetto"),
     ("campi di tipo sbagliato", b'{"versione":3,"periodo":[],"todo":[{"id":[1],"cosa":5,"chi":{},"stato":null}]}', "dovrebbe essere testo"),
-    ("annidamento enorme", b"[" * 100000, "troppi livelli"),
+    # il limite dipende dal Python: il 3.12 si ferma a un numero fisso di livelli («troppi livelli»), i più nuovi seguono la
+    # pila vera, i 100000 livelli entrano e il file non chiuso dà un normale errore di JSON: va bene l'uno o l'altro
+    ("annidamento enorme", b"[" * 100000, ("troppi livelli", "non è un JSON valido")),
     ("NUL dentro", b'{"versione":"0.3.0",\x00}', "non è scritto in UTF-8"),
 ]
 for nome, dati, atteso in STRANI:
+    ammessi = (atteso,) if isinstance(atteso, str) else atteso
     p = scrivi("todo.json", dati)
     rc, out, err = a_mano(p)
-    controllo("todo.json %s, a mano: uscita 1, «%s», niente traceback" % (nome, atteso),
-              rc == 1 and atteso in out and pulito(out, err), (rc, out, err))
+    controllo("todo.json %s, a mano: uscita 1, «%s», niente traceback" % (nome, "» oppure «".join(ammessi)),
+              rc == 1 and any(a in out for a in ammessi) and pulito(out, err), dett(rc, out, err))
     rc, out, err = da_hook(p)
-    controllo("todo.json %s, da hook: uscita 2, niente traceback" % nome, rc == 2 and pulito(out, err) and "Correggi il file" in err, (rc, out, err))
+    controllo("todo.json %s, da hook: uscita 2, niente traceback" % nome,
+              rc == 2 and pulito(out, err) and "Correggi il file" in err, dett(rc, out, err))
 p = scrivi("idee.json", b'{"versione":"0.3.0","periodo":"2026-11","idee":[{"id":[1],"esito":{"stato":"portata nel periodo","todo":[1]}}]}')
 rc, out, err = a_mano(p)
 controllo("idee.json con esito.todo che è un elenco: uscita 1, niente traceback", rc == 1 and pulito(out, err), (rc, out, err))
