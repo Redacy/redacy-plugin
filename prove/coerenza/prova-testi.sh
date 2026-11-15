@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.2 · prove/coerenza/prova-testi.sh
+# redacy 0.5.0 · prove/coerenza/prova-testi.sh
 # Controlla, senza modello e senza rete, che i testi e le promesse del plugin siano coerenti:
 #   a. ogni testo con `python3` ha anche la riga per Windows («Su Windows» e `py -3`)
 #   b. `inizia` parla di Python prima del passo 0

@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/inizia/_costituzione.py (lo lancia prova-cartella.sh) · SOLO C3
+# redacy 0.5.0 · prove/inizia/_costituzione.py (lo lancia prova-cartella.sh) · SOLO C3
 # Prova che --aggiorna porti anche il nuovo AGENTS.md (la costituzione, uguale in ogni studio) a chi ha già la
 # cartella, e che --controlla lo dica. Una riga per controllo: «ok» o «NO». In fondo PASSA o FALLISCE.
 import hashlib
@@ -47,8 +47,8 @@ def albero(cartella):
 
 modello = open(MODELLO, "rb").read()
 testa = modello.split(b"\n", 1)[0]
-assert testa.startswith(b"<!-- redacy 0.4.2 "), testa
-vecchio = modello.replace(b"<!-- redacy 0.4.2 ", b"<!-- redacy 0.3.1 ", 1) + b"\nUna regola vecchia.\n"
+assert testa.startswith(b"<!-- redacy 0.5.0 "), testa
+vecchio = modello.replace(b"<!-- redacy 0.5.0 ", b"<!-- redacy 0.3.1 ", 1) + b"\nUna regola vecchia.\n"
 
 # ---------------------------------------------------------------- AGENTS.md di una versione vecchia
 A = os.path.join(BASE, "vecchio-%d" % os.getpid())
@@ -68,7 +68,7 @@ utente = {k: v for k, v in albero(A).items() if k != "AGENTS.md"}
 rc, u = lancia(A, "--controlla")
 av = [r for r in u.splitlines() if r.startswith("avviso: AGENTS.md")]
 controllo("--controlla: AGENTS.md di redacy 0.3.1 dà un «avviso:» con le due versioni e --aggiorna (non cambia l'uscita)",
-          rc == 0 and len(av) == 1 and "redacy 0.3.1" in av[0] and "porta la 0.4.2" in av[0] and "--aggiorna" in av[0]
+          rc == 0 and len(av) == 1 and "redacy 0.3.1" in av[0] and "porta la 0.5.0" in av[0] and "--aggiorna" in av[0]
           and "copia di prima" in av[0], u)
 rc, u = lancia(A, "--aggiorna")
 agg = [r for r in u.splitlines() if r.startswith("aggiornato: AGENTS.md")]

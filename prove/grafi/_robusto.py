@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/grafi/_robusto.py (lo lanciano prova-controllo.sh e prova-corsa.sh)
+# redacy 0.5.0 · prove/grafi/_robusto.py (lo lanciano prova-controllo.sh e prova-corsa.sh)
 """controlla-grafo.py, yaml_ridotto.py e corsa.py davanti a file rotti e a nomi che Windows non accetta.
 
 Uso: python3 _robusto.py RADICE CARTELLA_DI_PROVA [controllo|corsa]

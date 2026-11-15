@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/pannello/_robusto.py (lo lancia prova-server.sh)
+# redacy 0.5.0 · prove/pannello/_robusto.py (lo lancia prova-server.sh)
 """Il pannello davanti a dati strani e a cartelle che non vanno: niente 500, niente traceback, niente attese.
 
 Uso: python3 _robusto.py RADICE CARTELLA_DI_PROVA
@@ -67,7 +67,7 @@ def una_riga(testo):
 # 1. Tipi strani nei file dell'utente
 A = studio("strani")
 ora = pannello.scrivi_ora(pannello.adesso_utc())
-scrivi(A, "periodo/todo.json", json.dumps({"versione": "0.4.2", "periodo": "p", "todo": [
+scrivi(A, "periodo/todo.json", json.dumps({"versione": "0.5.0", "periodo": "p", "todo": [
     {"id": "a", "chi": "tu", "stato": "da-fare", "scadenza": 20261201},
     {"id": "b", "chi": "tu", "stato": "da-fare", "scadenza": ["2026-01-01"]},
     {"id": "c", "chi": "tu", "stato": "da-fare", "scadenza": "2020-01-01"}]}))

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-riordina-claude.sh · redacy 0.4.2
+# prova-riordina-claude.sh · redacy 0.5.0
 # La skill `riordina-cartella` su Claude Code, da terminale, con un modello vero, su una cartella
 # di pratiche finta e disordinata (uno studio di consulenza sulla sicurezza, inventato).
 # Due conversazioni (`claude -p`), nella stessa cartella dello studio:

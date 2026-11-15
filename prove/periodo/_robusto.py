@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/periodo/_robusto.py (lo lancia prova-schemi.sh)
+# redacy 0.5.0 · prove/periodo/_robusto.py (lo lancia prova-schemi.sh)
 """controlla-periodo.py davanti a file che non sono UTF-8, vuoti, troncati o con i tipi sbagliati, a mano e da hook.
 
 Uso: python3 _robusto.py RADICE CARTELLA_DI_PROVA

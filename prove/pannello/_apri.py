@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/pannello/_apri.py (lo lancia prova-server.sh)
+# redacy 0.5.0 · prove/pannello/_apri.py (lo lancia prova-server.sh)
 """Prova `pannello.py --apri` e le due letture dei file di Windows (BOM, file di sistema).
 
 Uso: python3 _apri.py RADICE CARTELLA_DI_PROVA
@@ -256,7 +256,7 @@ else:
 # 6. Audit #6: un file con BOM si legge come uno senza
 studio = os.path.join(BASE, "bom")
 os.makedirs(os.path.join(studio, "periodo"))
-dato = {"versione": "0.4.2", "periodo": "p", "todo": [{"id": "t1", "titolo": "Chiamare lo studio", "stato": "da-fare"}]}
+dato = {"versione": "0.5.0", "periodo": "p", "todo": [{"id": "t1", "titolo": "Chiamare lo studio", "stato": "da-fare"}]}
 testo = json.dumps(dato, ensure_ascii=False)
 for nome, dati in (("senza BOM", testo.encode("utf-8")), ("con BOM", b"\xef\xbb\xbf" + testo.encode("utf-8"))):
     with open(os.path.join(studio, "periodo", "todo.json"), "wb") as f:

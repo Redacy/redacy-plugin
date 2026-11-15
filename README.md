@@ -107,4 +107,4 @@ Il bottone «Supporto umano» del pannello apre un foglio con il riepilogo del t
 
 ## Licenza
 
-MIT, vedi [LICENSE](LICENSE). Versione 0.4.2.
+MIT, vedi [LICENSE](LICENSE). Versione 0.5.0.

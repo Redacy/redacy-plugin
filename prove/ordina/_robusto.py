@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/ordina/_robusto.py (lo lanciano prova-inventario.sh e prova-riordina.sh)
+# redacy 0.5.0 · prove/ordina/_robusto.py (lo lanciano prova-inventario.sh e prova-riordina.sh)
 """inventario.py e riordina.py davanti alla radice del disco, a date prima del 1970 e a registri che non vanno.
 
 Uso: python3 _robusto.py RADICE CARTELLA_DI_PROVA [inventario|riordina]

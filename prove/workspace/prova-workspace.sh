@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.2 · prove/workspace/prova-workspace.sh
+# redacy 0.5.0 · prove/workspace/prova-workspace.sh
 # crea-workspace.py e controlla-workspace.py: nomi riservati e strani, memoria che non si legge o non si scrive,
 # rilancio che completa le righe mancanti, controlla-workspace su una cartella che non è un workspace.
 # Tutta la logica sta in _robusto.py (gira anche su macOS e in Git Bash su Windows). Ultima riga: PASSA o FALLISCE <perché>.

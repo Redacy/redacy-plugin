@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/workspace/_robusto.py (lo lancia prova-workspace.sh)
+# redacy 0.5.0 · prove/workspace/_robusto.py (lo lancia prova-workspace.sh)
 """crea-workspace.py e controlla-workspace.py davanti a nomi strani, file della memoria che non si leggono o non si scrivono.
 
 Uso: python3 _robusto.py RADICE CARTELLA_DI_PROVA

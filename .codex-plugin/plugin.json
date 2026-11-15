@@ -1,6 +1,6 @@
 {
   "name": "redacy",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Trasforma Claude o ChatGPT in un agente sempre attivo per il tuo studio: sa dove stanno i tuoi dati, li tiene in ordine, porta avanti i lavori che si ripetono e mostra tutto in un pannello sul tuo computer.",
   "author": {
     "name": "Redacy",
