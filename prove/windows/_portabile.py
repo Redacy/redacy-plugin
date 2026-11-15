@@ -4,6 +4,7 @@ import importlib.util
 import json
 import ntpath
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -174,6 +175,7 @@ if HA_UNIX:
     def popen_finto(cmd, **kw):
         visti["cmd"], visti["flag"] = cmd, kw.pop("creationflags", None)
         visti["stdin"] = kw.get("stdin")
+        kw.setdefault("env", dict(os.environ, PYTHONFAULTHANDLER="1"))  # con SIGABRT il figlio scrive la pila di ogni thread su stderr (il log)
         visti["figlio"] = popen_vero(cmd, start_new_session=True, **kw)  # su Linux il distacco lo fa la sessione nuova
         visti["parte"] = time.time()  # serve a dire, se non parte, da quanto era in piedi il figlio
         return visti["figlio"]
@@ -207,15 +209,41 @@ if HA_UNIX:
         return " | ".join(str(testo).strip().splitlines())[:massimo]
 
 
+    def pila_dal_log(cartella, voci=14):
+        """La pila scritta da faulthandler nel log (dalla chiamata più recente): « file:riga funzione < ... », o None se non c'è."""
+        try:
+            with open(os.path.join(cartella, "interfaccia", "pannello.log"), encoding="utf-8", errors="replace") as f:
+                righe = f.read().splitlines()
+        except OSError:
+            return None
+        trovate = []
+        for r in righe:
+            if r.startswith('  File "'):
+                m = re.match(r'  File "(.*)", line (\d+) in (.*)', r)
+                if m:
+                    trovate.append("%s:%s %s" % (re.split(r"[\\/]", m.group(1))[-1], m.group(2), m.group(3).strip()))
+        return " < ".join(trovate[:voci]) or None
+
+
     def diagnosi(errore, cartella):
         """Il motivo per cui il pannello non è partito, in una stringa sola: finisce nella descrizione del controllo."""
         pezzi = [una_riga(errore, 120)]
         figlio = visti.get("figlio")
+        stato = None
+        if figlio is not None:
+            esito = figlio.poll()  # com'era PRIMA del segnale
+            stato = "figlio vivo" if esito is None else "figlio uscito con codice %s" % esito
+            if esito is None:  # fermo: SIGABRT fa scrivere a faulthandler la pila di ogni thread nel log
+                with contextlib.suppress(OSError):
+                    figlio.send_signal(signal.SIGABRT)
+                with contextlib.suppress(subprocess.TimeoutExpired):
+                    figlio.wait(timeout=5)
+        pila = pila_dal_log(cartella)
+        pezzi.append("pila del figlio: " + (pila or "assente"))
         if "parte" in visti:
             pezzi.append("dopo %.1f s dalla partenza del figlio" % (time.time() - visti["parte"]))
-        if figlio is not None:
-            esito = figlio.poll()
-            pezzi.append("figlio vivo" if esito is None else "figlio uscito con codice %s" % esito)
+        if stato:
+            pezzi.append(stato)
         try:
             with open(os.path.join(cartella, "interfaccia", "pannello.log"), encoding="utf-8", errors="replace") as f:
                 righe = [r.rstrip() for r in f.readlines()[-6:] if r.strip()]
@@ -238,7 +266,7 @@ if HA_UNIX:
                     pezzi.append("GET /api/ciao: %s %s" % (r.status, una_riga(r.read(150).decode("utf-8", "replace"), 150)))
             except Exception as e2:
                 pezzi.append("GET /api/ciao: %s %s" % (type(e2).__name__, una_riga(e2, 100)))
-        return una_riga(" ; ".join(pezzi), 700)
+        return una_riga(" ; ".join(pezzi), 1200)
 
 
     def ferma_figlio():
