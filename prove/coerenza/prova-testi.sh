@@ -4,7 +4,7 @@
 #   a. ogni testo con `python3` ha anche la riga per Windows («Su Windows» e `py -3`)
 #   b. `inizia` parla di Python prima del passo 0
 #   c. nessuna espansione di shell valida solo in bash per l'id della sessione
-#   d. il supporto umano porta sempre a redacy.com/contatti
+#   d. il supporto umano porta sempre a redacy.com/contatti, anche nei due manifesti
 #   e. la strada verso una persona c'è dove deve, ed è detta «una volta sola»
 #   f. nessun programma promesso fuori dall'elenco, Linux una volta sola nel README, con la sua frase
 #   g. niente rete fuori dal pannello (regola sotto)
@@ -74,7 +74,7 @@ else ok "c. nessuna espansione solo-bash dell'id della sessione"; fi
 
 # --- d. il supporto porta a redacy.com/contatti ---
 $PY -I - > "${TEMPO}/d.txt" <<'PY'
-import os, re, sys
+import json, os, re, sys
 ext = (".md", ".py", ".js", ".html", ".json")
 files = ["README.md", "PRIVACY.md", "CONNECTORS.md"]
 for d, _, nomi in os.walk("skills"):
@@ -92,11 +92,25 @@ for f in files:
         if f.startswith("skills"):
             for m in re.finditer(r"https://redacy\.com(?!/contatti)", s):
                 out.append("%s:%d: https://redacy.com senza /contatti: %s" % (f, i, s.strip()[:90]))
+# i due manifesti: il campo del supporto vale esattamente la pagina dei contatti
+CONTATTI = "https://redacy.com/contatti"
+for f, percorso in ((".claude-plugin/plugin.json", ("supportUrl",)),
+                    (".codex-plugin/plugin.json", ("interface", "supportURL"))):
+    nome = ".".join(percorso)
+    try:
+        v = json.load(open(f, encoding="utf-8"))
+        for k in percorso:
+            v = v[k]
+    except (OSError, ValueError, KeyError, TypeError):
+        out.append("%s: campo %s mancante o file illeggibile" % (f, nome))
+        continue
+    if v != CONTATTI:
+        out.append("%s: %s vale %r, deve valere %s" % (f, nome, v, CONTATTI))
 print("\n".join(out))
 PY
 rd="$(cat "${TEMPO}/d.txt")"
 if [ -n "$rd" ]; then no "d. il supporto non porta a redacy.com/contatti" "$rd"
-else ok "d. ogni «supporto» con redacy.com porta a /contatti, e in skills/ nessun https://redacy.com spoglio"; fi
+else ok "d. ogni «supporto» con redacy.com porta a /contatti, in skills/ nessun https://redacy.com spoglio, e nei due manifesti il campo del supporto vale https://redacy.com/contatti"; fi
 
 # --- e. la strada verso una persona c'è dove deve ---
 re_=""
