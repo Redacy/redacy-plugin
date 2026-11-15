@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.2 · prove/ci/lancia-tutte.sh
+# redacy 0.5.0 · prove/ci/lancia-tutte.sh
 # Lancia prove/tutte.sh dalle macchine di GitHub. Su Windows (Git Bash) `python3` di solito non c'è: si
 # mette sul PATH un `python3` che chiama `python`, solo per questa corsa, così le prove non cambiano.
 set -eu

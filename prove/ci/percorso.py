@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.4.2 · prove/ci/percorso.py
+# redacy 0.5.0 · prove/ci/percorso.py
 """Stampa la cartella dove un programma ha installato il plugin.
 
   percorso.py claude <CLAUDE_CONFIG_DIR>   legge plugins/installed_plugins.json

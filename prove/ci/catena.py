@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.4.2 · prove/ci/catena.py
+# redacy 0.5.0 · prove/ci/catena.py
 """La catena del plugin senza modello, uguale su Linux, macOS e Windows.
 
 Parte dal plugin INSTALLATO (la cartella che Claude Code o Codex hanno messo nella loro cache) e fa quello
