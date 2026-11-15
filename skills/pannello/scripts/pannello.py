@@ -45,6 +45,7 @@ import secrets
 import shutil
 import signal
 import socket
+import socketserver
 import subprocess
 import sys
 import tempfile
@@ -1182,6 +1183,13 @@ class ServerPannello(http.server.ThreadingHTTPServer):
     # Su Windows SO_REUSEADDR lascia aprire una seconda porta uguale a una già in ascolto: lì no.
     allow_reuse_address = not su_windows()
     request_queue_size = 16
+
+    def server_bind(self):
+        # La libreria chiederebbe al sistema il nome del computer (socket.getfqdn): su alcuni computer la risposta
+        # arriva dopo decine di secondi e il pannello sembra non partire. Serve solo 127.0.0.1: il nome non serve.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = "127.0.0.1"
+        self.server_port = self.server_address[1]
 
 
 def crea_server(porta):
