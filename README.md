@@ -56,7 +56,7 @@ In una decina di minuti `inizia` prepara la cartella, ti chiede quali lavori vuo
 
 Per aggiornare, con Claude: `claude plugin marketplace update redacy` e poi `claude plugin update redacy@redacy`, oppure in Claude Code `/plugin`, `Installed`, Redacy, `Update now`. Con Codex: `codex plugin marketplace upgrade redacy`, poi di nuovo `codex plugin add redacy@redacy`.
 
-Alla prima apertura dopo un aggiornamento l'agente rinfresca da solo i suoi strumenti e le sue regole di base nella cartella dello studio. Memoria, periodo e file non li tocca.
+Dopo un aggiornamento, la prima volta che apri il pannello o rilanci `inizia`, l'agente rinfresca da solo i suoi strumenti e le sue regole di base nella cartella dello studio. Memoria, periodo e file non li tocca.
 
 Per toglierlo: `claude plugin uninstall redacy@redacy` oppure `codex plugin remove redacy@redacy`. La cartella dello studio resta lì: è tua.
 
