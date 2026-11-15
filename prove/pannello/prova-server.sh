@@ -249,12 +249,20 @@ assert len(voci) == 1 and voci[0]["port"] == porta and str(porta) in voci[0]["ru
 EOF
 python3 "$PANNELLO" --cartella "$D" --spegni > /dev/null 2>&1
 
+# Il limite di tempo: timeout (Linux, Git Bash) o gtimeout (macOS con coreutils); se non c'è, nessun limite.
+LIMITE_APRI=""; LIMITE_ROBUSTO=""
+if command -v timeout >/dev/null 2>&1; then
+  LIMITE_APRI="timeout 180"; LIMITE_ROBUSTO="timeout 240"
+elif command -v gtimeout >/dev/null 2>&1; then
+  LIMITE_APRI="gtimeout 180"; LIMITE_ROBUSTO="gtimeout 240"
+fi
+
 # 9. --apri e le letture di Windows (BOM, file di sistema, UTF-8 dell'output di corsa.py)
-APRI="$(PYTHONDONTWRITEBYTECODE=1 timeout 180 python3 -I "$RADICE/prove/pannello/_apri.py" "$RADICE" "$BASE/server-$ORA/apri" 2>&1)" \
+APRI="$(PYTHONDONTWRITEBYTECODE=1 $LIMITE_APRI python3 -I "$RADICE/prove/pannello/_apri.py" "$RADICE" "$BASE/server-$ORA/apri" 2>&1)" \
   || { echo "$APRI" | grep -v '^ok'; fallisce "_apri.py: $(echo "$APRI" | grep '^FALLISCE' | tail -1)"; }
 
 # 10. dati strani, file rotti, porte, cartelle che non vanno, pannello.json sparito
-ROBUSTO="$(PYTHONDONTWRITEBYTECODE=1 timeout 240 python3 -I "$RADICE/prove/pannello/_robusto.py" "$RADICE" "$BASE/server-$ORA/robusto" 2>&1)" \
+ROBUSTO="$(PYTHONDONTWRITEBYTECODE=1 $LIMITE_ROBUSTO python3 -I "$RADICE/prove/pannello/_robusto.py" "$RADICE" "$BASE/server-$ORA/robusto" 2>&1)" \
   || { echo "$ROBUSTO" | grep -v '^ok'; fallisce "_robusto.py: $(echo "$ROBUSTO" | grep '^FALLISCE' | tail -1)"; }
 
 echo "PASSA"

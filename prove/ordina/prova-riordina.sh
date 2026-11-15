@@ -114,9 +114,13 @@ rifiuta() { # rifiuta "descrizione" <righe JSON> <frase attesa> [campi in più]
   uguale "(2) $1: anche applica esce 1" 1 "$(rr applica "$p")"
 }
 UNA='"da":"disordine/DVR Rossi 2024.pdf","perche":"prova"'
+# Su un disco che non distingue le maiuscole (macOS, Windows) Clienti/ESISTENTE.pdf È il file che c'è: riordina.py
+# rifiuta lo stesso, ma con «c'è già: non sovrascrivo» (il controllo dell'esistenza scatta prima di quello sul nome).
+SCONTRO="si scontra con"
+touch "$BASE/prova-a"; if [ -e "$BASE/prova-A" ]; then SCONTRO="c'è già: non sovrascrivo"; fi; rm -f "$BASE/prova-a"
 rifiuta "due destinazioni uguali per maiuscole" '[{"da":"disordine/DVR Rossi 2024.pdf","a":"Clienti/Rossi.pdf","perche":"x"},{"da":"disordine/vecchie/verbale Bianchi.pdf","a":"clienti/ROSSI.pdf","perche":"y"}]' "è anche la destinazione della riga 1"
 rifiuta "destinazione che c'è già" "[{$UNA,\"a\":\"Clienti/esistente.pdf\"}]" "c'è già: non sovrascrivo"
-rifiuta "destinazione uguale a un file che c'è, per maiuscole" "[{$UNA,\"a\":\"Clienti/ESISTENTE.pdf\"}]" "si scontra con"
+rifiuta "destinazione uguale a un file che c'è, per maiuscole" "[{$UNA,\"a\":\"Clienti/ESISTENTE.pdf\"}]" "$SCONTRO"
 rifiuta "cartella con maiuscole diverse da una che c'è" "[{$UNA,\"a\":\"clienti/nuovo.pdf\"}]" "maiuscole diverse"
 rifiuta "destinazione con .." "[{$UNA,\"a\":\"../fuori.pdf\"}]" "esce dalla cartella"
 rifiuta "destinazione con .. in mezzo" "[{$UNA,\"a\":\"Clienti/../../fuori.pdf\"}]" "esce dalla cartella"

@@ -189,6 +189,14 @@ if HA_UNIX:
         return True
 
 
+    def coda_log(cartella, n=20):
+        """Le ultime righe di interfaccia/pannello.log: quando il pannello non parte, la prova dice perché."""
+        try:
+            with open(os.path.join(cartella, "interfaccia", "pannello.log"), encoding="utf-8", errors="replace") as f:
+                return "".join(f.readlines()[-n:]) or "(vuoto)"
+        except OSError as e:
+            return "(pannello.log non c'è: %s)" % e
+
     try:
         with mock.patch.dict(sys.modules, {"msvcrt": MsvcrtConFlock()}), \
              mock.patch.object(pannello, "su_windows", lambda: True), \
@@ -217,6 +225,13 @@ if HA_UNIX:
                       not _vivo_unix(pid) and not os.path.exists(os.path.join(studio, "interfaccia", "pannello.json")))
     except AssertionError as e:
         controllo("pannello Windows senza fork", False, e)
+    except SystemExit as e:  # «Il pannello non è partito»: si mostra il log del figlio, non solo il messaggio
+        controllo("pannello Windows: il figlio staccato parte", False, e)
+        print("--- ultime 20 righe di interfaccia/pannello.log (%s) ---" % studio)
+        print(coda_log(studio))
+        print("--- cartella: %r, realpath: %r, python: %s %s ---" % (studio, os.path.realpath(studio), sys.executable, sys.version.split()[0]))
+        print("--- pannello.json: %s ---" % (open(os.path.join(studio, "interfaccia", "pannello.json"), encoding="utf-8").read()
+              if os.path.exists(os.path.join(studio, "interfaccia", "pannello.json")) else "non c'è"))
     finally:
         p = os.path.join(studio, "interfaccia", "pannello.json")
         if os.path.exists(p):
@@ -406,6 +421,10 @@ esito2, _ = crea_come_windows(D2, prima=lambda d: (os.makedirs(os.path.join(d, "
                                                      open(os.path.join(d, ".claude/settings.json"), "w", encoding="utf-8").write('{"mio": 1}')))
 controllo("Windows: un .claude/settings.json che c'è già non si tocca",
           open(os.path.join(D2, ".claude/settings.json"), encoding="utf-8").read() == '{"mio": 1}' and ".claude/settings.json" in esito2.saltati)
+# le voci di creati/saltati/non_scritti dicono sempre «/», anche su Windows vero (dove str(Path) darebbe «\\»)
+controllo("le voci di creati e saltati non hanno mai il «\\» (su Windows vero è qui che si vede)",
+          not [v for v in esito.creati + esito2.creati + esito2.saltati + esito.non_scritti if "\\" in v],
+          [v for v in esito.creati + esito2.creati + esito2.saltati if "\\" in v][:5])
 # la riga di ripresa
 e3 = cartella_py.Esito()
 e3.non_scritti.append(".agents/ (Permission denied)")

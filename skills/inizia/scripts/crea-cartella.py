@@ -224,17 +224,18 @@ def versione_plugin(radice):
 
 
 def elementi_modello(modello):
-    """Le cartelle e i file del modello, in ordine, come percorsi relativi."""
+    """Le cartelle e i file del modello, in ordine, come percorsi relativi in stringa, sempre con `/`
+    (su Windows `str(Path)` darebbe `\\`: le voci di creati/saltati/mancano devono dire lo stesso ovunque)."""
     cartelle, file = [], []
     for base, dirs, nomi in os.walk(modello):
         dirs.sort()
         rel_base = Path(base).relative_to(modello)
         if rel_base != Path("."):
-            cartelle.append(rel_base)
+            cartelle.append(rel_base.as_posix())
         for nome in sorted(nomi):
             if nome == SEGNAPOSTO or nome == ".DS_Store":
                 continue
-            file.append(rel_base / nome)
+            file.append((rel_base / nome).as_posix())
     return cartelle, file
 
 
@@ -659,17 +660,17 @@ def crea(cartella, radice, versione, esito):
     for rel in file:
         dest = cartella / rel
         if os.path.lexists(dest):
-            esito.saltati.append(str(rel))
+            esito.saltati.append(rel)
             continue
-        def copia(d=dest, s=modello / rel, r=str(rel).replace(os.sep, "/")):
+        def copia(d=dest, s=modello / rel, r=rel):
             d.parent.mkdir(parents=True, exist_ok=True)
             if su_windows() and r in ADATTATORI_HOOK:
                 scrivi_testo(d, adatta_hook_windows(s.read_text(encoding="utf-8"), python_windows(esito)))
             else:
                 shutil.copyfile(s, d)
             shutil.copymode(s, d)
-        if scrivi(esito, str(rel), copia):
-            esito.creati.append(str(rel))
+        if scrivi(esito, rel, copia):
+            esito.creati.append(rel)
     for rel, bersaglio in COLLEGAMENTI:
         dest = cartella / rel
         if os.path.lexists(dest):
@@ -739,7 +740,7 @@ def controlla(cartella, radice, esito):
             esito.mancano.append(f"{rel}/")
     for rel in file:
         if not os.path.lexists(cartella / rel):
-            esito.mancano.append(str(rel))
+            esito.mancano.append(rel)
     for rel, bersaglio in COLLEGAMENTI:
         if not os.path.lexists(cartella / rel):
             esito.mancano.append(f"{rel} -> {bersaglio}")

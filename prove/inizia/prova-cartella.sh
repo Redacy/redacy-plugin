@@ -19,7 +19,9 @@ D="$BASE/cartella-$ORA"
 FINTO="$BASE/plugin-finto-$ORA"
 
 fallisce() { echo "FALLISCE $*"; exit 1; }
-impronte() { (cd "$1" && find . -type f -print0 | sort -z | xargs -0 sha256sum); }
+# sha256sum su macOS non c'è (c'è shasum -a 256): stesso formato di riga, «impronta  ./percorso»
+if command -v sha256sum >/dev/null 2>&1; then SHA="sha256sum"; else SHA="shasum -a 256"; fi
+impronte() { (cd "$1" && find . -type f -print0 | sort -z | xargs -0 $SHA); }
 
 command -v python3 >/dev/null || fallisce "manca python3"
 [ -f "$SCRIPT" ] || fallisce "manca $SCRIPT"
