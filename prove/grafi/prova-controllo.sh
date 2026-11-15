@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.2 · prove/grafi/prova-controllo.sh
+# redacy 0.5.0 · prove/grafi/prova-controllo.sh
 #
 # Prova tecnica di controlla-grafo.py e yaml_ridotto.py.
 # Accetta i grafi buoni, rifiuta quelli rotti e una serie di casi piccoli,
@@ -251,6 +251,13 @@ fi
 python3 -I "$SCRIPTS/yaml_ridotto.py" "$ROTTI/yaml-con-ancora.yaml" >/dev/null 2>&1
 if [ $? -eq 1 ]; then echo "ok   yaml_ridotto.py esce con 1 sul file rotto"; else
   echo "KO   yaml_ridotto.py non esce con 1 sul file rotto"; SEGNA "uscita del lettore sul rotto"; fi
+
+# file rotti e nomi che Windows non accetta (K3): logica tutta in _robusto.py
+ROBUSTO="$("${PYTHON:-python3}" "$AQUI/_robusto.py" "$RADICE" "$PROVE_BASE/robusto-controllo-$$" controllo 2>&1)"
+RC_ROBUSTO=$?
+echo "$ROBUSTO" | grep -v '^PASSA$' | grep -v '^$'
+[ "$RC_ROBUSTO" -eq 0 ] || SEGNA "_robusto.py controllo: $(echo "$ROBUSTO" | grep '^FALLISCE' | tail -1)"
+rm -rf "$PROVE_BASE/robusto-controllo-$$"
 
 rm -rf "$T"
 

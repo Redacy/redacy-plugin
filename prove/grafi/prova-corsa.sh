@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.2 - prove/grafi/prova-corsa.sh
+# redacy 0.5.0 - prove/grafi/prova-corsa.sh
 # Prova corsa.py su una cartella di studio finta. Una riga per controllo,
 # in fondo una sola riga: PASSA oppure FALLISCE <perche'>.
 # Uso: bash prove/grafi/prova-corsa.sh [--tieni]   (--tieni lascia la cartella di prova)
@@ -379,6 +379,13 @@ RESTI=$(find "$D/grafi/corse" -type f ! -name '*.json' ! -name '*.stop' ! -name 
 uguale "(g) nessun file temporaneo o estraneo in grafi/corse" "0" "$RESTI"
 uguale "(g) i soli file nascosti sono lucchetti" "0" "$(find "$D/grafi/corse" -type f -name '.*' ! -name '.*.lock' | wc -l | tr -d ' ')"
 uguale "(g) nessun .tmp in tutto lo studio" "0" "$(find "$D" -name '*.tmp' | wc -l | tr -d ' ')"
+
+# ---------------------------------------------------------------- (h) registro rovinato, nomi riservati, messaggi d'uso (K3)
+ROBUSTO="$("${PYTHON:-python3}" "$QUI/_robusto.py" "$(cd "$QUI/../.." && pwd)" "$BASE/robusto-corsa-$$" corsa 2>&1)"
+RC_ROBUSTO=$?
+echo "$ROBUSTO" | grep -v '^PASSA$' | grep -v '^$'
+uguale "(h) _robusto.py corsa: registri rovinati, stop non UTF-8, nomi riservati, messaggi d'uso" "0" "$RC_ROBUSTO"
+rm -rf "$BASE/robusto-corsa-$$"
 
 # ---------------------------------------------------------------- esito
 if [ "$N_ERRORI" -eq 0 ]; then

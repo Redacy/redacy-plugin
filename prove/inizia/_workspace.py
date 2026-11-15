@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/inizia/_workspace.py (lo lancia prova-cartella.sh)
+# redacy 0.5.0 · prove/inizia/_workspace.py (lo lancia prova-cartella.sh)
 # Prova che crea-workspace.py scriva i percorsi dei dati come li vede il workspace (dalla sua cartella),
 # e che controlla-workspace.py passi ancora. Una riga per controllo: «ok» o «NO». In fondo PASSA o FALLISCE.
 import os

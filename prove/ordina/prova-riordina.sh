@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.2 · prove/ordina/prova-riordina.sh
+# redacy 0.5.0 · prove/ordina/prova-riordina.sh
 # Prova riordina.py (controlla, applica, annulla) su cartelle finte: piano buono applicato e
 # annullato con l'albero identico (per impronta), collisioni, uscite dalla cartella, file cambiato
 # dopo il piano, interruzione a metà, nomi con spazi, accenti e apostrofi, fonti/ dello studio.
@@ -222,6 +222,12 @@ controllo "(6) gli altri sono tornati" test -f "$D/disordine/DVR Rossi 2024.pdf"
 # ================================================================ niente traceback
 controllo "nessun traceback in nessuna uscita" bash -c '! grep -l Traceback "$1"/uscite-tutte.txt' _ "$BASE"
 controllo "nessun file temporaneo lasciato" bash -c '[ -z "$(find "$1" -name "*.tmp-*")" ]' _ "$BASE"
+
+# ================================================================ casi rotti (K3): logica tutta in _robusto.py
+ROBUSTO="$("${PYTHON:-python3}" "$RADICE/prove/ordina/_robusto.py" "$RADICE" "$BASE/robusto" riordina 2>&1)"
+RC_ROBUSTO=$?
+echo "$ROBUSTO" | grep -v '^PASSA$' | grep -v '^$'
+uguale "_robusto.py riordina: (riordino) date prima del 1970, annulla che dice che cosa fare, avanzamento" "0" "$RC_ROBUSTO"
 
 if [ "$N_ERRORI" -eq 0 ]; then
   rm -rf "$BASE"

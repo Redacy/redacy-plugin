@@ -1,4 +1,4 @@
-# redacy 0.4.2 · skills/crea-grafo/scripts/yaml_ridotto.py
+# redacy 0.5.0 · skills/crea-grafo/scripts/yaml_ridotto.py
 """Lettore del sottoinsieme di yaml usato dai grafi di redacy.
 
 Solo libreria standard, niente PyYAML. Ammesso: mappe e liste a blocchi,
@@ -55,6 +55,8 @@ class Lista(list):
         list.__init__(self, *args)
         self.righe = []
 
+
+MAX_LIVELLI = 50   # quanti blocchi uno dentro l'altro si leggono: un grafo ne ha pochi, e oltre il lettore andrebbe in ricorsione
 
 _INTERO = re.compile(r"^[+-]?(0|[1-9][0-9]*)$")
 _DECIMALE = re.compile(r"^[+-]?(0|[1-9][0-9]*)\.[0-9]+$")
@@ -274,7 +276,10 @@ def _in_linea(resto, riga):
     if c == "?" and (len(resto) == 1 or resto[1] == " "):
         raise ErroreYaml(riga, "chiavi non semplici (\"? \") non ammesse")
     if c in "{[":
-        v, p = _flow_valore(resto, 0, riga)
+        try:
+            v, p = _flow_valore(resto, 0, riga)
+        except RecursionError:
+            raise ErroreYaml(riga, "troppi livelli di parentesi uno dentro l'altro: scrivi la lista o la mappa a blocchi")
         if _salta(resto, p) < len(resto):
             raise ErroreYaml(riga, "testo dopo la chiusura della mappa o lista in linea")
         return v
@@ -298,6 +303,7 @@ class _Lettore:
         if testo.startswith("﻿"):
             testo = testo[1:]
         self.raw = testo.split("\n")
+        self.livello = 0
         self.sost = {}
         self.saltate = set()
         self._voci = {}
@@ -382,6 +388,16 @@ class _Lettore:
         return k, text[m.start() + 1:].strip()
 
     def blocco(self, i, ind):
+        self.livello += 1
+        try:
+            if self.livello > MAX_LIVELLI:
+                raise ErroreYaml(i + 1, "troppi livelli uno dentro l'altro (oltre %d): un grafo non ne ha bisogno, "
+                                 "togli i rientri in più" % MAX_LIVELLI)
+            return self._blocco(i, ind)
+        finally:
+            self.livello -= 1
+
+    def _blocco(self, i, ind):
         _, text = self.voce(i)
         if _e_voce(text):
             return self.lista(i, ind)
@@ -568,6 +584,16 @@ def archi_del_grafo(dato):
     return archi
 
 
+def flussi_utf8():
+    """Su Windows i flussi che non sono un terminale usano la tabella locale (cp1252): chi li legge vuole UTF-8."""
+    for f in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if not f.isatty():
+                f.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 def main(argv):
     if len(argv) == 1 and argv[0] in ("-h", "--help"):
         print(AIUTO)
@@ -588,4 +614,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    flussi_utf8()
     sys.exit(main(sys.argv[1:]))

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prova-server.sh · redacy 0.4.2
+# prova-server.sh · redacy 0.5.0
 # Prova il server del pannello su una cartella dello studio fatta da `inizia` (crea-cartella.py),
 # con dati finti e una corsa per stato scritta da corsa.py:
 #  - il server parte, la pagina e tutte le viste rispondono 200 e dicono cose giuste;

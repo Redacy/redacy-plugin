@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/windows/_portabile.py (lo lancia prova-portabile.sh)
+# redacy 0.5.0 · prove/windows/_portabile.py (lo lancia prova-portabile.sh)
 import contextlib
 import importlib.util
 import json
@@ -379,7 +379,7 @@ def crea_come_windows(destinazione, prima=None):
     with mock.patch.object(cartella_py, "su_windows", lambda: True), \
          mock.patch.object(subprocess, "run", run_finto), \
          mock.patch.object(os, "symlink", symlink_rifiutato):
-        cartella_py.crea(__import__("pathlib").Path(destinazione), __import__("pathlib").Path(RADICE), "0.4.2", esito)
+        cartella_py.crea(__import__("pathlib").Path(destinazione), __import__("pathlib").Path(RADICE), "0.5.0", esito)
     return esito, chiamate
 
 

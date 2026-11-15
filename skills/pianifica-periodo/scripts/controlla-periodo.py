@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.4.2 · skills/pianifica-periodo/scripts/controlla-periodo.py
+# redacy 0.5.0 · skills/pianifica-periodo/scripts/controlla-periodo.py
 """Controlla periodo/todo.json e periodo/idee.json contro i loro schemi.
 
 Solo libreria standard. I due schemi (todo.schema.json, idee.schema.json) si
@@ -142,12 +142,12 @@ def controlli_oltre_lo_schema(nome, dati, cartella_periodo, errori):
             if esito.get("stato") == "portata nel periodo" and "todo" in esito:
                 path_todo = os.path.join(cartella_periodo, "todo.json")
                 try:
-                    with open(path_todo, encoding="utf-8") as f:
+                    with open(path_todo, encoding="utf-8-sig") as f:
                         todo = json.load(f)
                     ids = {t.get("id") for t in todo.get("todo", []) if isinstance(t, dict)}
                     if esito["todo"] not in ids:
                         errori.append(f"{elenco_chiave}[{i}].esito.todo: «{esito['todo']}» non c'è in todo.json")
-                except (OSError, ValueError, AttributeError):
+                except (OSError, ValueError, AttributeError, TypeError, RecursionError):
                     pass  # niente todo.json leggibile: non è affare di questo file
 
 
@@ -157,12 +157,22 @@ def controlla_file(percorso):
     if nome not in FILE_CONTROLLATI:
         return [f"{nome}: non so controllarlo (so controllare todo.json e idee.json)"]
     try:
-        with open(percorso, encoding="utf-8") as f:
+        # utf-8-sig: un BOM in testa (lo mettono alcuni programmi di Windows) non e' un errore.
+        with open(percorso, encoding="utf-8-sig") as f:
             testo = f.read()
+    except UnicodeDecodeError:
+        testo = None
     except OSError as e:
         return [f"{nome}: non riesco a leggerlo ({e.strerror or e})"]
+    if testo is None or "\x00" in testo:   # i NUL sono il segno di un UTF-16 scritto senza BOM
+        return [f"{nome} non è scritto in UTF-8: riscrivilo con lo strumento di scrittura dei file, "
+                "non con un comando della shell"]
+    if not testo.strip():
+        return [f"{nome} è vuoto: riscrivilo almeno con la struttura (versione, periodo e l'elenco), come in examples/"]
     try:
         dati = json.loads(testo)
+    except RecursionError:
+        return [f"{nome}: ha troppi livelli uno dentro l'altro per essere quello di un periodo: riscrivilo"]
     except ValueError as e:
         riga = getattr(e, "lineno", None)
         dove = f" alla riga {riga}" if riga else ""
@@ -193,7 +203,7 @@ def file_toccati(evento):
     Codex: apply_patch con il testo della patch in tool_input (il percorso è nel testo).
     Una shell che scrive: il comando è nel testo di tool_input.
     """
-    cartella = evento.get("cwd") or os.getcwd()
+    cartella = evento.get("cwd") if isinstance(evento.get("cwd"), str) and evento.get("cwd") else os.getcwd()
     testo = json.dumps(evento.get("tool_input", ""), ensure_ascii=False)
     trovati = []
     # Claude Code: il percorso intero sta in tool_input.file_path. Lo si legge da lì, così un percorso con
@@ -247,7 +257,7 @@ def da_hook():
             continue  # la scrittura è fallita o il file non c'è più: niente da dire
         errori = controlla_file(percorso)
         if errori:
-            relativo = os.path.relpath(percorso, evento.get("cwd") or os.getcwd())
+            relativo = os.path.relpath(percorso, evento.get("cwd") if isinstance(evento.get("cwd"), str) and evento.get("cwd") else os.getcwd())
             messaggi.append(f"{relativo} non è valido:\n- " + "\n- ".join(errori)
                             + "\nCorreggi il file adesso, poi rilancia: " + ("python" if su_windows() else "python3")
                             + " .agents/hooks/controlla-periodo.py "

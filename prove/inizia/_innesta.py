@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/inizia/_innesta.py (lo lancia prova-cartella.sh)
+# redacy 0.5.0 · prove/inizia/_innesta.py (lo lancia prova-cartella.sh)
 # Prova crea-cartella.py con ciò che c'era già nella cartella (--innesta) e con le copie vecchie (--aggiorna).
 # Una riga per controllo: «ok» o «NO». In fondo PASSA o FALLISCE.
 import hashlib
@@ -141,7 +141,7 @@ with open(os.path.join(A, "memoria", "INDICE.md"), "a", encoding="utf-8") as f:
 scrivi(A, ".claude/launch.json", '{"version": "0.0.1", "configurations": []}\n')
 p = os.path.join(A, ".agents/script/corsa.py")
 testo = open(p, encoding="utf-8").read()
-vecchio = testo.replace("redacy 0.4.2 ·", "redacy 0.4.0 ·", 1)
+vecchio = testo.replace("redacy 0.5.0 ·", "redacy 0.4.0 ·", 1)
 assert vecchio != testo
 open(p, "w", encoding="utf-8").write(vecchio)
 with open(os.path.join(A, ".agents/hooks/ferma.py"), "a", encoding="utf-8") as f:
@@ -159,7 +159,7 @@ controllo("--aggiorna: una riga «aggiornato:» per corsa.py e per ferma.py (mod
           rc == 0 and sorted(agg) == ["aggiornato: .agents/hooks/ferma.py", "aggiornato: .agents/script/corsa.py"]
           and "esito: 2 aggiornati, 1 ricreati" in u, u)
 controllo("--aggiorna rimette la copia che mancava (pagina.html)", os.path.isfile(os.path.join(A, ".agents/script/pagina.html")) and "creato: .agents/script/pagina.html" in u, u)
-controllo("la copia aggiornata porta la versione del plugin", "redacy 0.4.2 ·" in open(p, encoding="utf-8").read()[:300]
+controllo("la copia aggiornata porta la versione del plugin", "redacy 0.5.0 ·" in open(p, encoding="utf-8").read()[:300]
           and "modificato a mano" not in open(os.path.join(A, ".agents/hooks/ferma.py"), encoding="utf-8").read())
 ora = albero(A)
 controllo("non ha toccato AGENTS.md, memoria/, periodo/, su-misura.json né launch.json",

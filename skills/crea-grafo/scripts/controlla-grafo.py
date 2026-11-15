@@ -1,4 +1,4 @@
-# redacy 0.4.2 · skills/crea-grafo/scripts/controlla-grafo.py
+# redacy 0.5.0 · skills/crea-grafo/scripts/controlla-grafo.py
 """Controlla i grafi (grafi/<nome>.yaml) contro il formato di redacy.
 
 Si usa da riga di comando (controlla-grafo.py <file|cartella>) e si può
@@ -38,6 +38,8 @@ yl = importlib.import_module("yaml_ridotto")
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DATA = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 FUSO = re.compile(r"\b[A-Z][A-Za-z]+/[A-Za-z_]+(/[A-Za-z_]+)?\b|\bUTC\b|\bGMT\b|[+-][0-9]{2}:?[0-9]{2}\b")
+# Nomi che Windows non lascia usare per un file (grafi/con.yaml non si crea).
+RISERVATI = {"con", "prn", "aux", "nul"} | {"com%d" % n for n in range(1, 10)} | {"lpt%d" % n for n in range(1, 10)}
 VIETATI_COMANDO = ";|&`$<>"
 
 CAMPI_GRAFO = ("grafo", "versione", "obiettivo", "descrizione", "acceso", "innesco",
@@ -117,7 +119,7 @@ def _data_valida(v):
 
 
 def _percorso_relativo_ok(v):
-    return not (v.startswith("/") or v.startswith("~") or re.match(r"^[A-Za-z]:[\\/]", v)
+    return not (v.startswith("/") or v.startswith("\\") or v.startswith("~") or re.match(r"^[A-Za-z]:[\\/]", v)
                 or ".." in v.replace("\\", "/").split("/"))
 
 
@@ -214,6 +216,10 @@ class _Controllo:
                 self.err(riga, "grafo", "il nome dev'essere in kebab-case (minuscole, numeri e trattini) e c'è %s" % (
                     repr(nome) if isinstance(nome, str) else _nome_tipo(nome)),
                     "scrivi un nome come `giro-posta-mattina`")
+            elif nome in RISERVATI:
+                self.err(riga, "grafo", "il nome \"%s\" è riservato da Windows (come con, aux, nul, prn, com1-com9, "
+                         "lpt1-lpt9) e un file con quel nome non si crea" % nome,
+                         "scegli un altro nome, per esempio `%s-lavoro`, e rinomina il file" % nome)
             else:
                 attesto = os.path.splitext(os.path.basename(self.file))[0]
                 if nome != attesto:
@@ -584,6 +590,10 @@ class _Controllo:
 
 def _consigli_yaml(motivo):
     m = motivo.lower()
+    if "utf-8" in m:
+        return "salva il file in UTF-8 (nell'editor: «Salva con nome» e scegli la codifica UTF-8); se l'ha scritto un comando della shell, riscrivilo con lo strumento di scrittura dei file"
+    if "troppi livelli" in m:
+        return "togli i rientri e le parentesi in più: un grafo non ha bisogno di tanti livelli"
     if "ancora" in m or "alias" in m:
         return "scrivi i campi per intero invece di riusarli: ancore e alias non sono ammessi nei grafi"
     if "tag" in m:

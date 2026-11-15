@@ -1,4 +1,4 @@
-# redacy 0.4.2 · skills/ordina-dati/scripts/inventario.py
+# redacy 0.5.0 · skills/ordina-dati/scripts/inventario.py
 """Fa l'inventario di una cartella, in sola lettura.
 
 Uso: python3 inventario.py CARTELLA [--testo] [--elenco] [--massimo N]
@@ -18,7 +18,8 @@ Solo libreria standard, Python 3.9 o più. Gira su Windows, macOS e Linux.
 Le funzioni sui nomi (problemi_nome, SISTEMA, e_nascosto) le usa anche
 skills/riordina-cartella/scripts/riordina.py.
 
-Uscite: 0 fatto · 1 uso sbagliato · 2 la cartella non c'è o non si legge.
+Uscite: 0 fatto · 1 uso sbagliato (o una cartella che non si guarda: la radice del disco, la
+cartella dell'utente intera, una cartella di sistema) · 2 la cartella non c'è o non si legge.
 """
 
 import datetime
@@ -159,6 +160,44 @@ def collegamento_cartella(voce, st):
     if attributi(st) & ATTR_REPARSE and getattr(st, "st_reparse_tag", 0) in (TAG_JUNCTION, TAG_SYMLINK):
         return True
     return False
+
+
+def _dentro(figlio, padre):
+    figlio = os.path.normcase(figlio)
+    padre = os.path.normcase(padre)
+    return figlio == padre or figlio.startswith(padre.rstrip(os.sep) + os.sep)
+
+
+def di_sistema(cartella, dati_utente=True):
+    """Il motivo per cui una cartella non si guarda o non si riordina mai, o None.
+
+    La usa anche riordina.py. Con dati_utente=False le cartelle dei dati dei programmi dell'utente
+    (AppData, Library) non contano: leggerle non fa danni, e li' stanno anche le cartelle temporanee."""
+    reale = os.path.realpath(cartella)
+    if os.path.dirname(reale) == reale:
+        return "è la radice del disco"
+    casa = os.path.realpath(os.path.expanduser("~"))
+    if os.path.normcase(reale) == os.path.normcase(casa):
+        return "è la cartella dell'utente intera: scegli una sua sottocartella"
+    vietate = []
+    if os.name == "nt":
+        for v in ("SystemRoot", "windir", "ProgramFiles", "ProgramFiles(x86)", "ProgramW6432", "ProgramData") + (
+                ("APPDATA", "LOCALAPPDATA") if dati_utente else ()):
+            if os.environ.get(v):
+                vietate.append(os.environ[v])
+        if dati_utente:
+            vietate.append(os.path.join(casa, "AppData"))
+    else:
+        vietate += ["/bin", "/boot", "/dev", "/etc", "/lib", "/lib32", "/lib64", "/proc", "/run", "/sbin",
+                    "/snap", "/sys", "/usr", "/System", "/Library", "/Applications", "/private/etc",
+                    "/var/lib", "/var/log", "/var/cache", "/var/db", "/var/spool", "/cores"]
+        if dati_utente:
+            vietate.append(os.path.join(casa, "Library"))
+    for v in vietate:
+        rv = os.path.realpath(v)
+        if _dentro(reale, rv):
+            return "è una cartella di sistema (%s)" % v
+    return None
 
 
 def e_studio(cartella):
@@ -411,8 +450,20 @@ def categoria(motivo):
 
 # ---------------------------------------------------------------- insieme
 
+def quando(ts):
+    """La data di un file. Su Windows una data prima del 1970 (o lontanissima) fa sbagliare fromtimestamp:
+    in quel caso si parte dal 1970 e si somma, così la data resta quella vera e lo script non si ferma."""
+    try:
+        return datetime.datetime.fromtimestamp(ts)
+    except (OverflowError, OSError, ValueError):
+        try:
+            return datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=ts)
+        except (OverflowError, ValueError):
+            return datetime.datetime(1970, 1, 1)
+
+
 def data_locale(ts):
-    return datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
+    return quando(ts).strftime("%Y-%m-%d")
 
 
 def inventario(cartella, massimo=MASSIMO_FILE, con_doppioni=True, tetto_mb=TETTO_HASH_TOTALE_MB,
@@ -422,6 +473,10 @@ def inventario(cartella, massimo=MASSIMO_FILE, con_doppioni=True, tetto_mb=TETTO
         raise Errore(2, "La cartella %s non c'è." % radice)
     if not os.path.isdir(radice):
         raise Errore(2, "%s è un file, non una cartella: per un file basta guardarne l'inizio." % radice)
+    motivo = di_sistema(radice, dati_utente=False)
+    if motivo:
+        raise Errore(1, "La cartella %s non si guarda: %s. Scegli una sua sottocartella." % (
+            radice, motivo.split(":")[0]))
     try:
         os.listdir(radice)
     except OSError as e:
@@ -442,7 +497,7 @@ def inventario(cartella, massimo=MASSIMO_FILE, con_doppioni=True, tetto_mb=TETTO
     profondita = max([r.count("/") + 1 for r in cartelle + [f["rel"] for f in file]] or [0])
     vecchio = min(file, key=lambda f: f["mtime"]) if file else None
     recente = max(file, key=lambda f: f["mtime"]) if file else None
-    per_anno = Counter(datetime.datetime.fromtimestamp(f["mtime"]).year for f in file)
+    per_anno = Counter(quando(f["mtime"]).year for f in file)
     primo = Counter()
     sciolti = 0
     for f in file:
@@ -505,7 +560,7 @@ def inventario(cartella, massimo=MASSIMO_FILE, con_doppioni=True, tetto_mb=TETTO
     }
     if elenco:
         out["elenco"] = [{"file": f["rel"], "byte": f["byte"],
-                          "modificato": datetime.datetime.fromtimestamp(f["mtime"]).strftime("%Y-%m-%d %H:%M")}
+                          "modificato": quando(f["mtime"]).strftime("%Y-%m-%d %H:%M")}
                          for f in file]
     return out
 

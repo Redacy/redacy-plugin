@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# redacy 0.4.2 · prove/ordina/prova-inventario.sh
+# redacy 0.5.0 · prove/ordina/prova-inventario.sh
 # Prova inventario.py su una cartella finta: conti, tipi, date, nomi, doppioni, cartelle vuote,
 # file grandi, nomi che Windows rifiuta, tetto di file, niente scritto, niente traceback.
 # Una riga per controllo, in fondo PASSA oppure FALLISCE <perché>.
@@ -126,6 +126,12 @@ controllo "un file al posto della cartella: esce 2" test "$RC" = 2
 python3 "$INV" "$D" --massimo zero > "$BASE/uso.txt" 2>&1; RC=$?
 controllo "un'opzione sbagliata: esce 1" test "$RC" = 1
 controllo "nessun traceback in nessuna uscita" bash -c '! grep -l Traceback "$1"/*.txt "$1"/*.json'  _ "$BASE"
+
+# ================================================================ casi rotti (K3): logica tutta in _robusto.py
+ROBUSTO="$("${PYTHON:-python3}" "$RADICE/prove/ordina/_robusto.py" "$RADICE" "$BASE/robusto" inventario 2>&1)"
+RC_ROBUSTO=$?
+echo "$ROBUSTO" | grep -v '^PASSA$' | grep -v '^$'
+uguale "_robusto.py inventario: (inventario) radice del disco e cartelle di sistema rifiutate, date prima del 1970" "0" "$RC_ROBUSTO"
 
 if [ "$N_ERRORI" -eq 0 ]; then
   rm -rf "$BASE"

@@ -2,7 +2,7 @@
   "name": "redacy",
   "displayName": "Redacy",
   "description": "Trasforma Claude o ChatGPT in un agente sempre attivo per il tuo studio: sa dove stanno i tuoi dati, li tiene in ordine, porta avanti i lavori che si ripetono e mostra tutto in un pannello sul tuo computer. Turns Claude or ChatGPT into an always-on agent for a small professional firm: it knows where your data lives, keeps it tidy, runs the jobs that repeat and shows everything in a local dashboard. In Italian.",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "author": {
     "name": "Redacy",
     "url": "https://redacy.com"
@@ -21,7 +21,7 @@
   ],
   "icon": "./assets/icon.png",
   "documentationUrl": "https://github.com/Redacy/redacy-plugin#readme",
-  "supportUrl": "https://github.com/Redacy/redacy-plugin/issues",
+  "supportUrl": "https://redacy.com/contatti",
   "privacyPolicyUrl": "https://github.com/Redacy/redacy-plugin/blob/main/PRIVACY.md",
   "termsOfServiceUrl": "https://github.com/Redacy/redacy-plugin/blob/main/LICENSE"
 }

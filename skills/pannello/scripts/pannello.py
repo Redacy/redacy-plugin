@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# redacy 0.4.2 · skills/pannello/scripts/pannello.py
+# redacy 0.5.0 · skills/pannello/scripts/pannello.py
 """Il pannello: una pagina sola, in locale, che mostra lo studio e ferma una corsa.
 
 Un server su 127.0.0.1, solo libreria standard, uno per cartella dello studio.

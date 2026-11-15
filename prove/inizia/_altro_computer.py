@@ -1,4 +1,4 @@
-# redacy 0.4.2 · prove/inizia/_altro_computer.py (lo lancia prova-cartella.sh)
+# redacy 0.5.0 · prove/inizia/_altro_computer.py (lo lancia prova-cartella.sh)
 # Prova crea-cartella.py con i controlli automatici scritti per un altro computer (una cartella nata su Linux e
 # usata su Windows, o il contrario) e con le scritture che devono andare a capo con \n anche su Windows.
 # Il ramo Windows si forza con `mock` (come fa prove/windows/_portabile.py): qui non si lancia niente di vero.
@@ -226,7 +226,7 @@ with mock.patch.object(builtins, "open", open_spiata), mock.patch.object(_io, "o
     lancia(N, "--innesta")                     # l'innesto del settings.json
     for r in (".agents/script/corsa.py",):
         t = open(os.path.join(N, r), encoding="utf-8").read()
-        vera_open(os.path.join(N, r), "w", encoding="utf-8").write(t.replace("redacy 0.4.2 ·", "redacy 0.4.0 ·", 1))
+        vera_open(os.path.join(N, r), "w", encoding="utf-8").write(t.replace("redacy 0.5.0 ·", "redacy 0.4.0 ·", 1))
     lancia(N, "--aggiorna")                    # rinfresca una copia
     t = vera_open(os.path.join(N, ".agents/hooks.json"), encoding="utf-8").read()
     vera_open(os.path.join(N, ".agents/hooks.json"), "w", encoding="utf-8").write(t.replace("python -c", "python3 -c"))

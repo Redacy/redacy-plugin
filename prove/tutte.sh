@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tutte.sh · redacy 0.4.2
+# tutte.sh · redacy 0.5.0
 # Lancia tutte le prove che non chiamano nessun modello, una riga per prova, e in fondo
 #   ESITO: PASSA     oppure     ESITO: FALLISCE <le prove che non passano>
 # Non serve un account Claude o Codex. Serve Python 3, bash e curl. Dura meno di un minuto.
@@ -120,6 +120,7 @@ prova "grafi: il controllo" bash "$RADICE/prove/grafi/prova-controllo.sh"
 prova "grafi: le corse e lo stop" bash "$RADICE/prove/grafi/prova-corsa.sh"
 prova "periodo: gli schemi e il controllo" bash "$RADICE/prove/periodo/prova-schemi.sh"
 prova "inizia: la cartella" bash "$RADICE/prove/inizia/prova-cartella.sh"
+prova "workspace: crea e controlla, casi rotti" bash "$RADICE/prove/workspace/prova-workspace.sh"
 prova "ordina: l'inventario" bash "$RADICE/prove/ordina/prova-inventario.sh"
 prova "ordina: il riordino e l'annulla" bash "$RADICE/prove/ordina/prova-riordina.sh"
 prova "pannello: il server e lo stop" bash "$RADICE/prove/pannello/prova-server.sh"
