@@ -218,3 +218,15 @@ jobs:
       - name: prove/windows/prova-portabile.sh
         shell: bash
         run: PYTHON=python bash prove/windows/prova-portabile.sh
+
+  portabile-mac:
+    name: prova dei rami Windows · macos-latest
+    runs-on: macos-latest
+    timeout-minutes: 15
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: prove/windows/prova-portabile.sh
+        shell: bash
+        run: bash prove/windows/prova-portabile.sh
