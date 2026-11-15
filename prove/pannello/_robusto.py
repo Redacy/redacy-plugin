@@ -157,6 +157,34 @@ with mock.patch.object(pannello, "crea_server", crea_vietato), mock.patch.object
 controllo("porta 80 vietata: dice di usare una porta sopra 1024, senza Codex",
           bool(messaggio) and "1024" in messaggio and "Codex" not in messaggio and "sandbox" not in messaggio, messaggio)
 
+# 3b. Il server non chiede al sistema il nome del computer (su Mac e certe reti la risposta arriva dopo decine di secondi)
+import socket
+
+def porta_libera():
+    with socket.socket() as t:
+        t.bind(("127.0.0.1", 0))
+        return t.getsockname()[1]
+
+
+def prova_senza_fqdn(crea, porta):
+    with mock.patch.object(socket, "getfqdn", side_effect=AssertionError("getfqdn chiamato")):
+        try:
+            server = crea(porta)
+        except AssertionError as e:
+            return None, str(e)
+    return server, ""
+
+
+_porta = porta_libera()
+_server, _errore = prova_senza_fqdn(pannello.crea_server, _porta)
+try:
+    controllo("il server nasce senza chiedere al sistema il nome del computer (socket.getfqdn)",
+              _server is not None and _server.server_name == "127.0.0.1" and _server.server_port == _porta,
+              _errore or (_server and (_server.server_name, _server.server_port)))
+finally:
+    if _server is not None:
+        _server.server_close()
+
 if sys.platform != "linux":
     print("SALTA     le prove che accendono il pannello vero: servono Linux")
 else:
